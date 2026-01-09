@@ -1,0 +1,6 @@
+# Backend Models Requirements
+# Dependencies for domain models
+
+pydantic>=2.0.0
+pydantic-extra-types>=2.0.0  # Includes phone number validation
+email-validator>=2.0.0

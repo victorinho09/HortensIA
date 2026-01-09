@@ -1,0 +1,5 @@
+# Testing Requirements
+# Dependencies for running tests
+
+pytest>=8.0.0
+

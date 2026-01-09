@@ -1,0 +1,8 @@
+### Root endpoint
+GET http://localhost:8888/
+
+### Health check
+GET http://localhost:8000/health
+
+### Ping
+GET http://localhost:8000/ping

@@ -1,0 +1,35 @@
+{
+  "app": {
+    "name": "TFG",
+    "version": "1.0.0",
+    "environment": "development"
+  },
+  "backend": {
+    "api": {
+      "host": "0.0.0.0",
+      "port": 8888,
+      "url": "http://localhost:8888",
+      "docs_url": "http://localhost:8888/docs"
+    }
+  },
+  "frontend": {
+    "metro": {
+      "port": 8081
+    },
+    "ios": {
+      "simulator": "iPhone 12 Pro Max"
+    }
+  },
+  "database": {
+    "postgresql": {
+      "host": "localhost",
+      "port": 5432,
+      "database": "postgres",
+      "user": "victorvegamartinez"
+    }
+  },
+  "scripts": {
+    "start": "./scripts/start.sh",
+    "stop": "./scripts/stop.sh"
+  }
+}
