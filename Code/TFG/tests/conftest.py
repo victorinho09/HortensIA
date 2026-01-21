@@ -8,6 +8,22 @@ import pytest
 
 
 @pytest.fixture(scope="function")
+def sample_user_base_data() -> dict:
+    """
+    Provide sample UserBase data for testing.
+    
+    Returns:
+        Dictionary with valid UserBase data
+    """
+    return {
+        "email": "test@example.com",
+        "name": "Test User",
+        "contact_person_email": "contact@example.com",
+        "contact_person_phone": "+34600000000",
+        "diversity_type": "visual",
+    }
+
+@pytest.fixture(scope="function")
 def sample_user_create_data() -> dict:
     """
     Provide sample user creation data for testing.
@@ -17,10 +33,10 @@ def sample_user_create_data() -> dict:
     """
     return {
         "email": "test@example.com",
-        "full_name": "Test User",
+        "name": "Test User",
         "contact_person_email": "contact@example.com",
         "contact_person_phone": "+34600000000",
-        "functional_diversity_type": "visual",
+        "diversity_type": "visual",
         "password": "testpassword123"
     }
 
@@ -34,10 +50,10 @@ def sample_user_data() -> dict:
     """
     return {
         "email": "test@example.com",
-        "full_name": "Test User",
+        "name": "Test User",
         "contact_person_email": "contact@example.com",
         "contact_person_phone": "+34600000000",
-        "functional_diversity_type": "visual",
+        "diversity_type": "visual",
     }
 
 
@@ -51,6 +67,6 @@ def sample_user_update_data() -> dict:
     """
     return {
         "email": "updated@example.com",
-        "full_name": "Updated User"
+        "name": "Updated User"
     }
 
