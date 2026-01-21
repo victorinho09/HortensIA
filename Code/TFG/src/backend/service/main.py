@@ -2,7 +2,7 @@
 FastAPI Application Entry Point
 """
 from fastapi import FastAPI
-from .routers import health, users, items
+from .routers import health, signup
 
 app = FastAPI(
     title="FastAPI Service",
@@ -10,11 +10,9 @@ app = FastAPI(
     description="REST API with FastAPI"
 )
 
-# Incluir routers
+# Include routers
 app.include_router(health.router, tags=["health"])
-app.include_router(users.router, prefix="/api/users", tags=["users"])
-app.include_router(items.router, prefix="/api/items", tags=["items"])
-
+app.include_router(signup.router, prefix="/signup", tags=["signup"])
 
 @app.get("/")
 async def root():

@@ -1,8 +1,15 @@
 ### Root endpoint
-GET http://localhost:8888/
+GET http://localhost:8888/health
 
-### Health check
-GET http://localhost:8000/health
+### POST /signup
+POST http://localhost:8888/signup
+content-type: application/json
 
-### Ping
-GET http://localhost:8000/ping
+{
+    "email": "miprueba@hola.com",
+    "name": "victor",
+    "contact_person_email": "otrapruebas@hola.com",
+    "contact_person_phone": "+16502530000",
+    "diversity_type": "nada",
+    "password": "pasdfasf"
+}
