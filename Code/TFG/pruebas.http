@@ -6,7 +6,7 @@ POST http://localhost:8888/signup
 content-type: application/json
 
 {
-    "email": "miprueba@hola.com",
+    "email": "mipruebahola.com",
     "name": "victor",
     "contact_person_email": "otrapruebas@hola.com",
     "contact_person_phone": "+16502530000",

@@ -13,9 +13,3 @@ async def health_check():
         "status": "ok",
         "message": "Service is running"
     }
-
-
-@router.get("/ping")
-async def ping():
-    """Simple ping endpoint"""
-    return {"message": "pong"}
