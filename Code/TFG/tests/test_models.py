@@ -13,7 +13,8 @@ from src.backend.models import (
     UserBase, 
     UserCreate, 
     UserCreateOAuth,
-    UserUpdate, 
+    UserUpdate,
+    UserInsert,
     UserResponse,
     UserRole,
     UUIDType, 
@@ -470,19 +471,25 @@ class TestUserUpdateModel:
 
 
 class TestCompleteUserModel:
-    """Test suite for User model (complete database representation)"""
+    """Test suite for User model (complete database representation returned from DB)"""
     
     # Valid creation tests
     
     def test_user_with_required_fields_only(self):
-        """Test User creation with only required field (email)"""
-        user = User(email="test@example.com")
+        """Test User creation with only required fields (email, id, created_at)"""
+        test_id = generate_uuid()
+        test_datetime = datetime.now()
+        user = User(
+            id=test_id,
+            email="test@example.com",
+            created_at=test_datetime
+        )
         assert user.email == "test@example.com"
         assert user.name is None
-        assert isinstance(user.id, UUID)
+        assert user.id == test_id
         assert user.passwordHash is None
         assert user.role == UserRole.USER
-        assert isinstance(user.created_at, datetime)
+        assert user.created_at == test_datetime
         assert user.email_verified is False
         assert user.settings == {}
     
@@ -514,36 +521,40 @@ class TestCompleteUserModel:
     
     # Default values tests
     
-    def test_user_generates_unique_id(self):
-        """Test User generates unique UUIDs for each instance"""
-        user1 = User(email="user1@example.com")
-        user2 = User(email="user2@example.com")
+    def test_user_accepts_different_ids(self):
+        """Test User accepts different UUIDs (from database)"""
+        id1 = generate_uuid()
+        id2 = generate_uuid()
+        test_datetime = datetime.now()
+        user1 = User(id=id1, email="user1@example.com", created_at=test_datetime)
+        user2 = User(id=id2, email="user2@example.com", created_at=test_datetime)
         assert user1.id != user2.id
+        assert user1.id == id1
+        assert user2.id == id2
         assert isinstance(user1.id, UUID)
         assert isinstance(user2.id, UUID)
     
     def test_user_default_role_is_user(self):
         """Test User default role is USER"""
-        user = User(email="test@example.com")
+        user = User(id=generate_uuid(), email="test@example.com", created_at=datetime.now())
         assert user.role == UserRole.USER
     
     def test_user_default_email_verified_is_false(self):
         """Test User default email_verified is False"""
-        user = User(email="test@example.com")
+        user = User(id=generate_uuid(), email="test@example.com", created_at=datetime.now())
         assert user.email_verified is False
     
     def test_user_default_settings_is_empty_dict(self):
         """Test User default settings is empty dictionary"""
-        user = User(email="test@example.com")
+        user = User(id=generate_uuid(), email="test@example.com", created_at=datetime.now())
         assert user.settings == {}
         assert isinstance(user.settings, dict)
     
-    def test_user_created_at_auto_generated(self):
-        """Test User created_at is automatically generated"""
-        before = datetime.now()
-        user = User(email="test@example.com")
-        after = datetime.now()
-        assert before <= user.created_at <= after
+    def test_user_created_at_from_database(self):
+        """Test User accepts created_at from database"""
+        test_datetime = datetime(2024, 1, 15, 10, 30, 0)
+        user = User(id=generate_uuid(), email="test@example.com", created_at=test_datetime)
+        assert user.created_at == test_datetime
         assert isinstance(user.created_at, datetime)
     
     # OAuth user tests
@@ -551,9 +562,11 @@ class TestCompleteUserModel:
     def test_user_for_oauth_without_password_hash(self):
         """Test User can be created without passwordHash for OAuth users"""
         user = User(
+            id=generate_uuid(),
             email="oauth@example.com",
             name="OAuth User",
-            passwordHash=None
+            passwordHash=None,
+            created_at=datetime.now()
         )
         assert user.passwordHash is None
         assert user.email == "oauth@example.com"
@@ -561,8 +574,10 @@ class TestCompleteUserModel:
     def test_user_for_traditional_auth_with_password_hash(self):
         """Test User with passwordHash for traditional authentication"""
         user = User(
+            id=generate_uuid(),
             email="traditional@example.com",
-            passwordHash="$2b$12$hashed_password"
+            passwordHash="$2b$12$hashed_password",
+            created_at=datetime.now()
         )
         assert user.passwordHash == "$2b$12$hashed_password"
     
@@ -571,29 +586,184 @@ class TestCompleteUserModel:
     def test_user_without_email_fails(self):
         """Test User creation fails without email"""
         with pytest.raises(ValidationError) as exc_info:
-            User()
+            User(id=generate_uuid(), created_at=datetime.now())
         errors = exc_info.value.errors()
         assert any("email" in str(error["loc"]) for error in errors)
     
     def test_user_with_invalid_email_fails(self):
         """Test User creation fails with invalid email"""
         with pytest.raises(ValidationError):
-            User(email="not-an-email")
+            User(id=generate_uuid(), email="not-an-email", created_at=datetime.now())
     
     def test_user_with_invalid_role(self):
         """Test User creation fails with invalid role"""
         with pytest.raises(ValidationError):
-            User(email="test@example.com", role="invalid_role")
+            User(id=generate_uuid(), email="test@example.com", role="invalid_role", created_at=datetime.now())
     
     def test_user_with_wrong_type_email_verified(self):
         """Test User creation fails with wrong type for email_verified"""
         with pytest.raises(ValidationError):
-            User(email="test@example.com", email_verified="not_a_boolean")
+            User(id=generate_uuid(), email="test@example.com", email_verified="not_a_boolean", created_at=datetime.now())
     
     def test_user_with_wrong_type_settings(self):
         """Test User creation fails with wrong type for settings"""
         with pytest.raises(ValidationError):
-            User(email="test@example.com", settings="not_a_dict")
+            User(id=generate_uuid(), email="test@example.com", settings="not_a_dict", created_at=datetime.now())
+
+
+class TestUserInsertModel:
+    """Test suite for UserInsert model (database insertion with split phone)"""
+    
+    # Valid creation tests
+    
+    def test_user_insert_with_required_fields(self):
+        """Test UserInsert creation with only required fields"""
+        test_id = generate_uuid()
+        user_insert = UserInsert(
+            id=test_id,
+            email="insert@example.com"
+        )
+        assert user_insert.id == test_id
+        assert user_insert.email == "insert@example.com"
+        assert user_insert.name is None
+        assert user_insert.contact_person_country_code is None
+        assert user_insert.contact_person_phone_number is None
+        assert user_insert.passwordHash is None
+        assert user_insert.role == UserRole.USER
+        assert user_insert.email_verified is False
+        assert user_insert.settings == {}
+        assert not hasattr(user_insert, 'created_at')  # Excluded from insert
+    
+    def test_user_insert_with_all_fields(self):
+        """Test UserInsert creation with all fields including split phone"""
+        test_id = generate_uuid()
+        user_insert = UserInsert(
+            id=test_id,
+            email="complete@example.com",
+            name="Complete User",
+            contact_person_email="contact@example.com",
+            contact_person_country_code=34,
+            contact_person_phone_number=600123456,
+            diversity_type="visual",
+            passwordHash="$2b$12$hashed_password",
+            role=UserRole.ADMIN,
+            email_verified=True,
+            settings={"theme": "dark"}
+        )
+        assert user_insert.id == test_id
+        assert user_insert.email == "complete@example.com"
+        assert user_insert.name == "Complete User"
+        assert user_insert.contact_person_country_code == 34
+        assert user_insert.contact_person_phone_number == 600123456
+        assert user_insert.diversity_type == "visual"
+        assert user_insert.passwordHash == "$2b$12$hashed_password"
+        assert user_insert.role == UserRole.ADMIN
+        assert user_insert.email_verified is True
+        assert user_insert.settings == {"theme": "dark"}
+    
+    def test_user_insert_split_phone_fields(self):
+        """Test UserInsert with split phone country code and number"""
+        user_insert = UserInsert(
+            id=generate_uuid(),
+            email="phone@example.com",
+            contact_person_country_code=1,
+            contact_person_phone_number=5551234567
+        )
+        assert user_insert.contact_person_country_code == 1
+        assert user_insert.contact_person_phone_number == 5551234567
+        assert isinstance(user_insert.contact_person_country_code, int)
+        assert isinstance(user_insert.contact_person_phone_number, int)
+    
+    def test_user_insert_without_password_hash_oauth(self):
+        """Test UserInsert for OAuth users without passwordHash"""
+        user_insert = UserInsert(
+            id=generate_uuid(),
+            email="oauth@example.com",
+            name="OAuth User",
+            passwordHash=None
+        )
+        assert user_insert.passwordHash is None
+        assert user_insert.email == "oauth@example.com"
+    
+    # Default values tests
+    
+    def test_user_insert_default_role(self):
+        """Test UserInsert default role is USER"""
+        user_insert = UserInsert(
+            id=generate_uuid(),
+            email="test@example.com"
+        )
+        assert user_insert.role == UserRole.USER
+    
+    def test_user_insert_default_email_verified(self):
+        """Test UserInsert default email_verified is False"""
+        user_insert = UserInsert(
+            id=generate_uuid(),
+            email="test@example.com"
+        )
+        assert user_insert.email_verified is False
+    
+    def test_user_insert_default_settings(self):
+        """Test UserInsert default settings is empty dict"""
+        user_insert = UserInsert(
+            id=generate_uuid(),
+            email="test@example.com"
+        )
+        assert user_insert.settings == {}
+        assert isinstance(user_insert.settings, dict)
+    
+    # Validation tests
+    
+    def test_user_insert_requires_id(self):
+        """Test UserInsert fails without id"""
+        with pytest.raises(ValidationError) as exc_info:
+            UserInsert(email="test@example.com")
+        errors = exc_info.value.errors()
+        assert any("id" in str(error["loc"]) for error in errors)
+    
+    def test_user_insert_requires_email(self):
+        """Test UserInsert fails without email"""
+        with pytest.raises(ValidationError) as exc_info:
+            UserInsert(id=generate_uuid())
+        errors = exc_info.value.errors()
+        assert any("email" in str(error["loc"]) for error in errors)
+    
+    def test_user_insert_with_invalid_email(self):
+        """Test UserInsert fails with invalid email"""
+        with pytest.raises(ValidationError):
+            UserInsert(
+                id=generate_uuid(),
+                email="not-an-email"
+            )
+    
+    def test_user_insert_with_invalid_role(self):
+        """Test UserInsert fails with invalid role"""
+        with pytest.raises(ValidationError):
+            UserInsert(
+                id=generate_uuid(),
+                email="test@example.com",
+                role="invalid_role"
+            )
+    
+    def test_user_insert_country_code_as_integer(self):
+        """Test UserInsert accepts integer country code"""
+        user_insert = UserInsert(
+            id=generate_uuid(),
+            email="test@example.com",
+            contact_person_country_code=44
+        )
+        assert user_insert.contact_person_country_code == 44
+        assert isinstance(user_insert.contact_person_country_code, int)
+    
+    def test_user_insert_phone_number_as_integer(self):
+        """Test UserInsert accepts integer phone number"""
+        user_insert = UserInsert(
+            id=generate_uuid(),
+            email="test@example.com",
+            contact_person_phone_number=7891234567
+        )
+        assert user_insert.contact_person_phone_number == 7891234567
+        assert isinstance(user_insert.contact_person_phone_number, int)
 
 
 class TestUserResponseModel:
@@ -645,9 +815,11 @@ class TestUserResponseModel:
     def test_user_response_from_user_model(self):
         """Test creating UserResponse from User model (excluding sensitive data)"""
         user = User(
+            id=generate_uuid(),
             email="user@example.com",
             name="Test User",
-            passwordHash="$2b$12$sensitive_hash"
+            passwordHash="$2b$12$sensitive_hash",
+            created_at=datetime.now()
         )
         # Create response by excluding passwordHash
         user_response = UserResponse(

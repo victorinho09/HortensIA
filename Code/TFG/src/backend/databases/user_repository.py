@@ -2,7 +2,7 @@
 User Repository - Database access layer for User operations
 """
 from typing import Optional
-from src.backend.models.user import User
+from src.backend.models.user import UserInsert
 
 
 class UserRepository:
@@ -36,7 +36,7 @@ class UserRepository:
         else:
             return False
     
-    async def get_by_email(self, email: str) -> Optional[User]:
+    async def get_by_email(self, email: str) -> Optional[UserInsert]:
         """
         Check if a user exists by email address.
         
@@ -57,7 +57,7 @@ class UserRepository:
         # Temporary: Return None (no user exists)
         return None
     
-    async def create(self, user: User) -> User:
+    async def create(self, user: UserInsert) -> UserInsert:
         """
         Save a new user to the database.
         
@@ -76,7 +76,7 @@ class UserRepository:
         # Temporary: Return the user as-is
         return user
     
-    async def get_by_id(self, user_id: str) -> Optional[User]:
+    async def get_by_id(self, user_id: str) -> Optional[UserInsert]:
         """
         Retrieve a user by their ID.
         
@@ -89,7 +89,7 @@ class UserRepository:
         # TODO: Implement database query by ID
         return None
     
-    async def update(self, user_id: str, user_data: dict) -> Optional[User]:
+    async def update(self, user_id: str, user_data: dict) -> Optional[UserInsert]:
         """
         Update an existing user's information.
         

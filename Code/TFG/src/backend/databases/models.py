@@ -1,0 +1,52 @@
+"""
+SQLAlchemy ORM Models
+
+Database table definitions using SQLAlchemy ORM.
+"""
+
+from sqlalchemy import Column, DateTime, func, text, ForeignKey
+from sqlalchemy.dialects.postgresql import UUID, CITEXT, JSONB,TEXT, INTEGER,BIGINT,BOOLEAN
+from sqlalchemy.ext.declarative import declarative_base
+from src.backend.models.uuid import generate_uuid
+
+Base = declarative_base()
+
+
+class UserTable(Base):
+    """
+    SQLAlchemy ORM model for users table.
+    Maps to database schema with split phone number fields.
+    """
+    __tablename__ = "users"
+    
+    # Primary key
+    id = Column(UUID(as_uuid=True), primary_key=True, default = generate_uuid())
+    
+    email = Column(CITEXT, unique=True, nullable=False)
+    name = Column(TEXT, nullable=True)
+    contact_person_email = Column(CITEXT, nullable=True)
+    contact_person_country_code = Column(INTEGER, nullable=True)
+    contact_person_phone_number = Column(BIGINT, nullable=True)
+    diversity_type = Column(TEXT, nullable=True)    
+    role = Column(TEXT, nullable=False, default="user")
+    email_verified = Column(BOOLEAN, nullable=False, default=False)
+    settings = Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+
+class AuthIdentities(Base):
+    """
+    SQLAlchemy ORM model for auth_identities table.
+    """
+    __tablename__ = "auth_identities"
+
+    #Primary key
+    id = Column(UUID(as_uuid= True), primary_key=True,default = generate_uuid())
+
+    #Foreign Key - references users.id
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False)
+
+    provider = Column(TEXT,nullable=False)
+    provider_user_id = Column(TEXT, nullable=True)
+    password_hash = Column(TEXT, nullable = True)
+    created_at= Column(DateTime(timezone=True), nullable=False, server_default=func.now())

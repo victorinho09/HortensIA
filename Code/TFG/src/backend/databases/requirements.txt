@@ -1,0 +1,3 @@
+# Database layer dependencies
+# SQLAlchemy ORM for database operations
+sqlalchemy>=2.0.0

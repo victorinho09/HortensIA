@@ -16,7 +16,7 @@ cd "$(dirname "$0")/.."
 echo "📋 Loading configuration..."
 CONFIG_FILE="config.json"
 if [ ! -f "$CONFIG_FILE" ]; then
-    echo "❌ Error: config.json not found"
+    #echo "❌ Error: config.json not found"
     exit 1
 fi
 
@@ -26,52 +26,47 @@ BACKEND_HOST=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['b
 POSTGRES_PORT=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['database']['postgresql']['port'])")
 IOS_SIMULATOR=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['frontend']['ios']['simulator'])")
 
-echo "✅ Configuration loaded"
-echo "   Backend: $BACKEND_HOST:$BACKEND_PORT"
-echo "   PostgreSQL: localhost:$POSTGRES_PORT"
-echo "   iOS Simulator: $IOS_SIMULATOR"
+#echo "✅ Configuration loaded"
+#echo "   Backend: $BACKEND_HOST:$BACKEND_PORT"
+#echo "   PostgreSQL: localhost:$POSTGRES_PORT"
+#echo "   iOS Simulator: $IOS_SIMULATOR"
 
 # Activate conda environment
-echo "🐍 Activating conda environment TFG..."
+#echo "🐍 Activating conda environment TFG..."
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate TFG_HP
-echo "✅ Conda environment activated"
+#echo "✅ Conda environment activated"
 
 # Ensure dependencies are installed
-echo "📦 Checking dependencies..."
+#echo "📦 Checking dependencies..."
 if [ ! -d "node_modules" ]; then
-    echo "Installing npm dependencies..."
+    #echo "Installing npm dependencies..."
     npm install
-else
-    echo "✅ Dependencies OK"
 fi
 
-echo "🗄️  Starting PostgreSQL..."
+#echo "🗄️  Starting PostgreSQL..."
 brew services start postgresql@15
 sleep 2
-echo "✅ PostgreSQL running"
+#echo "✅ PostgreSQL running"
 
-echo "🔧 Checking Backend (FastAPI)..."
 if lsof -ti :$BACKEND_PORT > /dev/null 2>&1; then
-    echo "✅ Backend already running on http://localhost:$BACKEND_PORT"
+    : # Backend already running
 else
-    echo "🔧 Starting Backend (FastAPI)..."
-    uvicorn src.backend.service.main:app --reload --host $BACKEND_HOST --port $BACKEND_PORT &
+    uvicorn src.backend.service.main:app --reload --host $BACKEND_HOST --port $BACKEND_PORT > /dev/null 2>&1 &
     BACKEND_PID=$!
-    echo "✅ Backend running on http://localhost:$BACKEND_PORT (PID: $BACKEND_PID)"
     sleep 2
 fi
 
-echo "🚀 Starting TFG iOS App..."
+#echo "🚀 Starting TFG iOS App..."
 
 # Check if simulator is already running with better detection
 BOOTED_DEVICES=$(xcrun simctl list devices | grep "Booted")
 if [ ! -z "$BOOTED_DEVICES" ]; then
-    echo "✅ Simulator already running"
+    #echo "✅ Simulator already running"
     DEVICE_ID=$(echo "$BOOTED_DEVICES" | grep -o "[0-9A-F]\{8\}-[0-9A-F]\{4\}-[0-9A-F]\{4\}-[0-9A-F]\{4\}-[0-9A-F]\{12\}" | head -1)
-    echo "📱 Building and installing app on device: $DEVICE_ID"
+    #echo "📱 Building and installing app on device: $DEVICE_ID"
     npx react-native run-ios --udid "$DEVICE_ID"
 else
-    echo "📱 Launching simulator and app..."
+    #echo "📱 Launching simulator and app..."
     npx react-native run-ios --simulator="$IOS_SIMULATOR"
 fi

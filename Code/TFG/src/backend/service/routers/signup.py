@@ -1,10 +1,13 @@
 """
 Signup Router
 """
-from fastapi import APIRouter, HTTPException, status, Response
-from src.backend.models.user import UserCreate, UserResponse, User
+from fastapi import APIRouter, HTTPException, status, Response, Depends
+from src.backend.models.user import UserCreate, UserResponse, UserInsert
 from src.backend.models.hash import hash_password
 from src.backend.databases.user_repository import UserRepository
+from src.backend.databases.connection import get_db
+from sqlalchemy.orm import Session
+
 
 router = APIRouter()
 
@@ -90,14 +93,14 @@ router = APIRouter()
         }
     }
 )
-async def signup(user_data: UserCreate, response: Response):
+async def signup(user_data: UserCreate, response: Response,db: Session = Depends(get_db)):
     """
     Register a new user with email and password.
     Password is automatically hashed using Argon2.
     """
     try:
         # Initialize repository
-        repo = UserRepository()
+        repo = UserRepository(db)
             
         # Validate that the email does not exist in the database. 
         # If it exists, return with code 409
@@ -111,7 +114,7 @@ async def signup(user_data: UserCreate, response: Response):
         hashed_password = hash_password(user_data.password)
         
         # Generate the User model for the database
-        database_user = User(
+        database_user = UserInsert(
             **user_data.model_dump(exclude={'password'}),
             passwordHash=hashed_password
         )

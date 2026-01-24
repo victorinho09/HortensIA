@@ -11,6 +11,7 @@ from .user import (
     UserCreate, 
     UserCreateOAuth,
     UserUpdate,
+    UserInsert,
     UserResponse,
     UserRole
 )
@@ -24,6 +25,7 @@ __all__ = [
     "UserCreate",
     "UserCreateOAuth",
     "UserUpdate",
+    "UserInsert",
     "UserResponse",
     "UserRole",
     # UUID utilities
