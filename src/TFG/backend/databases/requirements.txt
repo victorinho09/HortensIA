@@ -1,0 +1,6 @@
+# Database layer dependencies
+# SQLAlchemy ORM for database operations
+sqlalchemy>=2.0.0
+
+# PostgreSQL database adapter
+psycopg2-binary>=2.9.0

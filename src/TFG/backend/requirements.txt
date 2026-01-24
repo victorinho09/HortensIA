@@ -1,0 +1,20 @@
+# ============================================
+# TFG_HP - Python Dependencies
+# ============================================
+
+# Backend Models
+-r models/requirements.txt
+
+# Backend Service
+-r service/requirements.txt
+
+# Databases
+-r databases/requirements.txt
+-r databases/data_storage/requirements.txt
+-r databases/media_storage/requirements.txt
+
+# Testing
+-r tests/requirements.txt
+
+
+
