@@ -1,0 +1,36 @@
+brew services start postgresql@15
+brew services stop postgresql@15
+brew services list | grep postgresql
+
+cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/TFG
+source backend/.venv/bin/activate
+uvicorn backend.service.main:app --reload --host 127.0.0.1 --port 8888
+
+lsof -ti :8888
+lsof -ti :8888 | xargs kill -9
+
+cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/TFG/frontend
+npm install
+
+cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/TFG/frontend/ios
+pod install
+
+cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/TFG/frontend
+npm start
+
+cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/TFG/frontend
+npx react-native run-ios --simulator="iPhone 12 Pro Max"
+
+
+cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/TFG/frontend
+DEVICE_ID=$(xcrun simctl list devices | grep "Booted" | grep -o "[0-9A-F]\{8\}-[0-9A-F]\{4\}-[0-9A-F]\{4\}-[0-9A-F]\{4\}-[0-9A-F]\{12\}" | head -1)
+npx react-native run-ios --udid "$DEVICE_ID"
+
+# Stop Metro bundler
+pkill -9 -f "react-native start"
+pkill -9 -f "metro"
+lsof -ti :8081 | xargs kill -9
+
+# Stop iOS simulator
+xcrun simctl shutdown all
+killall Simulator
