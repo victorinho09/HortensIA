@@ -11,10 +11,6 @@ from pydantic import BaseModel, EmailStr, Field
 from pydantic_extra_types.phone_numbers import PhoneNumber
 from .uuid import generate_uuid, UUIDType
 
-#The telephone number is stored as a number, so the application must convert its type. Database only stores:
-#CC: 34
-#Tel: 639104485
-
 
 FIELD_DESCRIPTIONS = {
     "id": "Unique user identifier (UUID)",
@@ -22,9 +18,8 @@ FIELD_DESCRIPTIONS = {
     "name": "User's full name",
     "password": "User's password (minimum 8 characters)",
     "contact_person_email": "Emergency contact person's email address",
-    "contact_person_phone": "Emergency contact person's phone number",
     "contact_person_country_code": "Emergency contact person's phone country code",
-    "contact_person_phone_number": "Emergency contact person's phone national number",
+    "contact_person_phone_number": "Emergency contact person's phone national number, not including the country code",
     "diversity_type": "Type of diversity or special needs",
     "passwordHash": "Hashed password (None for OAuth users)",
     "role": "User's role in the system",
@@ -47,7 +42,8 @@ class UserBase(BaseModel):
     email: EmailStr = Field(..., description=FIELD_DESCRIPTIONS["email"])
     name: Optional[str] = Field(default=None, min_length=2, description=FIELD_DESCRIPTIONS["name"])
     contact_person_email: Optional[EmailStr] = Field(default=None, description=FIELD_DESCRIPTIONS["contact_person_email"])
-    contact_person_phone: Optional[PhoneNumber] = Field(default=None, description=FIELD_DESCRIPTIONS["contact_person_phone"])
+    contact_person_country_code: Optional[int] = Field(default=None, ge=0, le=999, description=FIELD_DESCRIPTIONS["contact_person_country_code"])
+    contact_person_phone_number: Optional[int] = Field(default=None, description=FIELD_DESCRIPTIONS["contact_person_phone_number"])
     diversity_type: Optional[str] = Field(default=None, description=FIELD_DESCRIPTIONS["diversity_type"])
 
 
@@ -67,32 +63,36 @@ class UserUpdate(BaseModel):
     name: Optional[str] = Field(default=None, min_length=2, description=FIELD_DESCRIPTIONS["name"])
     password: Optional[str] = Field(default=None, min_length=8, description=FIELD_DESCRIPTIONS["password"])
     contact_person_email: Optional[EmailStr] = Field(default=None, description=FIELD_DESCRIPTIONS["contact_person_email"])
-    contact_person_phone: Optional[PhoneNumber] = Field(default=None, description=FIELD_DESCRIPTIONS["contact_person_phone"])
+    contact_person_country_code: Optional[int] = Field(default=None,ge=0, le=999, description=FIELD_DESCRIPTIONS["contact_person_country_code"])
+    contact_person_phone_number: Optional[int] = Field(default=None, description=FIELD_DESCRIPTIONS["contact_person_phone_number"])
     diversity_type: Optional[str] = Field(default=None, description=FIELD_DESCRIPTIONS["diversity_type"])
     role: Optional[UserRole] = Field(default=None, description=FIELD_DESCRIPTIONS["role"])
     email_verified: Optional[bool] = Field(default=None, description=FIELD_DESCRIPTIONS["email_verified"])
     settings: Optional[Dict[str, Any]] = Field(default=None, description=FIELD_DESCRIPTIONS["settings"])
 
 
-class UserInsert(BaseModel):
+class UserInsert(UserBase):
     """
     Database insertion model with split phone and excluded auto-generated fields.
     Used by repository layer for SQLAlchemy INSERT operations.
-    Does not extend from UserBase because has different phone number fields
+    Extends from UserBase and adds database-specific fields.
+    Does not include passwordHash - that goes in auth_identities table.
     """
-    id: UUIDType = Field(..., description=FIELD_DESCRIPTIONS["id"])
-    email: EmailStr = Field(..., description=FIELD_DESCRIPTIONS["email"])
-    name: Optional[str] = Field(default=None, description=FIELD_DESCRIPTIONS["name"])
-    contact_person_email: Optional[EmailStr] = Field(default=None, description=FIELD_DESCRIPTIONS["contact_person_email"])
-    contact_person_country_code: Optional[int] = Field(default=None, description=FIELD_DESCRIPTIONS["contact_person_country_code"])
-    contact_person_phone_number: Optional[int] = Field(default=None, description=FIELD_DESCRIPTIONS["contact_person_phone_number"])
-    diversity_type: Optional[str] = Field(default=None, description=FIELD_DESCRIPTIONS["diversity_type"])
-    passwordHash: Optional[str] = Field(default=None, description=FIELD_DESCRIPTIONS["passwordHash"])
+    id: UUIDType = Field(default_factory=generate_uuid, description=FIELD_DESCRIPTIONS["id"])
     role: UserRole = Field(default=UserRole.USER, description=FIELD_DESCRIPTIONS["role"])
     email_verified: bool = Field(default=False, description=FIELD_DESCRIPTIONS["email_verified"])
     settings: Dict[str, Any] = Field(default_factory=dict, description=FIELD_DESCRIPTIONS["settings"])
     # NOTE: created_at is excluded - database will auto-generate with CURRENT_TIMESTAMP
+    # NOTE: passwordHash is excluded - goes in auth_identities table
 
+class UserResponse(UserBase):
+    """User schema for API responses (excludes sensitive data)"""
+    id: UUIDType = Field(..., description=FIELD_DESCRIPTIONS["id"])
+    name: str = Field(..., description=FIELD_DESCRIPTIONS["name"])  # Override to make required
+    role: UserRole = Field(..., description=FIELD_DESCRIPTIONS["role"])
+    created_at: datetime = Field(..., description=FIELD_DESCRIPTIONS["created_at"])
+    email_verified: bool = Field(..., description=FIELD_DESCRIPTIONS["email_verified"])
+    settings: Dict[str, Any] = Field(..., description=FIELD_DESCRIPTIONS["settings"])
 
 class User(UserBase):
     """Complete user model returned from database (includes auto-generated fields)"""
@@ -102,17 +102,28 @@ class User(UserBase):
     created_at: datetime = Field(..., description=FIELD_DESCRIPTIONS["created_at"])
     email_verified: bool = Field(default=False, description=FIELD_DESCRIPTIONS["email_verified"])
     settings: Dict[str, Any] = Field(default_factory=dict, description=FIELD_DESCRIPTIONS["settings"])
+    
+    def user_to_user_response(self) -> UserResponse:
+        """
+        Convert User to UserResponse (safe for API responses).
+        Excludes sensitive fields like passwordHash.
+        
+        Returns:
+            UserResponse object with public user data
+        """
+        return UserResponse(
+            id=self.id,
+            email=self.email,
+            name=self.name,
+            contact_person_email=self.contact_person_email,
+            contact_person_country_code=self.contact_person_country_code,
+            contact_person_phone_number=self.contact_person_phone_number,
+            diversity_type=self.diversity_type,
+            role=self.role,
+            created_at=self.created_at,
+            email_verified=self.email_verified,
+            settings=self.settings
+        )
 
 
-class UserResponse(BaseModel):
-    """User schema for API responses (excludes sensitive data)"""
-    id: UUIDType = Field(..., description=FIELD_DESCRIPTIONS["id"])
-    email: EmailStr = Field(..., description=FIELD_DESCRIPTIONS["email"])
-    name: str = Field(..., description=FIELD_DESCRIPTIONS["name"])
-    contact_person_email: Optional[EmailStr] = Field(default=None, description=FIELD_DESCRIPTIONS["contact_person_email"])
-    contact_person_phone: Optional[PhoneNumber] = Field(default=None, description=FIELD_DESCRIPTIONS["contact_person_phone"])
-    diversity_type: Optional[str] = Field(default=None, description=FIELD_DESCRIPTIONS["diversity_type"])
-    role: UserRole = Field(..., description=FIELD_DESCRIPTIONS["role"])
-    created_at: datetime = Field(..., description=FIELD_DESCRIPTIONS["created_at"])
-    email_verified: bool = Field(..., description=FIELD_DESCRIPTIONS["email_verified"])
-    settings: Dict[str, Any] = Field(..., description=FIELD_DESCRIPTIONS["settings"])
+

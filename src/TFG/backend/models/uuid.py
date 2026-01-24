@@ -60,3 +60,22 @@ def uuid_to_str(uuid_obj: UUID) -> str:
     return str(uuid_obj)
 
 
+def str_to_uuid(uuid_str: str) -> UUID:
+    """
+    Convert string to UUID object.
+    
+    Args:
+        uuid_str: String representation of UUID
+        
+    Returns:
+        UUID object
+        
+    Raises:
+        ValueError: If string is not a valid UUID format
+    """
+    try:
+        return UUID(uuid_str)
+    except (ValueError, AttributeError, TypeError) as e:
+        raise ValueError(f"Invalid UUID string: {uuid_str}") from e
+
+

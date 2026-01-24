@@ -3,8 +3,12 @@ Signup Router
 """
 from fastapi import APIRouter, HTTPException, status, Response, Depends
 from backend.models.user import UserCreate, UserResponse, UserInsert
+from backend.models.auth import AuthIdentityInsert
 from backend.models.hash import hash_password
+from backend.models.uuid import generate_uuid
+from backend.models.auth import Provider
 from backend.databases.user_repository import UserRepository
+from backend.databases.auth_repository import AuthRepository
 from backend.databases.connection import get_db
 from sqlalchemy.orm import Session
 
@@ -93,18 +97,20 @@ router = APIRouter()
         }
     }
 )
-async def signup(user_data: UserCreate, response: Response,db: Session = Depends(get_db)):
+async def signup(user_data: UserCreate, response: Response, db: Session = Depends(get_db)):
     """
     Register a new user with email and password.
     Password is automatically hashed using Argon2.
+    Creates both user record and authentication identity.
     """
     try:
-        # Initialize repository
-        repo = UserRepository(db)
+        # Initialize repositories
+        user_repo = UserRepository(db)
+        auth_repo = AuthRepository(db)
             
         # Validate that the email does not exist in the database. 
         # If it exists, return with code 409
-        if await repo.exists_user(user_data.email):
+        if await user_repo.exists_user(user_data.email):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="User with this email already exists"
@@ -113,18 +119,28 @@ async def signup(user_data: UserCreate, response: Response,db: Session = Depends
         # Hash the password
         hashed_password = hash_password(user_data.password)
         
-        # Generate the User model for the database
+        # Generate the User model for the database (UUID auto-generated)
         database_user = UserInsert(
-            **user_data.model_dump(exclude={'password'}),
-            passwordHash=hashed_password
+            **user_data.model_dump(exclude={'password'})
+        )
+        
+        # Create auth identity for password authentication
+        auth_identity = AuthIdentityInsert(
+            user_id=database_user.id,  # Use the auto-generated user ID
+            provider=Provider.PASSWORD,
+            provider_user_id=None,  # Not needed for local auth
+            password_hash=hashed_password
         )
         
         # Save user to database
-        saved_user = await repo.create(database_user)
+        saved_user = await user_repo.create(database_user)
+        
+        # Save authentication identity
+        await auth_repo.create(auth_identity)
         
         # Return user response without passwordHash
         response.status_code = status.HTTP_200_OK
-        return UserResponse(**saved_user.model_dump(exclude={'passwordHash'}))
+        return saved_user.user_to_user_response()
         
     except HTTPException:
         # Re-raise HTTPExceptions (409 Conflict)

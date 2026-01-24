@@ -33,7 +33,8 @@ class TestUserModel:
         assert user.email == "test@example.com"
         assert user.name is None
         assert user.contact_person_email is None
-        assert user.contact_person_phone is None
+        assert user.contact_person_country_code is None
+        assert user.contact_person_phone_number is None
         assert user.diversity_type is None
     
     def test_user_base_with_all_fields(self, sample_user_base_data):
@@ -42,10 +43,8 @@ class TestUserModel:
         assert user.email == sample_user_base_data["email"]
         assert user.name == sample_user_base_data["name"]
         assert user.contact_person_email == sample_user_base_data["contact_person_email"]
-        # PhoneNumber formats as RFC 3966 (tel:+XX-XXX-XX-XX-XX), compare without formatting
-        phone_normalized = sample_user_base_data["contact_person_phone"].replace("+", "").replace("-", "")
-        stored_phone_normalized = str(user.contact_person_phone).replace("tel:", "").replace("+", "").replace("-", "")
-        assert phone_normalized == stored_phone_normalized
+        assert user.contact_person_country_code == sample_user_base_data["contact_person_country_code"]
+        assert user.contact_person_phone_number == sample_user_base_data["contact_person_phone_number"]
         assert user.diversity_type == sample_user_base_data["diversity_type"]
     
     def test_user_base_with_optional_fields_none(self):
@@ -54,13 +53,15 @@ class TestUserModel:
             email="test@example.com",
             name=None,
             contact_person_email=None,
-            contact_person_phone=None,
+            contact_person_country_code=None,
+            contact_person_phone_number=None,
             diversity_type=None
         )
         assert user.email == "test@example.com"
         assert user.name is None
         assert user.contact_person_email is None
-        assert user.contact_person_phone is None
+        assert user.contact_person_country_code is None
+        assert user.contact_person_phone_number is None
         assert user.diversity_type is None
     
     # email Validation tests for UserBase model
@@ -162,49 +163,27 @@ class TestUserModel:
         )
         assert user.contact_person_email is None
     
-    # contact_person_phone validation tests
+    # contact_person_country_code and contact_person_phone_number validation tests
     
-    def test_user_base_with_valid_phone_formats(self):
-        """Test UserBase accepts various valid phone number formats"""
-        valid_phones = [
-            "+34600000000",
-            "+442071234567",
-        ]
-        for phone in valid_phones:
-            user = UserBase(
-                email="test@example.com",
-                contact_person_phone=phone
-            )
-            # PhoneNumber stores in RFC 3966 format, compare without formatting
-            phone_str = str(user.contact_person_phone)
-            assert "tel:" in phone_str
-            phone_normalized = phone.replace("+", "").replace("-", "")
-            stored_normalized = phone_str.replace("tel:", "").replace("+", "").replace("-", "")
-            assert phone_normalized == stored_normalized
-    
-    def test_user_base_with_invalid_phone_format(self):
-        """Test UserBase creation fails with invalid phone number"""
-        invalid_phones = [
-            "123",  # Too short
-            "not-a-phone",
-            "600000000",  # Missing country code
-        ]
-        for invalid_phone in invalid_phones:
-            with pytest.raises(ValidationError) as exc_info:
-                UserBase(
-                    email="test@example.com",
-                    contact_person_phone=invalid_phone
-                )
-            errors = exc_info.value.errors()
-            assert any("contact_person_phone" in str(error["loc"]) for error in errors)
-    
-    def test_user_base_with_none_phone(self):
-        """Test UserBase accepts None for contact_person_phone"""
+    def test_user_base_with_valid_phone_fields(self):
+        """Test UserBase accepts valid phone country code and number"""
         user = UserBase(
             email="test@example.com",
-            contact_person_phone=None
+            contact_person_country_code=34,
+            contact_person_phone_number=600000000
         )
-        assert user.contact_person_phone is None
+        assert user.contact_person_country_code == 34
+        assert user.contact_person_phone_number == 600000000
+    
+    def test_user_base_with_none_phone_fields(self):
+        """Test UserBase accepts None for phone fields"""
+        user = UserBase(
+            email="test@example.com",
+            contact_person_country_code=None,
+            contact_person_phone_number=None
+        )
+        assert user.contact_person_country_code is None
+        assert user.contact_person_phone_number is None
     
     # diversity_type validation tests
     
@@ -350,12 +329,15 @@ class TestUserCreateOAuthModel:
             email="oauth@example.com",
             name="OAuth User",
             contact_person_email="contact@example.com",
-            contact_person_phone="+34600000000",
+            contact_person_country_code=34,
+            contact_person_phone_number=600000000,
             diversity_type="visual"
         )
         assert user.email == "oauth@example.com"
         assert user.name == "OAuth User"
         assert user.contact_person_email == "contact@example.com"
+        assert user.contact_person_country_code == 34
+        assert user.contact_person_phone_number == 600000000
     
     # Validation tests
     
@@ -393,7 +375,8 @@ class TestUserUpdateModel:
         assert user_update.name is None
         assert user_update.password is None
         assert user_update.contact_person_email is None
-        assert user_update.contact_person_phone is None
+        assert user_update.contact_person_country_code is None
+        assert user_update.contact_person_phone_number is None
         assert user_update.diversity_type is None
         assert user_update.role is None
         assert user_update.email_verified is None
@@ -413,7 +396,8 @@ class TestUserUpdateModel:
             name="Updated Name",
             password="newpassword123",
             contact_person_email="newcontact@example.com",
-            contact_person_phone="+34611111111",
+            contact_person_country_code=34,
+            contact_person_phone_number=611111111,
             diversity_type="motor",
             role=UserRole.ADMIN,
             email_verified=True,
@@ -421,6 +405,8 @@ class TestUserUpdateModel:
         )
         assert user_update.email == "updated@example.com"
         assert user_update.name == "Updated Name"
+        assert user_update.contact_person_country_code == 34
+        assert user_update.contact_person_phone_number == 611111111
         assert user_update.role == UserRole.ADMIN
         assert user_update.email_verified is True
         assert user_update.settings == {"theme": "dark"}
@@ -503,7 +489,8 @@ class TestCompleteUserModel:
             name="Complete User",
             passwordHash="$2b$12$hashed_password",
             contact_person_email="contact@example.com",
-            contact_person_phone="+34600000000",
+            contact_person_country_code=34,
+            contact_person_phone_number=600000000,
             diversity_type="visual",
             role=UserRole.ADMIN,
             created_at=test_datetime,
@@ -514,6 +501,8 @@ class TestCompleteUserModel:
         assert user.email == "complete@example.com"
         assert user.name == "Complete User"
         assert user.passwordHash == "$2b$12$hashed_password"
+        assert user.contact_person_country_code == 34
+        assert user.contact_person_phone_number == 600000000
         assert user.role == UserRole.ADMIN
         assert user.created_at == test_datetime
         assert user.email_verified is True
@@ -628,11 +617,11 @@ class TestUserInsertModel:
         assert user_insert.name is None
         assert user_insert.contact_person_country_code is None
         assert user_insert.contact_person_phone_number is None
-        assert user_insert.passwordHash is None
         assert user_insert.role == UserRole.USER
         assert user_insert.email_verified is False
         assert user_insert.settings == {}
         assert not hasattr(user_insert, 'created_at')  # Excluded from insert
+        assert not hasattr(user_insert, 'passwordHash')  # Excluded - goes in auth_identities
     
     def test_user_insert_with_all_fields(self):
         """Test UserInsert creation with all fields including split phone"""
@@ -645,7 +634,6 @@ class TestUserInsertModel:
             contact_person_country_code=34,
             contact_person_phone_number=600123456,
             diversity_type="visual",
-            passwordHash="$2b$12$hashed_password",
             role=UserRole.ADMIN,
             email_verified=True,
             settings={"theme": "dark"}
@@ -656,10 +644,10 @@ class TestUserInsertModel:
         assert user_insert.contact_person_country_code == 34
         assert user_insert.contact_person_phone_number == 600123456
         assert user_insert.diversity_type == "visual"
-        assert user_insert.passwordHash == "$2b$12$hashed_password"
         assert user_insert.role == UserRole.ADMIN
         assert user_insert.email_verified is True
         assert user_insert.settings == {"theme": "dark"}
+        assert not hasattr(user_insert, 'passwordHash')  # passwordHash not in UserInsert
     
     def test_user_insert_split_phone_fields(self):
         """Test UserInsert with split phone country code and number"""
@@ -673,17 +661,6 @@ class TestUserInsertModel:
         assert user_insert.contact_person_phone_number == 5551234567
         assert isinstance(user_insert.contact_person_country_code, int)
         assert isinstance(user_insert.contact_person_phone_number, int)
-    
-    def test_user_insert_without_password_hash_oauth(self):
-        """Test UserInsert for OAuth users without passwordHash"""
-        user_insert = UserInsert(
-            id=generate_uuid(),
-            email="oauth@example.com",
-            name="OAuth User",
-            passwordHash=None
-        )
-        assert user_insert.passwordHash is None
-        assert user_insert.email == "oauth@example.com"
     
     # Default values tests
     
@@ -714,12 +691,15 @@ class TestUserInsertModel:
     
     # Validation tests
     
-    def test_user_insert_requires_id(self):
-        """Test UserInsert fails without id"""
-        with pytest.raises(ValidationError) as exc_info:
-            UserInsert(email="test@example.com")
-        errors = exc_info.value.errors()
-        assert any("id" in str(error["loc"]) for error in errors)
+    def test_user_insert_auto_generates_id(self):
+        """Test UserInsert auto-generates id if not provided"""
+        user_insert1 = UserInsert(email="test1@example.com")
+        user_insert2 = UserInsert(email="test2@example.com")
+        assert user_insert1.id is not None
+        assert user_insert2.id is not None
+        assert user_insert1.id != user_insert2.id
+        assert isinstance(user_insert1.id, UUID)
+        assert isinstance(user_insert2.id, UUID)
     
     def test_user_insert_requires_email(self):
         """Test UserInsert fails without email"""
@@ -780,7 +760,8 @@ class TestUserResponseModel:
             email="response@example.com",
             name="Response User",
             contact_person_email="contact@example.com",
-            contact_person_phone="+34600000000",
+            contact_person_country_code=34,
+            contact_person_phone_number=600000000,
             diversity_type="visual",
             role=UserRole.USER,
             created_at=test_datetime,
@@ -790,6 +771,8 @@ class TestUserResponseModel:
         assert user_response.id == test_id
         assert user_response.email == "response@example.com"
         assert user_response.name == "Response User"
+        assert user_response.contact_person_country_code == 34
+        assert user_response.contact_person_phone_number == 600000000
         assert user_response.role == UserRole.USER
         assert user_response.created_at == test_datetime
         assert user_response.email_verified is True
@@ -803,7 +786,8 @@ class TestUserResponseModel:
             email="test@example.com",
             name="Test User",
             contact_person_email=None,
-            contact_person_phone=None,
+            contact_person_country_code=None,
+            contact_person_phone_number=None,
             diversity_type=None,
             role=UserRole.USER,
             created_at=datetime.now(),
@@ -827,7 +811,8 @@ class TestUserResponseModel:
             email=user.email,
             name=user.name,
             contact_person_email=user.contact_person_email,
-            contact_person_phone=user.contact_person_phone,
+            contact_person_country_code=user.contact_person_country_code,
+            contact_person_phone_number=user.contact_person_phone_number,
             diversity_type=user.diversity_type,
             role=user.role,
             created_at=user.created_at,
@@ -889,7 +874,8 @@ class TestUserResponseModel:
             email="test@example.com",
             name="Test User",
             contact_person_email=None,
-            contact_person_phone=None,
+            contact_person_country_code=None,
+            contact_person_phone_number=None,
             diversity_type=None,
             role=UserRole.USER,
             created_at=datetime.now(),
@@ -897,7 +883,8 @@ class TestUserResponseModel:
             settings={}
         )
         assert user_response.contact_person_email is None
-        assert user_response.contact_person_phone is None
+        assert user_response.contact_person_country_code is None
+        assert user_response.contact_person_phone_number is None
         assert user_response.diversity_type is None
     
 

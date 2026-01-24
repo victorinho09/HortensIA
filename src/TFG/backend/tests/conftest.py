@@ -19,7 +19,8 @@ def sample_user_base_data() -> dict:
         "email": "test@example.com",
         "name": "Test User",
         "contact_person_email": "contact@example.com",
-        "contact_person_phone": "+34600000000",
+        "contact_person_country_code": 34,
+        "contact_person_phone_number": 600000000,
         "diversity_type": "visual",
     }
 
@@ -35,7 +36,8 @@ def sample_user_create_data() -> dict:
         "email": "test@example.com",
         "name": "Test User",
         "contact_person_email": "contact@example.com",
-        "contact_person_phone": "+34600000000",
+        "contact_person_country_code": 34,
+        "contact_person_phone_number": 600000000,
         "diversity_type": "visual",
         "password": "testpassword123"
     }
@@ -52,7 +54,8 @@ def sample_user_data() -> dict:
         "email": "test@example.com",
         "name": "Test User",
         "contact_person_email": "contact@example.com",
-        "contact_person_phone": "+34600000000",
+        "contact_person_country_code": 34,
+        "contact_person_phone_number": 600000000,
         "diversity_type": "visual",
     }
 

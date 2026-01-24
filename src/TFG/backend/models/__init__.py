@@ -15,8 +15,9 @@ from .user import (
     UserResponse,
     UserRole
 )
-from .uuid import UUIDType, generate_uuid, validate_uuid, uuid_to_str
+from .uuid import UUIDType, generate_uuid, validate_uuid, uuid_to_str, str_to_uuid
 from .hash import hash_password, verify_password, needs_rehash
+from .auth import AuthIdentityInsert, AuthIdentity, Provider
 
 __all__ = [
     # User models
@@ -33,8 +34,13 @@ __all__ = [
     "generate_uuid",
     "validate_uuid",
     "uuid_to_str",
+    "str_to_uuid",
     # Password hashing
     "hash_password",
     "verify_password",
     "needs_rehash",
+    # Auth identity models
+    "AuthIdentityInsert",
+    "AuthIdentity",
+    "Provider",
 ]
