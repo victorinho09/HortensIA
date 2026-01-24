@@ -16,7 +16,7 @@ __all__ = ["get_db", "get_db_context", "init_db", "drop_db", "engine", "SessionL
 # Load database configuration from config.json
 def load_db_config():
     """Load database configuration from config.json"""
-    config_path = Path(__file__).parent.parent.parent.parent / "config.json"
+    config_path = Path(__file__).parent.parent.parent / "config.json"
     with open(config_path, 'r') as f:
         config = json.load(f)
     return config['database']['postgresql']

@@ -2,10 +2,10 @@
 Signup Router
 """
 from fastapi import APIRouter, HTTPException, status, Response, Depends
-from src.backend.models.user import UserCreate, UserResponse, UserInsert
-from src.backend.models.hash import hash_password
-from src.backend.databases.user_repository import UserRepository
-from src.backend.databases.connection import get_db
+from backend.models.user import UserCreate, UserResponse, UserInsert
+from backend.models.hash import hash_password
+from backend.databases.user_repository import UserRepository
+from backend.databases.connection import get_db
 from sqlalchemy.orm import Session
 
 

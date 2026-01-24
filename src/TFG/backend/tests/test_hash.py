@@ -5,7 +5,7 @@ Unit tests for password hashing and verification functions.
 """
 
 import pytest
-from src.backend.models.hash import hash_password, verify_password, needs_rehash
+from backend.models.hash import hash_password, verify_password, needs_rehash
 
 
 class TestHashPassword:

@@ -2,7 +2,7 @@
 User Repository - Database access layer for User operations
 """
 from typing import Optional
-from src.backend.models.user import UserInsert
+from backend.models.user import UserInsert
 
 
 class UserRepository:

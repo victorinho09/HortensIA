@@ -8,7 +8,7 @@ import pytest
 from uuid import UUID
 from datetime import datetime
 from pydantic import ValidationError
-from src.backend.models import (
+from backend.models import (
     User, 
     UserBase, 
     UserCreate, 

@@ -6,7 +6,7 @@ Unit tests for UUID generation and validation utilities.
 
 import pytest
 from uuid import UUID
-from src.backend.models import UUIDType, generate_uuid, validate_uuid
+from backend.models import UUIDType, generate_uuid, validate_uuid
 
 
 class TestUUIDModel:

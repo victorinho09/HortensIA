@@ -4,8 +4,8 @@ Database initialization script
 Run this to create all database tables.
 """
 
-from src.backend.databases.connection import init_db, engine
-from src.backend.databases.models import Base
+from backend.databases.connection import init_db, engine
+from backend.databases.models import Base
 
 if __name__ == "__main__":
     print("Creating database tables...")
