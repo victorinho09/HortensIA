@@ -16,9 +16,6 @@ cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia
 pod install
 
 cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/TFG/frontend
-npm start
-
-cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/TFG/frontend
 npx react-native run-ios --simulator="iPhone 12 Pro Max"
 
 
