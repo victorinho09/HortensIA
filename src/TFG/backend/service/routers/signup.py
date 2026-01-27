@@ -104,6 +104,18 @@ async def signup(user_data: UserCreate, response: Response, db: Session = Depend
     Creates both user record and authentication identity.
     """
     try:
+        print("\n" + "="*50)
+        print("SIGNUP ENDPOINT - Received data:")
+        print("="*50)
+        print(f"Name: {user_data.name}")
+        print(f"Email: {user_data.email}")
+        print(f"Password: {user_data.password}")
+        print(f"Contact Email: {user_data.contact_person_email}")
+        print(f"Country Code: {user_data.contact_person_country_code}")
+        print(f"Phone: {user_data.contact_person_phone_number}")
+        print(f"Diversity Type: {user_data.diversity_type}")
+        print("="*50 + "\n")
+        
         # Initialize repositories
         user_repo = UserRepository(db)
         auth_repo = AuthRepository(db)

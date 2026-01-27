@@ -20,8 +20,11 @@ import {
   validatePassword,
   validatePasswordMatch,
 } from '../utils/validation';
+import { signup } from '../utils/api';
 
 export default function RegisterScreen() {
+  const [apiError, setApiError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -68,10 +71,30 @@ export default function RegisterScreen() {
     return Object.values(newErrors).every(error => error === '');
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateForm()) {
-      console.log('Todo bien');
-      //Ejecutar petición a la API
+      setLoading(true);
+      setApiError(''); //To clear previous errors
+      try {
+        const result = await signup({
+          name,
+          email,
+          password,
+          contactEmail,
+          countryCode,
+          phone,
+          diversityType,
+        });
+        console.log('Everything OK!'); // I need to navigate to log in screen
+      } catch (error: any) {
+        const errorMessage =
+          error.response?.data?.detail ||
+          error.response?.data?.message ||
+          'Something went wrong. Please try again.';
+        setApiError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -218,12 +241,27 @@ export default function RegisterScreen() {
     }
   };
 
+  const isFormValid =
+    email.trim() !== '' &&
+    password !== '' &&
+    confirmPassword !== '' &&
+    Object.values(errors).every(error => error === '');
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text variant="headlineLarge" style={styles.title}>
+        <Text variant="headlineMedium" style={styles.title}>
           Register
         </Text>
+        <Text variant="bodyMedium" style={styles.subtitle}>
+          Create your account to get started
+        </Text>
+
+        {apiError && (
+          <HelperText type="error" visible style={styles.apiError}>
+            {apiError}
+          </HelperText>
+        )}
 
         <Card style={styles.card}>
           <Card.Content>
@@ -244,7 +282,7 @@ export default function RegisterScreen() {
             )}
 
             <TextInput
-              label="Email"
+              label="Email *"
               placeholder="testaccount@gmail.com"
               value={email}
               onChangeText={handleEmailChange}
@@ -263,7 +301,7 @@ export default function RegisterScreen() {
             )}
 
             <TextInput
-              label="Password"
+              label="Password *"
               placeholder="New Password"
               value={password}
               onChangeText={handlePasswordChange}
@@ -281,7 +319,7 @@ export default function RegisterScreen() {
             )}
 
             <TextInput
-              label="Confirm Password"
+              label="Confirm Password *"
               placeholder="Confirm Password"
               value={confirmPassword}
               onChangeText={handleConfirmPasswordChange}
@@ -325,7 +363,7 @@ export default function RegisterScreen() {
 
             <View style={styles.row}>
               <TextInput
-                label="Contact Person Phone Number"
+                label="Phone Number"
                 value={phone}
                 onChangeText={handlePhoneChange}
                 onBlur={handlePhoneBlur}
@@ -383,9 +421,11 @@ export default function RegisterScreen() {
             <Button
               mode="contained"
               onPress={handleSubmit}
-              style={styles.button}
+              disabled={!isFormValid}
+              loading={loading}
+              style={[styles.button, !isFormValid && styles.buttonDisabled]}
             >
-              Create Account
+              {loading ? 'Creating...' : 'Create Account'}
             </Button>
 
             <Button

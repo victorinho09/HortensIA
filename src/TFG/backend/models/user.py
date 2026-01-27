@@ -42,8 +42,9 @@ class UserBase(BaseModel):
     email: EmailStr = Field(..., description=FIELD_DESCRIPTIONS["email"])
     name: Optional[str] = Field(default=None, min_length=2, description=FIELD_DESCRIPTIONS["name"])
     contact_person_email: Optional[EmailStr] = Field(default=None, description=FIELD_DESCRIPTIONS["contact_person_email"])
-    contact_person_country_code: Optional[int] = Field(default=None, ge=0, le=999, description=FIELD_DESCRIPTIONS["contact_person_country_code"])
-    contact_person_phone_number: Optional[int] = Field(default=None, description=FIELD_DESCRIPTIONS["contact_person_phone_number"])
+    #Country code and phone number must be strings, if not, there are problems with the number of 0's
+    contact_person_country_code: Optional[str] = Field(default=None, max_length=3,description=FIELD_DESCRIPTIONS["contact_person_country_code"])
+    contact_person_phone_number: Optional[str] = Field(default=None, min_length=6, max_length=15,description=FIELD_DESCRIPTIONS["contact_person_phone_number"])
     diversity_type: Optional[str] = Field(default=None, description=FIELD_DESCRIPTIONS["diversity_type"])
 
 
@@ -63,8 +64,9 @@ class UserUpdate(BaseModel):
     name: Optional[str] = Field(default=None, min_length=2, description=FIELD_DESCRIPTIONS["name"])
     password: Optional[str] = Field(default=None, min_length=8, description=FIELD_DESCRIPTIONS["password"])
     contact_person_email: Optional[EmailStr] = Field(default=None, description=FIELD_DESCRIPTIONS["contact_person_email"])
-    contact_person_country_code: Optional[int] = Field(default=None,ge=0, le=999, description=FIELD_DESCRIPTIONS["contact_person_country_code"])
-    contact_person_phone_number: Optional[int] = Field(default=None, description=FIELD_DESCRIPTIONS["contact_person_phone_number"])
+    #Country code and phone number must be strings, if not, there are problems with the number of 0's
+    contact_person_country_code: Optional[str] = Field(default=None,max_length=4, description=FIELD_DESCRIPTIONS["contact_person_country_code"])
+    contact_person_phone_number: Optional[str] = Field(default=None,min_length=6,max_length=15,description=FIELD_DESCRIPTIONS["contact_person_phone_number"])
     diversity_type: Optional[str] = Field(default=None, description=FIELD_DESCRIPTIONS["diversity_type"])
     role: Optional[UserRole] = Field(default=None, description=FIELD_DESCRIPTIONS["role"])
     email_verified: Optional[bool] = Field(default=None, description=FIELD_DESCRIPTIONS["email_verified"])

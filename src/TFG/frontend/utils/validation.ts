@@ -31,6 +31,7 @@ export const validateEmailField = (email: string): string => {
 };
 
 export const validateContactEmail = (contactEmail: string): string =>{
+    if (!contactEmail.trim()) return '';
     if (!validateEmail(contactEmail)) return 'Invalid email format';
     return '';
 }

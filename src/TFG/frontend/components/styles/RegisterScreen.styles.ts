@@ -7,24 +7,27 @@ export const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
-    paddingTop: 24,
-    paddingBottom: 24,
+    paddingTop: 16,
+    paddingBottom: 16,
   },
   title: {
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 12,
-    marginTop: 4,
+    marginBottom: 8,
+    marginTop: 0,
     color: '#333',
   },
   card: {
+    flex: 1,
     borderRadius: 12,
-    elevation: 2,
+    elevation: 0,
+    paddingBottom: 24,
   },
   subtitle: {
     textAlign: 'center',
     color: '#666',
-    marginBottom: 8,
+    marginBottom: 24,
+    fontSize: 14,
   },
   divider: {
     marginVertical: 16,
@@ -60,5 +63,16 @@ export const styles = StyleSheet.create({
   helperText: {
     marginTop: -8,
     fontSize: 12,
+  },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
+  apiError: {
+    backgroundColor: '#ffebee',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    fontSize: 14,
+    color: '#c62828',
   },
 });
