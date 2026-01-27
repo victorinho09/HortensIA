@@ -49,7 +49,6 @@ export const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 16,
   },
   countryCodeInput: {
     flex: 1,
@@ -57,5 +56,9 @@ export const styles = StyleSheet.create({
   },
   phoneInput: {
     flex: 2,
+  },
+  helperText: {
+    marginTop: -8,
+    fontSize: 12,
   },
 });

@@ -1,8 +1,25 @@
 import React, { useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { Text, Card, TextInput, Divider, Button } from 'react-native-paper';
+import {
+  Text,
+  Card,
+  TextInput,
+  Divider,
+  Button,
+  HelperText,
+} from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { styles } from './styles/RegisterScreen.styles';
+import {
+  validateDiversityType,
+  validatePhone,
+  validateCountryCode,
+  validateContactEmail,
+  validateName,
+  validateEmailField,
+  validatePassword,
+  validatePasswordMatch,
+} from '../utils/validation';
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
@@ -13,6 +30,193 @@ export default function RegisterScreen() {
   const [countryCode, setCountryCode] = useState('');
   const [phone, setPhone] = useState('');
   const [diversityType, setDiversityType] = useState('');
+  const [errors, setErrors] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    contactEmail: '',
+    countryCode: '',
+    phone: '',
+    diversityType: '',
+  });
+  const [touched, setTouched] = useState({
+    name: false,
+    email: false,
+    password: false,
+    confirmPassword: false,
+    contactEmail: false,
+    countryCode: false,
+    phone: false,
+    diversityType: false,
+  });
+
+  const validateForm = () => {
+    const newErrors = {
+      name: validateName(name),
+      email: validateEmailField(email),
+      password: validatePassword(password),
+      confirmPassword: validatePasswordMatch(password, confirmPassword),
+      contactEmail: validateContactEmail(email),
+      countryCode: validateCountryCode(countryCode, phone),
+      phone: validatePhone(phone, countryCode),
+      diversityType: validateDiversityType(diversityType),
+    };
+
+    setErrors(newErrors);
+
+    return Object.values(newErrors).every(error => error === '');
+  };
+
+  const handleSubmit = () => {
+    if (validateForm()) {
+      console.log('Todo bien');
+      //Ejecutar petición a la API
+    }
+  };
+
+  const handleNameBlur = () => {
+    setTouched(prev => ({ ...prev, name: true }));
+    setErrors(prev => ({
+      ...prev,
+      name: validateName(name),
+    }));
+  };
+
+  const handleEmailBlur = () => {
+    setTouched(prev => ({ ...prev, email: true }));
+    setErrors(prev => ({
+      ...prev,
+      email: validateEmailField(email),
+    }));
+  };
+
+  const handlePasswordBlur = () => {
+    setTouched(prev => ({ ...prev, password: true }));
+    setErrors(prev => ({
+      ...prev,
+      password: validatePassword(password),
+    }));
+  };
+
+  const handleConfirmPasswordBlur = () => {
+    setTouched(prev => ({ ...prev, confirmPassword: true }));
+    setErrors(prev => ({
+      ...prev,
+      confirmPassword: validatePasswordMatch(password, confirmPassword),
+    }));
+  };
+
+  const handleContactEmailBlur = () => {
+    setTouched(prev => ({ ...prev, contactEmail: true }));
+    setErrors(prev => ({
+      ...prev,
+      contactEmail: validateContactEmail(contactEmail),
+    }));
+  };
+
+  const handleCountryCodeBlur = () => {
+    setTouched(prev => ({ ...prev, countryCode: true }));
+    setErrors(prev => ({
+      ...prev,
+      countryCode: validateCountryCode(countryCode, phone),
+    }));
+  };
+
+  const handlePhoneBlur = () => {
+    setTouched(prev => ({ ...prev, phone: true }));
+    setErrors(prev => ({
+      ...prev,
+      phone: validatePhone(phone, countryCode),
+    }));
+  };
+
+  const handleDiversityTypeBlur = () => {
+    setTouched(prev => ({ ...prev, diversityType: true }));
+    setErrors(prev => ({
+      ...prev,
+      diversityType: validateDiversityType(diversityType),
+    }));
+  };
+
+  const handleNameChange = (value: string) => {
+    setName(value);
+    if (touched.name) {
+      setErrors(prev => ({
+        ...prev,
+        name: validateName(name),
+      }));
+    }
+  };
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    if (touched.email) {
+      setErrors(prev => ({
+        ...prev,
+        email: validateEmailField(email),
+      }));
+    }
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    if (touched.password) {
+      setErrors(prev => ({
+        ...prev,
+        password: validatePassword(password),
+      }));
+    }
+  };
+
+  const handleConfirmPasswordChange = (value: string) => {
+    setConfirmPassword(value);
+    if (touched.confirmPassword) {
+      setErrors(prev => ({
+        ...prev,
+        confirmPassword: validatePasswordMatch(password, confirmPassword),
+      }));
+    }
+  };
+
+  const handleContactEmailChange = (value: string) => {
+    setContactEmail(value);
+    if (touched.contactEmail) {
+      setErrors(prev => ({
+        ...prev,
+        contactEmail: validateContactEmail(contactEmail),
+      }));
+    }
+  };
+
+  const handleCountryCodeChange = (value: string) => {
+    setCountryCode(value);
+    if (touched.countryCode) {
+      setErrors(prev => ({
+        ...prev,
+        countryCode: validateCountryCode(countryCode, phone),
+      }));
+    }
+  };
+
+  const handlePhoneChange = (value: string) => {
+    setPhone(value);
+    if (touched.phone) {
+      setErrors(prev => ({
+        ...prev,
+        phone: validatePhone(phone, countryCode),
+      }));
+    }
+  };
+
+  const handleDiversityTypeChange = (value: string) => {
+    setDiversityType(value);
+    if (touched.diversityType) {
+      setErrors(prev => ({
+        ...prev,
+        diversityType: validateDiversityType(diversityType),
+      }));
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -27,17 +231,24 @@ export default function RegisterScreen() {
               label="Name"
               placeholder="Victor Vega"
               value={name}
-              onChangeText={setName}
+              onChangeText={handleNameChange}
+              onBlur={handleNameBlur}
               mode="outlined"
               left={<TextInput.Icon icon="account" />}
               style={styles.input}
             />
+            {touched.name && errors.name && (
+              <HelperText type="error" visible style={styles.helperText}>
+                {errors.name}
+              </HelperText>
+            )}
 
             <TextInput
               label="Email"
               placeholder="testaccount@gmail.com"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={handleEmailChange}
+              onBlur={handleEmailBlur}
               mode="outlined"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -45,27 +256,47 @@ export default function RegisterScreen() {
               style={styles.input}
             />
 
+            {touched.email && errors.email && (
+              <HelperText type="error" visible={!!errors.email}>
+                {errors.email}
+              </HelperText>
+            )}
+
             <TextInput
               label="Password"
               placeholder="New Password"
               value={password}
-              onChangeText={setPassword}
+              onChangeText={handlePasswordChange}
+              onBlur={handlePasswordBlur}
               mode="outlined"
               secureTextEntry
               left={<TextInput.Icon icon="lock" />}
               style={styles.input}
             />
 
+            {touched.password && errors.password && (
+              <HelperText type="error" visible={!!errors.password}>
+                {errors.password}
+              </HelperText>
+            )}
+
             <TextInput
               label="Confirm Password"
               placeholder="Confirm Password"
               value={confirmPassword}
-              onChangeText={setConfirmPassword}
+              onChangeText={handleConfirmPasswordChange}
+              onBlur={handleConfirmPasswordBlur}
               mode="outlined"
               secureTextEntry
               left={<TextInput.Icon icon="lock-check" />}
               style={styles.input}
             />
+
+            {touched.confirmPassword && errors.confirmPassword && (
+              <HelperText type="error" visible={!!errors.confirmPassword}>
+                {errors.confirmPassword}
+              </HelperText>
+            )}
 
             <Divider style={styles.divider} />
 
@@ -77,7 +308,8 @@ export default function RegisterScreen() {
               label="Contact Email"
               placeholder="myfriend@gmail.com"
               value={contactEmail}
-              onChangeText={setContactEmail}
+              onChangeText={handleContactEmailChange}
+              onBlur={handleContactEmailBlur}
               mode="outlined"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -85,43 +317,72 @@ export default function RegisterScreen() {
               style={styles.input}
             />
 
+            {touched.contactEmail && errors.contactEmail && (
+              <HelperText type="error" visible={!!errors.contactEmail}>
+                {errors.contactEmail}
+              </HelperText>
+            )}
+
             <View style={styles.row}>
               <TextInput
-                label="Country Code"
-                value={countryCode}
-                onChangeText={setCountryCode}
-                mode="outlined"
-                keyboardType="number-pad"
-                placeholder="34"
-                left={<TextInput.Icon icon="phone" />}
-                style={[styles.input, styles.countryCodeInput]}
-              />
-
-              <TextInput
-                label="Phone Number"
+                label="Contact Person Phone Number"
                 value={phone}
-                onChangeText={setPhone}
+                onChangeText={handlePhoneChange}
+                onBlur={handlePhoneBlur}
                 mode="outlined"
                 keyboardType="phone-pad"
                 placeholder="600123456"
                 left={<TextInput.Icon icon="cellphone" />}
                 style={[styles.input, styles.phoneInput]}
               />
+
+              <TextInput
+                label="CC"
+                value={countryCode}
+                onChangeText={handleCountryCodeChange}
+                onBlur={handleCountryCodeBlur}
+                mode="outlined"
+                keyboardType="number-pad"
+                placeholder="34"
+                left={<TextInput.Icon icon="phone" />}
+                style={[styles.input, styles.countryCodeInput]}
+              />
+            </View>
+
+            <View>
+              {touched.phone && errors.phone && (
+                <HelperText type="error" visible style={styles.helperText}>
+                  {errors.phone}
+                </HelperText>
+              )}
+
+              {touched.countryCode && errors.countryCode && (
+                <HelperText type="error" visible style={styles.helperText}>
+                  {errors.countryCode}
+                </HelperText>
+              )}
             </View>
 
             <TextInput
               label="Diversity Type"
               value={diversityType}
-              onChangeText={setDiversityType}
+              onChangeText={handleDiversityTypeChange}
+              onBlur={handleDiversityTypeBlur}
               mode="outlined"
               placeholder="e.g., Visual, Hearing, Motor..."
               left={<TextInput.Icon icon="account-group" />}
               style={styles.input}
             />
 
+            {touched.diversityType && errors.diversityType && (
+              <HelperText type="error" visible={!!errors.diversityType}>
+                {errors.diversityType}
+              </HelperText>
+            )}
+
             <Button
               mode="contained"
-              onPress={() => console.log('h')}
+              onPress={handleSubmit}
               style={styles.button}
             >
               Create Account
