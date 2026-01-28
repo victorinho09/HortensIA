@@ -75,4 +75,12 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: '#c62828',
   },
+  successMessage: {
+  backgroundColor: '#e8f5e9',  // Light green background
+  padding: 12,
+  borderRadius: 8,
+  marginBottom: 16,
+  fontSize: 14,
+  color: '#2e7d32',  // Dark green text
+},
 });

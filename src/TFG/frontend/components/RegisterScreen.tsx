@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { ScrollView, View } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from './navigation/types';
 import {
   Text,
   Card,
@@ -22,8 +24,11 @@ import {
 } from '../utils/validation';
 import { signup } from '../utils/api';
 
-export default function RegisterScreen() {
+type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
+
+export default function RegisterScreen({ navigation }: Props) {
   const [apiError, setApiError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -75,6 +80,7 @@ export default function RegisterScreen() {
     if (validateForm()) {
       setLoading(true);
       setApiError(''); //To clear previous errors
+      setSuccessMessage(''); //To clear previous success messages
       try {
         const result = await signup({
           name,
@@ -85,7 +91,14 @@ export default function RegisterScreen() {
           phone,
           diversityType,
         });
-        console.log('Everything OK!'); // I need to navigate to log in screen
+
+        setSuccessMessage(
+          'Account created successfully! Redirecting to login...',
+        );
+
+        setTimeout(() => {
+          navigation.navigate('Login');
+        }, 1000);
       } catch (error: any) {
         const errorMessage =
           error.response?.data?.detail ||
@@ -263,6 +276,12 @@ export default function RegisterScreen() {
           </HelperText>
         )}
 
+        {successMessage && (
+          <HelperText type="info" visible style={styles.successMessage}>
+            {successMessage}
+          </HelperText>
+        )}
+
         <Card style={styles.card}>
           <Card.Content>
             <TextInput
@@ -431,7 +450,7 @@ export default function RegisterScreen() {
             <Button
               mode="text"
               onPress={() => {
-                console.log('h');
+                navigation.navigate('Login');
               }}
               style={styles.linkButton}
             >

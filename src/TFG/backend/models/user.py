@@ -90,7 +90,6 @@ class UserInsert(UserBase):
 class UserResponse(UserBase):
     """User schema for API responses (excludes sensitive data)"""
     id: UUIDType = Field(..., description=FIELD_DESCRIPTIONS["id"])
-    name: str = Field(..., description=FIELD_DESCRIPTIONS["name"])  # Override to make required
     role: UserRole = Field(..., description=FIELD_DESCRIPTIONS["role"])
     created_at: datetime = Field(..., description=FIELD_DESCRIPTIONS["created_at"])
     email_verified: bool = Field(..., description=FIELD_DESCRIPTIONS["email_verified"])
