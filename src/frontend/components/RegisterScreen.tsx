@@ -38,6 +38,8 @@ export default function RegisterScreen({ navigation }: Props) {
   const [countryCode, setCountryCode] = useState('');
   const [phone, setPhone] = useState('');
   const [diversityType, setDiversityType] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({
     name: '',
     email: '',
@@ -326,7 +328,11 @@ export default function RegisterScreen({ navigation }: Props) {
               onChangeText={handlePasswordChange}
               onBlur={handlePasswordBlur}
               mode="outlined"
-              secureTextEntry
+              secureTextEntry = {!showPassword}
+              right={
+                <TextInput.Icon icon={showPassword ? "eye-off" : "eye"}
+                onPress={() => setShowPassword(!showPassword)} />
+              }
               left={<TextInput.Icon icon="lock" />}
               style={styles.input}
             />
@@ -344,7 +350,13 @@ export default function RegisterScreen({ navigation }: Props) {
               onChangeText={handleConfirmPasswordChange}
               onBlur={handleConfirmPasswordBlur}
               mode="outlined"
-              secureTextEntry
+              secureTextEntry={!showConfirmPassword}
+              right={
+                <TextInput.Icon 
+                  icon={showConfirmPassword ? "eye-off" : "eye"}
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)} 
+                />
+              }
               left={<TextInput.Icon icon="lock-check" />}
               style={styles.input}
             />
