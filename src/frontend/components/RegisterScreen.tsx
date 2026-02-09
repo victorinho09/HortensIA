@@ -115,145 +115,166 @@ export default function RegisterScreen({ navigation }: Props) {
 
   const handleNameBlur = () => {
     setTouched(prev => ({ ...prev, name: true }));
-    setErrors(prev => ({
-      ...prev,
-      name: validateName(name),
-    }));
+    if(name.trim() === ''){
+      setErrors(prev => ({ ...prev, name: '' }));
+      return;
+    }
+    setErrors(prev => ({...prev,name: validateName(name),}));
   };
 
   const handleEmailBlur = () => {
     setTouched(prev => ({ ...prev, email: true }));
-    setErrors(prev => ({
-      ...prev,
-      email: validateEmailField(email),
-    }));
+
+    if(email.trim() === ''){
+      setErrors(prev => ({...prev, email: '',}));
+      return;
+    }
+    setErrors(prev => ({...prev,email: validateEmailField(email),}));
   };
 
   const handlePasswordBlur = () => {
     setTouched(prev => ({ ...prev, password: true }));
-    setErrors(prev => ({
-      ...prev,
-      password: validatePassword(password),
-    }));
+    if(password.trim() === ''){  
+      setErrors(prev => ({...prev, password: '',}));
+      return;
+    }
+    setErrors(prev => ({...prev,password: validatePassword(password),}));
   };
 
   const handleConfirmPasswordBlur = () => {
     setTouched(prev => ({ ...prev, confirmPassword: true }));
-    setErrors(prev => ({
-      ...prev,
-      confirmPassword: validatePasswordMatch(password, confirmPassword),
-    }));
+    if(confirmPassword.trim() === ''){
+      setErrors(prev => ({...prev, confirmPassword: '',}));
+      return;
+    }
+    setErrors(prev => ({...prev,confirmPassword: validatePasswordMatch(password, confirmPassword),}));
   };
 
   const handleContactEmailBlur = () => {
     setTouched(prev => ({ ...prev, contactEmail: true }));
-    setErrors(prev => ({
-      ...prev,
-      contactEmail: validateContactEmail(contactEmail),
-    }));
+    if(contactEmail.trim() === ''){
+      setErrors(prev => ({...prev, contactEmail: '',}));
+      return;
+    }
+    setErrors(prev => ({...prev,contactEmail: validateContactEmail(contactEmail),}));
   };
 
   const handleCountryCodeBlur = () => {
     setTouched(prev => ({ ...prev, countryCode: true }));
-    setErrors(prev => ({
-      ...prev,
-      countryCode: validateCountryCode(countryCode, phone),
-    }));
+    if(countryCode.trim() === ''){
+      setErrors(prev => ({...prev,countryCode: '',}));
+      return;
+    }
+    setErrors(prev => ({...prev,countryCode: validateCountryCode(countryCode, phone),}));
   };
 
   const handlePhoneBlur = () => {
     setTouched(prev => ({ ...prev, phone: true }));
-    setErrors(prev => ({
-      ...prev,
-      phone: validatePhone(phone, countryCode),
-    }));
+    if(phone.trim() === ''){
+      setErrors(prev => ({...prev,phone: '',}));
+      return;
+    }
+    setErrors(prev => ({...prev,phone: validatePhone(phone, countryCode),}));
   };
 
   const handleDiversityTypeBlur = () => {
     setTouched(prev => ({ ...prev, diversityType: true }));
-    setErrors(prev => ({
-      ...prev,
-      diversityType: validateDiversityType(diversityType),
-    }));
+    if(diversityType.trim() === ''){
+      setErrors(prev => ({...prev,diversityType: '',}));
+      return;
+    }
+    setErrors(prev => ({...prev,diversityType: validateDiversityType(diversityType),}));
   };
 
   const handleNameChange = (value: string) => {
     setName(value);
-    if (touched.name) {
-      setErrors(prev => ({
-        ...prev,
-        name: validateName(name),
-      }));
+    if (!touched.name) return;
+
+    if (name.trim() === '') {
+      setErrors(prev => ({...prev,name: '',}));
+      return;
     }
+    setErrors(prev => ({...prev,name: validateName(name),}));
   };
   const handleEmailChange = (value: string) => {
     setEmail(value);
-    if (touched.email) {
-      setErrors(prev => ({
-        ...prev,
-        email: validateEmailField(email),
-      }));
+    if(!touched.email) return;
+
+    if (email.trim() === '') {
+      setErrors(prev => ({...prev,email: '',}));
+      return;
     }
+    setErrors(prev => ({...prev,email: validateEmailField(email),}));
   };
 
   const handlePasswordChange = (value: string) => {
     setPassword(value);
-    if (touched.password) {
-      setErrors(prev => ({
+    if(!touched.password) return;
+
+    if (password.trim() === '') {
+      setErrors(prev => ({...prev,password: '',}));
+      return;
+    }
+    setErrors(prev => ({
         ...prev,
         password: validatePassword(password),
       }));
-    }
   };
 
   const handleConfirmPasswordChange = (value: string) => {
     setConfirmPassword(value);
-    if (touched.confirmPassword) {
-      setErrors(prev => ({
-        ...prev,
-        confirmPassword: validatePasswordMatch(password, confirmPassword),
-      }));
+    if(!touched.confirmPassword) return;
+
+    if (confirmPassword.trim() === '') {
+      setErrors(prev => ({...prev,confirmPassword: '',}));
+      return;
     }
+    setErrors(prev => ({...prev,confirmPassword: validatePasswordMatch(password, confirmPassword),}));
+
   };
 
   const handleContactEmailChange = (value: string) => {
     setContactEmail(value);
-    if (touched.contactEmail) {
-      setErrors(prev => ({
-        ...prev,
-        contactEmail: validateContactEmail(contactEmail),
-      }));
+    if(!touched.contactEmail) return;
+
+    if (contactEmail.trim() === '') {
+      setErrors(prev => ({...prev,contactEmail: '',}));
+      return;
     }
+    setErrors(prev => ({...prev,contactEmail: validateContactEmail(contactEmail),}));
   };
 
   const handleCountryCodeChange = (value: string) => {
     setCountryCode(value);
-    if (touched.countryCode) {
-      setErrors(prev => ({
-        ...prev,
-        countryCode: validateCountryCode(countryCode, phone),
-      }));
+    if(!touched.countryCode) return;
+
+    if (countryCode.trim() === '') {
+      setErrors(prev => ({...prev,countryCode: '',}));
+      return;
     }
+    setErrors(prev => ({...prev,countryCode: validateCountryCode(countryCode, phone),}));
   };
 
   const handlePhoneChange = (value: string) => {
     setPhone(value);
-    if (touched.phone) {
-      setErrors(prev => ({
-        ...prev,
-        phone: validatePhone(phone, countryCode),
-      }));
+    if(!touched.phone) return;
+
+    if (phone.trim() === '') {
+      setErrors(prev => ({...prev,phone: '',}));
+      return;
     }
+    setErrors(prev => ({...prev,phone: validatePhone(phone, countryCode),}));
   };
 
   const handleDiversityTypeChange = (value: string) => {
     setDiversityType(value);
-    if (touched.diversityType) {
-      setErrors(prev => ({
-        ...prev,
-        diversityType: validateDiversityType(diversityType),
-      }));
+    if(!touched.diversityType) return;
+
+    if (diversityType.trim() === '') {
+      setErrors(prev => ({...prev,diversityType: '',}));
+      return;
     }
+    setErrors(prev => ({...prev,diversityType: validateDiversityType(diversityType),}));
   };
 
   const isFormValid =
