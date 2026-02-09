@@ -2,24 +2,24 @@ brew services start postgresql@15
 brew services stop postgresql@15
 brew services list | grep postgresql
 
-cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/TFG
+cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src
 source backend/.venv/bin/activate
 uvicorn backend.service.main:app --reload --host 127.0.0.1 --port 8888
 
 lsof -ti :8888
 lsof -ti :8888 | xargs kill -9
 
-cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/TFG/frontend
+cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/frontend
 npm install
 
-cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/TFG/frontend/ios
+cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/frontend/ios
 pod install
 
-cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/TFG/frontend
+cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/frontend
 npx react-native run-ios --simulator="iPhone 12 Pro Max"
 
 
-cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/TFG/frontend
+cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/frontend
 DEVICE_ID=$(xcrun simctl list devices | grep "Booted" | grep -o "[0-9A-F]\{8\}-[0-9A-F]\{4\}-[0-9A-F]\{4\}-[0-9A-F]\{4\}-[0-9A-F]\{12\}" | head -1)
 npx react-native run-ios --udid "$DEVICE_ID"
 
