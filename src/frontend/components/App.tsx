@@ -20,7 +20,7 @@ export default function App() {
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
         <NavigationContainer>
           <Stack.Navigator 
-            initialRouteName='Register' 
+            initialRouteName='Login' 
             screenOptions={{headerShown: false}}
             >
               <Stack.Screen name='Register' component={RegisterScreen} />
