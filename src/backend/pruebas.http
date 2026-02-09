@@ -1,16 +1,16 @@
 ### Root endpoint
 GET http://localhost:8888/health
 
-### POST /signup
-POST http://localhost:8888/signup
+### POST /users - Create new user
+POST http://localhost:8888/users/
 content-type: application/json
 
 {
-    "email": "4@prueba.com",
+    "email": "78@prueba.com",
     "name": "victor",
     "contact_person_email": "otrapruebas@hola.com",
-    "contact_person_country_code": 344,
-    "contact_person_phone_number": 639104485,
+    "contact_person_country_code": "34",
+    "contact_person_phone_number": "639104485",
     "diversity_type": "cualquier cosa",
     "password": "23236y34574"
 }

@@ -1,5 +1,5 @@
 """
-Signup Router
+Users Router
 """
 from fastapi import APIRouter, HTTPException, status, Response, Depends
 from backend.models.user import UserCreate, UserResponse, UserInsert
@@ -31,44 +31,16 @@ router = APIRouter()
                     "example": {
                         "success": False,
                         "message": "Validation failed",
-                        "endpoint": "/signup/",
+                        "endpoint": "/users/",
                         "method": "POST",
                         "errors": [
                             {
                                 "field": "email",
-                                "message": "value is not a valid email address: An email address must have an @-sign.",
-                                "type": "value_error",
-                                "status": "invalid"
-                                },
-                                {
-                                "field": "name",
-                                "message": "Field is valid",
-                                "type": "valid",
-                                "status": "valid"
-                                },
-                                {
-                                "field": "contact_person_email",
-                                "message": "Field is valid",
-                                "type": "valid",
-                                "status": "valid"
-                                },
-                                {
-                                "field": "contact_person_phone",
-                                "message": "Field is valid",
-                                "type": "valid",
-                                "status": "valid"
-                                },
-                                {
-                                "field": "diversity_type",
-                                "message": "Field is valid",
-                                "type": "valid",
-                                "status": "valid"
+                                "message": "Invalid email address",
                                 },
                                 {
                                 "field": "password",
-                                "message": "Field is valid",
-                                "type": "valid",
-                                "status": "valid"
+                                "message": "Invalid password"
                             }
                         ]
                     }
@@ -97,7 +69,7 @@ router = APIRouter()
         }
     }
 )
-async def signup(user_data: UserCreate, response: Response, db: Session = Depends(get_db)):
+async def users(user_data: UserCreate, response: Response, db: Session = Depends(get_db)):
     """
     Register a new user with email and password.
     Password is automatically hashed using Argon2.
@@ -105,7 +77,7 @@ async def signup(user_data: UserCreate, response: Response, db: Session = Depend
     """
     try:
         print("\n" + "="*50)
-        print("SIGNUP ENDPOINT - Received data:")
+        print("USERS ENDPOINT - Received data:")
         print("="*50)
         print(f"Name: {user_data.name}")
         print(f"Email: {user_data.email}")

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 
-export const signup = async (data: {
+export const createUser = async (data: {
     name?: string;
     email: string;
     password: string;
@@ -20,6 +20,6 @@ export const signup = async (data: {
         diversity_type: data.diversityType || null,
     }
 
-    const response = await axios.post(`${API_BASE_URL}/signup/`, payload)
+    const response = await axios.post(`${API_BASE_URL}/users/`, payload)
     return response.data;
 };

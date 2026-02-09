@@ -22,7 +22,7 @@ import {
   validatePassword,
   validatePasswordMatch,
 } from '../utils/validation';
-import { signup } from '../utils/api';
+import { createUser } from '../utils/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
@@ -82,7 +82,7 @@ export default function RegisterScreen({ navigation }: Props) {
       setApiError(''); //To clear previous errors
       setSuccessMessage(''); //To clear previous success messages
       try {
-        const result = await signup({
+        const result = await createUser({
           name,
           email,
           password,
