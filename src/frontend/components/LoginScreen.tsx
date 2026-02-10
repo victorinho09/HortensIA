@@ -9,6 +9,7 @@ import {
   validateEmailField,
   validatePassword,
 } from '../utils/validation';
+import { useFormValidation } from '../hooks/useFormValidation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -18,34 +19,18 @@ export default function LoginScreen({ navigation }: Props) {
   const [apiError, setApiError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({
-    email: '',
-    password: '',
-  });
-  const [touched, setTouched] = useState({
-    name: false,
-    email: false,
-    password: false,
-    confirmPassword: false,
-    contactEmail: false,
-    countryCode: false,
-    phone: false,
-    diversityType: false,
-  });
 
-  const validateForm = () => {
-      const newErrors = {
-        email: validateEmailField(email),
-        password: validatePassword(password),
-      };
-  
-      setErrors(newErrors);
-  
-      return Object.values(newErrors).every(error => error === '');
-    };
+  const { formData, errors, touched, handleBlur, handleChange, validateForm } = useFormValidation(
+    {
+      email: '',
+      password: ''
+    },
+    (data) => ({
+      email: validateEmailField,
+      password: validatePassword,
+    })
+  );
 
   const handleSubmit = async () => {
     if (validateForm()) {
@@ -54,14 +39,9 @@ export default function LoginScreen({ navigation }: Props) {
       setSuccessMessage(''); //To clear previous success messages
       try {
         /*
-        const result = await createUser({
-          name,
-          email,
-          password,
-          contactEmail,
-          countryCode,
-          phone,
-          diversityType,
+        const result = await loginUser({
+          email: formData.email,
+          password: formData.password,
         });
         */
         
@@ -84,49 +64,9 @@ export default function LoginScreen({ navigation }: Props) {
     }
   };
 
-  const handleEmailChange = (value: string) => {
-      setEmail(value);
-      if (!touched.email) return;
-
-      if (email.trim() === '') {
-        setErrors(prev => ({...prev,email: '',}));
-        return;
-      }
-      setErrors(prev => ({...prev,email: validateEmailField(email),}));
-    };
-  
-    const handlePasswordChange = (value: string) => {
-      setPassword(value);
-      if(!touched.password) return;
-
-      if (password.trim() === '') {
-        setErrors(prev => ({...prev,password: '',}));
-        return;
-      }
-      setErrors(prev => ({...prev,password: validatePassword(password),}));
-    };
-
-    const handleEmailBlur = () => {
-        setTouched(prev => ({ ...prev, email: true }));
-        if(email.trim() === ''){
-          setErrors(prev => ({...prev,email: '',}));
-          return;
-        }
-        setErrors(prev => ({...prev,email: validateEmailField(email),}));
-      };
-    
-    const handlePasswordBlur = () => {
-      setTouched(prev => ({ ...prev, password: true }));
-      if(password.trim() === ''){
-        setErrors(prev => ({...prev,password: '',}));
-        return;
-      }
-      setErrors(prev => ({...prev,password: validatePassword(password),}));
-    };
-
-    const isFormValid =
-    email.trim() !== '' &&
-    password !== '' &&
+  const isFormValid =
+    formData.email.trim() !== '' &&
+    formData.password !== '' &&
     Object.values(errors).every(error => error === '');
 
   return (
@@ -162,9 +102,9 @@ export default function LoginScreen({ navigation }: Props) {
             <TextInput
               label="Email *"
               placeholder="testaccount@gmail.com"
-              value={email}
-              onChangeText={handleEmailChange}
-              onBlur={handleEmailBlur}
+              value={formData.email}
+              onChangeText={handleChange('email')}
+              onBlur={handleBlur('email')}
               mode="outlined"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -181,9 +121,9 @@ export default function LoginScreen({ navigation }: Props) {
             <TextInput
               label="Password *"
               placeholder="New Password"
-              value={password}
-              onChangeText={handlePasswordChange}
-              onBlur={handlePasswordBlur}
+              value={formData.password}
+              onChangeText={handleChange('password')}
+              onBlur={handleBlur('password')}
               mode="outlined"
               secureTextEntry = {!showPassword}
               right={

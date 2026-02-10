@@ -23,6 +23,7 @@ import {
   validatePasswordMatch,
 } from '../utils/validation';
 import { createUser } from '../utils/api';
+import { useFormValidation } from '../hooks/useFormValidation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
@@ -30,53 +31,31 @@ export default function RegisterScreen({ navigation }: Props) {
   const [apiError, setApiError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
-  const [countryCode, setCountryCode] = useState('');
-  const [phone, setPhone] = useState('');
-  const [diversityType, setDiversityType] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [errors, setErrors] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    contactEmail: '',
-    countryCode: '',
-    phone: '',
-    diversityType: '',
-  });
-  const [touched, setTouched] = useState({
-    name: false,
-    email: false,
-    password: false,
-    confirmPassword: false,
-    contactEmail: false,
-    countryCode: false,
-    phone: false,
-    diversityType: false,
-  });
 
-  const validateForm = () => {
-    const newErrors = {
-      name: validateName(name),
-      email: validateEmailField(email),
-      password: validatePassword(password),
-      confirmPassword: validatePasswordMatch(password, confirmPassword),
-      contactEmail: validateContactEmail(email),
-      countryCode: validateCountryCode(countryCode, phone),
-      phone: validatePhone(phone, countryCode),
-      diversityType: validateDiversityType(diversityType),
-    };
-
-    setErrors(newErrors);
-
-    return Object.values(newErrors).every(error => error === '');
-  };
+  const { formData, errors, touched, handleBlur, handleChange, validateForm } = useFormValidation(
+    {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      contactEmail: '',
+      countryCode: '',
+      phone: '',
+      diversityType: ''
+    },
+    (data) => ({
+      name: validateName,
+      email: validateEmailField,
+      password: validatePassword,
+      confirmPassword: (value: string) => validatePasswordMatch(data.password, value),
+      contactEmail: validateContactEmail,
+      countryCode: (value: string) => validateCountryCode(value, data.phone),
+      phone: (value: string) => validatePhone(value, data.countryCode),
+      diversityType: validateDiversityType,
+    })
+  );
 
   const handleSubmit = async () => {
     if (validateForm()) {
@@ -85,13 +64,13 @@ export default function RegisterScreen({ navigation }: Props) {
       setSuccessMessage(''); //To clear previous success messages
       try {
         const result = await createUser({
-          name,
-          email,
-          password,
-          contactEmail,
-          countryCode,
-          phone,
-          diversityType,
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          contactEmail: formData.contactEmail,
+          countryCode: formData.countryCode,
+          phone: formData.phone,
+          diversityType: formData.diversityType,
         });
 
         setSuccessMessage(
@@ -113,174 +92,10 @@ export default function RegisterScreen({ navigation }: Props) {
     }
   };
 
-  const handleNameBlur = () => {
-    setTouched(prev => ({ ...prev, name: true }));
-    if(name.trim() === ''){
-      setErrors(prev => ({ ...prev, name: '' }));
-      return;
-    }
-    setErrors(prev => ({...prev,name: validateName(name),}));
-  };
-
-  const handleEmailBlur = () => {
-    setTouched(prev => ({ ...prev, email: true }));
-
-    if(email.trim() === ''){
-      setErrors(prev => ({...prev, email: '',}));
-      return;
-    }
-    setErrors(prev => ({...prev,email: validateEmailField(email),}));
-  };
-
-  const handlePasswordBlur = () => {
-    setTouched(prev => ({ ...prev, password: true }));
-    if(password.trim() === ''){  
-      setErrors(prev => ({...prev, password: '',}));
-      return;
-    }
-    setErrors(prev => ({...prev,password: validatePassword(password),}));
-  };
-
-  const handleConfirmPasswordBlur = () => {
-    setTouched(prev => ({ ...prev, confirmPassword: true }));
-    if(confirmPassword.trim() === ''){
-      setErrors(prev => ({...prev, confirmPassword: '',}));
-      return;
-    }
-    setErrors(prev => ({...prev,confirmPassword: validatePasswordMatch(password, confirmPassword),}));
-  };
-
-  const handleContactEmailBlur = () => {
-    setTouched(prev => ({ ...prev, contactEmail: true }));
-    if(contactEmail.trim() === ''){
-      setErrors(prev => ({...prev, contactEmail: '',}));
-      return;
-    }
-    setErrors(prev => ({...prev,contactEmail: validateContactEmail(contactEmail),}));
-  };
-
-  const handleCountryCodeBlur = () => {
-    setTouched(prev => ({ ...prev, countryCode: true }));
-    if(countryCode.trim() === ''){
-      setErrors(prev => ({...prev,countryCode: '',}));
-      return;
-    }
-    setErrors(prev => ({...prev,countryCode: validateCountryCode(countryCode, phone),}));
-  };
-
-  const handlePhoneBlur = () => {
-    setTouched(prev => ({ ...prev, phone: true }));
-    if(phone.trim() === ''){
-      setErrors(prev => ({...prev,phone: '',}));
-      return;
-    }
-    setErrors(prev => ({...prev,phone: validatePhone(phone, countryCode),}));
-  };
-
-  const handleDiversityTypeBlur = () => {
-    setTouched(prev => ({ ...prev, diversityType: true }));
-    if(diversityType.trim() === ''){
-      setErrors(prev => ({...prev,diversityType: '',}));
-      return;
-    }
-    setErrors(prev => ({...prev,diversityType: validateDiversityType(diversityType),}));
-  };
-
-  const handleNameChange = (value: string) => {
-    setName(value);
-    if (!touched.name) return;
-
-    if (name.trim() === '') {
-      setErrors(prev => ({...prev,name: '',}));
-      return;
-    }
-    setErrors(prev => ({...prev,name: validateName(name),}));
-  };
-  const handleEmailChange = (value: string) => {
-    setEmail(value);
-    if(!touched.email) return;
-
-    if (email.trim() === '') {
-      setErrors(prev => ({...prev,email: '',}));
-      return;
-    }
-    setErrors(prev => ({...prev,email: validateEmailField(email),}));
-  };
-
-  const handlePasswordChange = (value: string) => {
-    setPassword(value);
-    if(!touched.password) return;
-
-    if (password.trim() === '') {
-      setErrors(prev => ({...prev,password: '',}));
-      return;
-    }
-    setErrors(prev => ({
-        ...prev,
-        password: validatePassword(password),
-      }));
-  };
-
-  const handleConfirmPasswordChange = (value: string) => {
-    setConfirmPassword(value);
-    if(!touched.confirmPassword) return;
-
-    if (confirmPassword.trim() === '') {
-      setErrors(prev => ({...prev,confirmPassword: '',}));
-      return;
-    }
-    setErrors(prev => ({...prev,confirmPassword: validatePasswordMatch(password, confirmPassword),}));
-
-  };
-
-  const handleContactEmailChange = (value: string) => {
-    setContactEmail(value);
-    if(!touched.contactEmail) return;
-
-    if (contactEmail.trim() === '') {
-      setErrors(prev => ({...prev,contactEmail: '',}));
-      return;
-    }
-    setErrors(prev => ({...prev,contactEmail: validateContactEmail(contactEmail),}));
-  };
-
-  const handleCountryCodeChange = (value: string) => {
-    setCountryCode(value);
-    if(!touched.countryCode) return;
-
-    if (countryCode.trim() === '') {
-      setErrors(prev => ({...prev,countryCode: '',}));
-      return;
-    }
-    setErrors(prev => ({...prev,countryCode: validateCountryCode(countryCode, phone),}));
-  };
-
-  const handlePhoneChange = (value: string) => {
-    setPhone(value);
-    if(!touched.phone) return;
-
-    if (phone.trim() === '') {
-      setErrors(prev => ({...prev,phone: '',}));
-      return;
-    }
-    setErrors(prev => ({...prev,phone: validatePhone(phone, countryCode),}));
-  };
-
-  const handleDiversityTypeChange = (value: string) => {
-    setDiversityType(value);
-    if(!touched.diversityType) return;
-
-    if (diversityType.trim() === '') {
-      setErrors(prev => ({...prev,diversityType: '',}));
-      return;
-    }
-    setErrors(prev => ({...prev,diversityType: validateDiversityType(diversityType),}));
-  };
-
   const isFormValid =
-    email.trim() !== '' &&
-    password !== '' &&
-    confirmPassword !== '' &&
+    formData.email.trim() !== '' &&
+    formData.password !== '' &&
+    formData.confirmPassword !== '' &&
     Object.values(errors).every(error => error === '');
 
   return (
@@ -310,9 +125,9 @@ export default function RegisterScreen({ navigation }: Props) {
             <TextInput
               label="Name"
               placeholder="Victor Vega"
-              value={name}
-              onChangeText={handleNameChange}
-              onBlur={handleNameBlur}
+              value={formData.name}
+              onChangeText={handleChange('name')}
+              onBlur={handleBlur('name')}
               mode="outlined"
               left={<TextInput.Icon icon="account" />}
               style={styles.input}
@@ -326,9 +141,9 @@ export default function RegisterScreen({ navigation }: Props) {
             <TextInput
               label="Email *"
               placeholder="testaccount@gmail.com"
-              value={email}
-              onChangeText={handleEmailChange}
-              onBlur={handleEmailBlur}
+              value={formData.email}
+              onChangeText={handleChange('email')}
+              onBlur={handleBlur('email')}
               mode="outlined"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -345,9 +160,9 @@ export default function RegisterScreen({ navigation }: Props) {
             <TextInput
               label="Password *"
               placeholder="New Password"
-              value={password}
-              onChangeText={handlePasswordChange}
-              onBlur={handlePasswordBlur}
+              value={formData.password}
+              onChangeText={handleChange('password')}
+              onBlur={handleBlur('password')}
               mode="outlined"
               secureTextEntry = {!showPassword}
               right={
@@ -367,9 +182,9 @@ export default function RegisterScreen({ navigation }: Props) {
             <TextInput
               label="Confirm Password *"
               placeholder="Confirm Password"
-              value={confirmPassword}
-              onChangeText={handleConfirmPasswordChange}
-              onBlur={handleConfirmPasswordBlur}
+              value={formData.confirmPassword}
+              onChangeText={handleChange('confirmPassword')}
+              onBlur={handleBlur('confirmPassword')}
               mode="outlined"
               secureTextEntry={!showConfirmPassword}
               right={
@@ -397,9 +212,9 @@ export default function RegisterScreen({ navigation }: Props) {
             <TextInput
               label="Contact Email"
               placeholder="myfriend@gmail.com"
-              value={contactEmail}
-              onChangeText={handleContactEmailChange}
-              onBlur={handleContactEmailBlur}
+              value={formData.contactEmail}
+              onChangeText={handleChange('contactEmail')}
+              onBlur={handleBlur('contactEmail')}
               mode="outlined"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -416,9 +231,9 @@ export default function RegisterScreen({ navigation }: Props) {
             <View style={styles.row}>
               <TextInput
                 label="Phone Number"
-                value={phone}
-                onChangeText={handlePhoneChange}
-                onBlur={handlePhoneBlur}
+                value={formData.phone}
+                onChangeText={handleChange('phone')}
+                onBlur={handleBlur('phone')}
                 mode="outlined"
                 keyboardType="phone-pad"
                 placeholder="600123456"
@@ -428,9 +243,9 @@ export default function RegisterScreen({ navigation }: Props) {
 
               <TextInput
                 label="CC"
-                value={countryCode}
-                onChangeText={handleCountryCodeChange}
-                onBlur={handleCountryCodeBlur}
+                value={formData.countryCode}
+                onChangeText={handleChange('countryCode')}
+                onBlur={handleBlur('countryCode')}
                 mode="outlined"
                 keyboardType="number-pad"
                 placeholder="34"
@@ -455,9 +270,9 @@ export default function RegisterScreen({ navigation }: Props) {
 
             <TextInput
               label="Diversity Type"
-              value={diversityType}
-              onChangeText={handleDiversityTypeChange}
-              onBlur={handleDiversityTypeBlur}
+              value={formData.diversityType}
+              onChangeText={handleChange('diversityType')}
+              onBlur={handleBlur('diversityType')}
               mode="outlined"
               placeholder="e.g., Visual, Hearing, Motor..."
               left={<TextInput.Icon icon="account-group" />}
