@@ -50,3 +50,20 @@ class AuthIdentities(Base):
     provider_user_id = Column(TEXT, nullable=True)
     password_hash = Column(TEXT, nullable = True)
     created_at= Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+class SessionTable(Base):
+    """
+    SQLAlchemy ORM model for sessions table.
+    Stores active user sessions for authentication
+    """
+    __tablename__ = "sessions"
+
+    #Primary key
+    session_id = Column(UUID(as_uuid=True), primary_key=True,default = generate_uuid())
+
+    #Foreign Key
+    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False)
+
+    created_at= Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    expires_at = Column(DateTime(timezone=True),nullable=False)
+    last_activity = Column(DateTime(timezone=True),nullable=False)

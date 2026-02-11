@@ -2,10 +2,11 @@
 User Repository - Database access layer for User operations
 """
 from typing import Optional
+from backend.models.auth import Provider
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update, delete
 from backend.models.user import UserInsert, User
-from backend.databases.models import UserTable
+from backend.databases.models import AuthIdentities, UserTable
 from backend.models.uuid import UUIDType, str_to_uuid
 
 
@@ -54,6 +55,28 @@ class UserRepository:
         if user_row:
             # Convert SQLAlchemy model to Pydantic model
             return self._row_to_user(user_row)
+        return None
+    
+    async def get_by_email_with_password(self,email: str):
+        """
+        Get user with password hash for authentication
+        """
+        
+        query = (
+            select(UserTable,AuthIdentities.password_hash) #This returns a tuple (UserTable,password_hash)
+            .join(AuthIdentities,AuthIdentities.user_id == UserTable.id)
+            .where(UserTable.email == email)
+            .where(AuthIdentities.provider == Provider.PASSWORD)
+        )
+        result = self.db.execute(query)
+        row = result.first()
+
+        if row:
+            user, password_hash = row
+            return {
+                "user": self._row_to_user(user),  # Convert UserTable to User (Pydantic)
+                "password_hash": password_hash
+            }
         return None
     
     async def create(self, user: UserInsert) -> User:

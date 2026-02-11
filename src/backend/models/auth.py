@@ -7,7 +7,9 @@ Models for managing user authentication identities (passwords, OAuth providers, 
 from enum import Enum
 from typing import Optional
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, EmailStr, Field
+
+from backend.models.user import UserResponse
 from .uuid import UUIDType, generate_uuid
 
 class Provider(str, Enum):
@@ -38,3 +40,13 @@ class AuthIdentity(BaseModel):
     provider_user_id: Optional[str] = Field(default=None, description="User ID from the provider")
     password_hash: Optional[str] = Field(default=None, description="Hashed password")
     created_at: datetime = Field(..., description="When this auth identity was created")
+
+class LoginRequest(BaseModel):
+    """Request model for user login"""
+    email: EmailStr = Field(..., description="User's email address")
+    password: str = Field(..., min_length=8, description="User's password (minimum 8 characters)")
+
+class LoginResponse(BaseModel):
+    """Response model for successful login"""
+    session_id: str = Field(..., description="Session identifier for authentication")
+    user: UserResponse = Field(..., description="User information without sensitive data")

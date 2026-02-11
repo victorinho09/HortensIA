@@ -1,0 +1,190 @@
+"""
+Users Router
+"""
+from backend.databases.session_repository import SessionRepository
+from fastapi import APIRouter, HTTPException, status, Response, Depends
+from backend.models.user import UserCreate, UserResponse, UserInsert
+from backend.models.auth import AuthIdentityInsert, LoginRequest, LoginResponse
+from backend.models.hash import hash_password, verify_password
+from backend.models.uuid import generate_uuid
+from backend.models.auth import Provider
+from backend.databases.user_repository import UserRepository
+from backend.databases.auth_repository import AuthRepository
+from backend.databases.connection import get_db
+from sqlalchemy.orm import Session
+
+
+router = APIRouter()
+
+@router.post(
+    "/session",
+    response_model=LoginResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: {
+            "description": "User successfully logged in",
+            "model": LoginResponse
+        },
+        400: {
+            "description": "Validation error - Invalid input data",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "success": False,
+                        "message": "Log in failed",
+                        "endpoint": "/auth/session",
+                        "method": "POST",
+                        "errors": [
+                            {
+                                "field": "email",
+                                "message": "Invalid email address",
+                                },
+                                {
+                                "field": "password",
+                                "message": "Invalid password"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        401: {
+            "description": "Unauthorized login",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Invalid credentials"
+                    }
+                }
+            }
+        },
+        500: {
+            "description": "Internal Server Error - Unexpected error occurred",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "An unexpected error occurred: [error message]"
+                    }
+                }
+            }
+        }
+    }
+)
+async def session(credentials: LoginRequest, db: Session = Depends(get_db)) -> LoginResponse:
+    try:
+        print("\n" + "="*50)
+        print("POST /auth/session ENDPOINT - Received data:")
+        print("="*50)
+        print(f"Email: {credentials.email}")
+        print(f"Password: {credentials.password}")
+        print("="*50 + "\n")
+        
+        # Initialize repositories
+        user_repo = UserRepository(db)
+        session_repo = SessionRepository(db)
+            
+        # Get password hash from db
+        result = await user_repo.get_by_email_with_password(credentials.email)
+
+        if not result:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid credentials"
+            )
+        
+        user, password_hash = result
+
+        if not verify_password(credentials.password, password_hash):
+            raise HTTPException(status_code=401, detail= "Invalid credentials")
+        
+        session_id = await session_repo.create_session(user.id)
+
+        return LoginResponse(
+            session_id= session_id,
+            user= user.user_to_user_response()
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        # If there is another exception, throw error 500 Internal Server Error
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred: {str(e)}"
+        ) 
+
+@router.get(
+    "/me",
+    response_model = UserResponse
+    status_code= status.HTTP_200_OK,
+    response = {
+        200: {
+            "description": "Current authenticated user information retrieved successfully",
+            "model": UserResponse,
+            "content": {
+                "application/json": {
+                    "example": UserResponse
+                }
+            }
+        },
+        401: {
+            "description": "Unauthorized - Invalid, missing, or expired session",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "missing_header": {
+                            "summary": "Missing Authorization header",
+                            "value": {
+                                "detail": "Authorization header is required"
+                            }
+                        },
+                        "invalid_session": {
+                            "summary": "Invalid or expired session",
+                            "value": {
+                                "detail": "Invalid or expired session"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        422: {
+            "description": "Validation Error - Missing or invalid Authorization header",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": [
+                            {
+                                "type": "missing",
+                                "loc": ["header", "authorization"],
+                                "msg": "Field required",
+                                "input": None
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        500: {
+            "description": "Internal Server Error - Unexpected error occurred",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "An unexpected error occurred: [error message]"
+                    }
+                }
+            }
+        }
+    }
+) 
+async def get_current_user(
+    authorization: str = Header(...,description ="Session ID for authentication"),
+    db:Session = Depends(get_db)
+) -> UserResponse:
+    try: 
+    except HTTPException:
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred: {str(e)}"
+        )

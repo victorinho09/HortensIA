@@ -4,7 +4,7 @@ FastAPI Application Entry Point
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from .routers import health, users
+from .routers import health, users, auth
 
 app = FastAPI(
     title="FastAPI Service",
@@ -66,6 +66,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 # Include routers
 app.include_router(health.router, tags=["health"])
 app.include_router(users.router, prefix="/users", tags=["users"])
+app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 
 @app.get("/")
 async def root():
