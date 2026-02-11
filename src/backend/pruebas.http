@@ -6,11 +6,28 @@ POST http://localhost:8888/users/
 content-type: application/json
 
 {
-    "email": "78@prueba.com",
-    "name": "victor",
-    "contact_person_email": "otrapruebas@hola.com",
+    "email": "example2222234223@example.com",
+    "name": "Test User",
+    "contact_person_email": "example2223232323@example.com",
     "contact_person_country_code": "34",
     "contact_person_phone_number": "639104485",
-    "diversity_type": "cualquier cosa",
-    "password": "23236y34574"
+    "diversity_type": "visual",
+    "password": "password123"
 }
+
+### POST /auth/session - Login (get session token)
+POST http://localhost:8888/auth/session
+content-type: application/json
+
+{
+    "email": "example2222234223@example.com",
+    "password": "password123"
+}
+
+### GET /auth/me - Get current user (requires session token from login)
+GET http://localhost:8888/auth/me
+Authorization: 581d250e-ce96-4f0b-a6c6-138f903f05c2
+
+### POST /auth/logout - Logout (delete session)
+POST http://localhost:8888/auth/logout
+Authorization: 581d250e-ce96-4f0b-a6c6-138f903f05c2

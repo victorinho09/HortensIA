@@ -2,7 +2,7 @@
 Users Router
 """
 from backend.databases.session_repository import SessionRepository
-from fastapi import APIRouter, HTTPException, status, Response, Depends
+from fastapi import APIRouter, HTTPException, status, Response, Depends, Header
 from backend.models.user import UserCreate, UserResponse, UserInsert
 from backend.models.auth import AuthIdentityInsert, LoginRequest, LoginResponse
 from backend.models.hash import hash_password, verify_password
@@ -92,7 +92,8 @@ async def session(credentials: LoginRequest, db: Session = Depends(get_db)) -> L
                 detail="Invalid credentials"
             )
         
-        user, password_hash = result
+        user = result["user"]
+        password_hash = result["password_hash"]
 
         if not verify_password(credentials.password, password_hash):
             raise HTTPException(status_code=401, detail= "Invalid credentials")
@@ -115,9 +116,9 @@ async def session(credentials: LoginRequest, db: Session = Depends(get_db)) -> L
 
 @router.get(
     "/me",
-    response_model = UserResponse
+    response_model = UserResponse,
     status_code= status.HTTP_200_OK,
-    response = {
+    responses = {
         200: {
             "description": "Current authenticated user information retrieved successfully",
             "model": UserResponse,
@@ -182,9 +183,76 @@ async def get_current_user(
     db:Session = Depends(get_db)
 ) -> UserResponse:
     try: 
+        user_repo = UserRepository(db)
+        session_repo = SessionRepository(db)
+
+        user_response = await session_repo.get_user_by_session(authorization)
+        if not user_response:
+            raise HTTPException(
+                status_code = status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired session"
+            )
+        
+        await session_repo.update_last_activity(authorization)
+        
+        return user_response
     except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"An unexpected error occurred: {str(e)}"
+        )
+    
+@router.post(
+    "/logout",
+    status_code = status.HTTP_204_NO_CONTENT,
+    responses={
+        204: {
+            "description": "Session successfully terminated"
+        },
+        422: {
+            "description": "Validation Error - Missing Authorization header",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": [
+                            {
+                                "type": "missing",
+                                "loc": ["header", "authorization"],
+                                "msg": "Field required",
+                                "input": None
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        500: {
+            "description": "Internal Server Error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "An unexpected error occurred: [error message]"
+                    }
+                }
+            }
+        }
+    }
+)
+async def logout(
+    authorization: str = Header(...,description="Session ID to terminate"),
+    db: Session = Depends(get_db)
+) -> Response:
+    try:
+        session_repo = SessionRepository(db)
+        await session_repo.delete_session(authorization)
+       
+        return Response(status_code = 204)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
             detail=f"An unexpected error occurred: {str(e)}"
         )
