@@ -8,7 +8,7 @@ from backend.models.user import UserResponse, User
 from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
 from backend.databases.models import SessionTable, UserTable
-from backend.models.uuid import UUIDType, generate_uuid,str_to_uuid
+from backend.utils.uuid import UUIDType, generate_uuid,str_to_uuid
 from typing import Optional
 
 EXPIRES_DAYS = 30

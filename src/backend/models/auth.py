@@ -10,7 +10,7 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
 
 from backend.models.user import UserResponse
-from .uuid import UUIDType, generate_uuid
+from backend.utils.uuid import UUIDType, generate_uuid
 
 class Provider(str, Enum):
     """Providers available"""

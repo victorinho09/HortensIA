@@ -5,7 +5,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from backend.models.auth import AuthIdentityInsert, AuthIdentity
-from backend.models.uuid import UUIDType, str_to_uuid
+from backend.utils.uuid import UUIDType, str_to_uuid
 from backend.databases.models import AuthIdentities
 
 

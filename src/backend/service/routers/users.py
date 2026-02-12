@@ -4,8 +4,8 @@ Users Router
 from fastapi import APIRouter, HTTPException, status, Response, Depends
 from backend.models.user import UserCreate, UserResponse, UserInsert
 from backend.models.auth import AuthIdentityInsert
-from backend.models.hash import hash_password
-from backend.models.uuid import generate_uuid
+from backend.utils.hash import hash_password
+from backend.utils.uuid import generate_uuid
 from backend.models.auth import Provider
 from backend.databases.user_repository import UserRepository
 from backend.databases.auth_repository import AuthRepository

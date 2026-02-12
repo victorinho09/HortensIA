@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, update, delete
 from backend.models.user import UserInsert, User
 from backend.databases.models import AuthIdentities, UserTable
-from backend.models.uuid import UUIDType, str_to_uuid
+from backend.utils.uuid import UUIDType, str_to_uuid
 
 
 class UserRepository:

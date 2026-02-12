@@ -7,7 +7,7 @@ Database table definitions using SQLAlchemy ORM.
 from sqlalchemy import Column, DateTime, func, text, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID, CITEXT, JSONB,TEXT, INTEGER,BIGINT,BOOLEAN
 from sqlalchemy.ext.declarative import declarative_base
-from backend.models.uuid import generate_uuid
+from backend.utils.uuid import generate_uuid
 
 Base = declarative_base()
 

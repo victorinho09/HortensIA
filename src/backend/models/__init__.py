@@ -15,8 +15,8 @@ from .user import (
     UserResponse,
     UserRole
 )
-from .uuid import UUIDType, generate_uuid, validate_uuid, uuid_to_str, str_to_uuid
-from .hash import hash_password, verify_password, needs_rehash
+from backend.utils.uuid import UUIDType, generate_uuid, validate_uuid, uuid_to_str, str_to_uuid
+from backend.utils.hash import hash_password, verify_password, needs_rehash
 from .auth import AuthIdentityInsert, AuthIdentity, Provider
 
 __all__ = [

@@ -9,7 +9,7 @@ from datetime import datetime
 from enum import Enum
 from pydantic import BaseModel, EmailStr, Field
 from pydantic_extra_types.phone_numbers import PhoneNumber
-from .uuid import generate_uuid, UUIDType
+from backend.utils.uuid import generate_uuid, UUIDType
 
 
 FIELD_DESCRIPTIONS = {

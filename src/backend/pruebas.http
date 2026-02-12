@@ -6,7 +6,7 @@ POST http://localhost:8888/users/
 content-type: application/json
 
 {
-    "email": "example2222234223@example.com",
+    "email": "nuevooooooooo@example.com",
     "name": "Test User",
     "contact_person_email": "example2223232323@example.com",
     "contact_person_country_code": "34",
@@ -26,8 +26,8 @@ content-type: application/json
 
 ### GET /auth/me - Get current user (requires session token from login)
 GET http://localhost:8888/auth/me
-Authorization: 581d250e-ce96-4f0b-a6c6-138f903f05c2
+Authorization: 0660ed3c-c97f-452e-9ebf-d89715b77a1c
 
 ### POST /auth/logout - Logout (delete session)
 POST http://localhost:8888/auth/logout
-Authorization: 581d250e-ce96-4f0b-a6c6-138f903f05c2
+Authorization: 0660ed3c-c97f-452e-9ebf-d89715b77a1c
