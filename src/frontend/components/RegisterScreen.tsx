@@ -83,7 +83,7 @@ export default function RegisterScreen({ navigation }: Props) {
         );
 
         setTimeout(() => {
-          navigation.navigate('Home');
+          navigation.replace('Home');
         }, 1000);
       } catch (error: any) {
         const errorMessage =

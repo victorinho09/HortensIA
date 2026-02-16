@@ -3,7 +3,7 @@ import { commonStyles } from './common.styles';
 
 const SplashSpecificStyles = StyleSheet.create({
   container: {
-    flex: 1,
+    ...commonStyles.container,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
