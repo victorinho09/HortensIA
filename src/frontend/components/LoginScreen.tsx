@@ -41,8 +41,10 @@ export default function LoginScreen({ navigation }: Props) {
       setSuccessMessage(''); //To clear previous success messages
       try {
         const response = await login(formData.email, formData.password); 
+        console.log('LoginScreen - Login response:', response);
 
         await saveSession(response.session_id)
+        console.log('LoginScreen - Session saved:', response.session_id);
         
         setSuccessMessage(
           'Log in successful! Redirecting to home page...',

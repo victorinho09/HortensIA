@@ -8,12 +8,24 @@ import { RootStackParamList } from './navigation/types';
 import { NavigationContainer } from '@react-navigation/native';
 import LoginScreen from './LoginScreen';
 import HomeScreen from './HomeScreen';
+import SplashScreen from './SplashScreen';
+import { IconButton } from 'react-native-paper';
+import { clearSession } from '../utils/session';
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs([
+  'Sending `onAnimatedValueUpdate` with no listeners registered.',
+]);
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   const isDarkMode = useColorScheme() === 'dark';
   const theme = isDarkMode ? MD3DarkTheme : MD3LightTheme;
+  const handleLogout = async (navigation: any) => {
+    await clearSession();
+    navigation.replace('Login');
+  };
 
   return (
     <SafeAreaProvider>
@@ -21,12 +33,23 @@ export default function App() {
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
         <NavigationContainer>
           <Stack.Navigator 
-            initialRouteName='Login' 
-            screenOptions={{headerShown: false}}
+            initialRouteName='Splash' 
+            screenOptions={({navigation}) => ({ //Parenthesis syntax is an implicit return of the object
+              headerShown: true,
+              headerRight: () => (
+                <IconButton
+                  icon="logout"
+                  size={24}
+                  onPress={() => handleLogout(navigation)}
+                />
+              ),
+            })}
             >
-              <Stack.Screen name='Register' component={RegisterScreen} />
-              <Stack.Screen name='Login' component={LoginScreen} />
+              <Stack.Screen name='Register' component={RegisterScreen} options={{ headerShown: false }} />
+              <Stack.Screen name='Login' component={LoginScreen} options={{ headerShown: false }} />
               <Stack.Screen name='Home' component={HomeScreen} />
+              <Stack.Screen name='Splash' component={SplashScreen} options={{ headerShown: false }} />
+
           </Stack.Navigator>
         </NavigationContainer>
       </PaperProvider>

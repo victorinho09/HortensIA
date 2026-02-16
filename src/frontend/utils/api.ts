@@ -36,7 +36,7 @@ export const login = async (email: string, password: string) =>{
 export const getCurrentUser = async (sessionId: string) => {
     const response = await axios.get(`${API_BASE_URL}/auth/me`,{
         headers: {
-            'session-id': sessionId
+            'authorization': sessionId
         }
     });
     return response.data; // Returns Object of type UserResponse
@@ -45,7 +45,7 @@ export const getCurrentUser = async (sessionId: string) => {
 export const logout = async (sessionId: string) =>{
     const response = await axios.post(`${API_BASE_URL}/auth/logout`,{},{
         headers: {
-            'session-id': sessionId
+            'authorization': sessionId
         }
     });
     return response.data; //Returns status code 404.

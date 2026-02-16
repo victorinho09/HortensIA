@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { commonStyles } from './common.styles';
 
-const loginSpecificStyles = StyleSheet.create({
+const HomeSpecificStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
@@ -23,5 +23,5 @@ const loginSpecificStyles = StyleSheet.create({
 
 export const styles = {
   ...commonStyles,
-  ...loginSpecificStyles,
+  ...HomeSpecificStyles,
 };
