@@ -22,8 +22,9 @@ import {
   validatePassword,
   validatePasswordMatch,
 } from '../utils/validation';
-import { createUser } from '../utils/api';
+import { createUser,login } from '../utils/api';
 import { useFormValidation } from '../hooks/useFormValidation';
+import { saveSession } from '../utils/session';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
@@ -63,7 +64,7 @@ export default function RegisterScreen({ navigation }: Props) {
       setApiError(''); //To clear previous errors
       setSuccessMessage(''); //To clear previous success messages
       try {
-        const result = await createUser({
+        await createUser({
           name: formData.name,
           email: formData.email,
           password: formData.password,
@@ -73,12 +74,16 @@ export default function RegisterScreen({ navigation }: Props) {
           diversityType: formData.diversityType,
         });
 
+        //Auto-login after successful registration
+        const loginResponse = await login(formData.email,formData.password);
+        await saveSession(loginResponse.session_id);
+
         setSuccessMessage(
-          'Account created successfully! Redirecting to login...',
+          'Account created successfully! Logged in automatically. Redirecting to home page',
         );
 
         setTimeout(() => {
-          navigation.navigate('Login');
+          navigation.navigate('Home');
         }, 1000);
       } catch (error: any) {
         const errorMessage =

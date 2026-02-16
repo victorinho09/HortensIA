@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import {getSession} from './session';
 
 export const createUser = async (data: {
     name?: string;
@@ -21,5 +22,31 @@ export const createUser = async (data: {
     }
 
     const response = await axios.post(`${API_BASE_URL}/users/`, payload)
-    return response.data;
+    return response.data; 
 };
+
+export const login = async (email: string, password: string) =>{
+    const response = await axios.post(`${API_BASE_URL}/auth/session`, {
+        email,
+        password
+    });
+    return response.data; //Returns Object of type LoginResponse (session_id,user)
+}
+
+export const getCurrentUser = async (sessionId: string) => {
+    const response = await axios.get(`${API_BASE_URL}/auth/me`,{
+        headers: {
+            'session-id': sessionId
+        }
+    });
+    return response.data; // Returns Object of type UserResponse
+};
+
+export const logout = async (sessionId: string) =>{
+    const response = await axios.post(`${API_BASE_URL}/auth/logout`,{},{
+        headers: {
+            'session-id': sessionId
+        }
+    });
+    return response.data; //Returns status code 404.
+}

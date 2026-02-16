@@ -10,6 +10,8 @@ import {
   validatePassword,
 } from '../utils/validation';
 import { useFormValidation } from '../hooks/useFormValidation';
+import { login } from '../utils/api';
+import { saveSession } from '../utils/session';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -38,25 +40,22 @@ export default function LoginScreen({ navigation }: Props) {
       setApiError(''); //To clear previous errors
       setSuccessMessage(''); //To clear previous success messages
       try {
-        /*
-        const result = await loginUser({
-          email: formData.email,
-          password: formData.password,
-        });
-        */
+        const response = await login(formData.email, formData.password); 
+
+        await saveSession(response.session_id)
         
         setSuccessMessage(
           'Log in successful! Redirecting to home page...',
         );
 
         setTimeout(() => {
-          //navigation.navigate('Home');
+          navigation.navigate('Home');
         }, 1000);
       } catch (error: any) {
         const errorMessage =
           error.response?.data?.detail ||
           error.response?.data?.message ||
-          'Something went wrong. Please try again.';
+          'Invalid email or password';
         setApiError(errorMessage);
       } finally {
         setLoading(false);
