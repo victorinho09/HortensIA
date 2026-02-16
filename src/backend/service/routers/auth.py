@@ -2,6 +2,7 @@
 Users Router
 """
 from backend.databases.session_repository import SessionRepository
+from backend.service.dependencies import get_current_user_from_session
 from fastapi import APIRouter, HTTPException, status, Response, Depends, Header
 from backend.models.user import UserCreate, UserResponse, UserInsert
 from backend.models.auth import AuthIdentityInsert, LoginRequest, LoginResponse
@@ -72,13 +73,14 @@ router = APIRouter()
 )
 async def session(credentials: LoginRequest, db: Session = Depends(get_db)) -> LoginResponse:
     try:
+        """
         print("\n" + "="*50)
         print("POST /auth/session ENDPOINT - Received data:")
         print("="*50)
         print(f"Email: {credentials.email}")
         print(f"Password: {credentials.password}")
         print("="*50 + "\n")
-        
+        """
         # Initialize repositories
         user_repo = UserRepository(db)
         session_repo = SessionRepository(db)
@@ -179,30 +181,9 @@ async def session(credentials: LoginRequest, db: Session = Depends(get_db)) -> L
     }
 ) 
 async def get_current_user(
-    authorization: str = Header(...,description ="Session ID for authentication"),
-    db:Session = Depends(get_db)
+    current_user: UserResponse = Depends(get_current_user_from_session)
 ) -> UserResponse:
-    try: 
-        user_repo = UserRepository(db)
-        session_repo = SessionRepository(db)
-
-        user_response = await session_repo.get_user_by_session(authorization)
-        if not user_response:
-            raise HTTPException(
-                status_code = status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or expired session"
-            )
-        
-        await session_repo.update_last_activity(authorization)
-        
-        return user_response
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An unexpected error occurred: {str(e)}"
-        )
+    return current_user
     
 @router.post(
     "/logout",

@@ -3,8 +3,8 @@ Authentication Identity Repository - Database access layer for auth_identities o
 """
 from typing import Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import select
-from backend.models.auth import AuthIdentityInsert, AuthIdentity
+from sqlalchemy import select, update
+from backend.models.auth import AuthIdentityInsert, AuthIdentity, Provider
 from backend.utils.uuid import UUIDType, str_to_uuid
 from backend.databases.models import AuthIdentities
 
@@ -111,3 +111,37 @@ class AuthRepository:
             password_hash=auth_row.password_hash,
             created_at=auth_row.created_at
         )
+
+    async def update_password(self, user_id: str | UUIDType, password_hash: str) -> bool:
+        """
+        Update password hash for a user's password authentication
+
+        Args: 
+            user_id: User's unique identifier
+            password_hash: New hashed password
+
+        Returns:
+            True if updated successfully
+        """
+
+        if isinstance(user_id, str):
+            user_id = str_to_uuid(user_id)
+        """
+        print(f"\n{'='*50}")
+        print(f"UPDATE_PASSWORD DEBUG:")
+        print(f"user_id: {user_id}")
+        print(f"password_hash: {password_hash[:20]}...")  # First 20 chars
+        print(f"Provider.PASSWORD: {Provider.PASSWORD}")
+        print(f"{'='*50}\n")
+        """
+        query = (
+            update(AuthIdentities)
+            .where(AuthIdentities.user_id == user_id)
+            .where(AuthIdentities.provider == Provider.PASSWORD)
+            .values(password_hash=password_hash)
+        )
+
+        result = self.db.execute(query)
+        self.db.commit()
+
+        return result.rowcount > 0

@@ -1,11 +1,13 @@
 """
 Users Router
 """
-from fastapi import APIRouter, HTTPException, status, Response, Depends
-from backend.models.user import UserCreate, UserResponse, UserInsert
+from backend.databases.session_repository import SessionRepository
+from backend.service.dependencies import get_current_user_from_session
+from fastapi import APIRouter, HTTPException, status, Response, Depends, Header
+from backend.models.user import UserCreate, UserResponse, UserInsert, UserUpdate
 from backend.models.auth import AuthIdentityInsert
 from backend.utils.hash import hash_password
-from backend.utils.uuid import generate_uuid
+from backend.utils.uuid import generate_uuid, validate_uuid
 from backend.models.auth import Provider
 from backend.databases.user_repository import UserRepository
 from backend.databases.auth_repository import AuthRepository
@@ -135,4 +137,97 @@ async def users(user_data: UserCreate, response: Response, db: Session = Depends
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An unexpected error occurred: {str(e)}"
         ) 
+    
+@router.patch(
+    "/me",
+    response_model= UserResponse,
+    status_code=200,
+    responses={
+        200: {
+            "description": "user profile updated successfully",
+            "model": UserResponse
+        },
+        400: {
+            "description": "Validation error - Invalid input data",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "success": False,
+                        "message": "Validation failed",
+                        "endpoint": "/users/me",
+                        "method": "PATCH",
+                        "errors": [
+                            {
+                                "field": "name",
+                                "message": "Field is too short",
+                                "type": "value_error",
+                                "status": "invalid"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        401: {
+            "description": "Unauthorized - Invalid or expired session",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Invalid or expired session"}
+                } 
+            }
+        },
+        404: {
+            "description": "Not Found - User not found",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "User not found"}
+                }
+            }
+        },
+        500: {
+            "description": "Internal Server Error",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "An unexpected error occurred"}
+                }
+            }
+        }
+    }
+)
+async def update_current_user(
+    user_update: UserUpdate,
+    current_user: UserResponse = Depends(get_current_user_from_session), #Validates the UUID format of sessionID
+    db: Session = Depends(get_db)
+) -> UserResponse:
+    """
+    Update the current user's profile
+    Only provided fields will be updated
+    Password will be hashed if changed
+    """
+    try:
+        update_data = user_update.model_dump(exclude_unset=True)
+        password = update_data.pop('password', None)
+        
+        user_repo = UserRepository(db)
+        updated_user = await user_repo.update(current_user.id, update_data)
 
+        if not updated_user:
+            raise HTTPException(
+                status_code=404,
+                detail="User not found"
+            )
+        
+        if password:
+            auth_repo = AuthRepository(db)
+            hashed_password = hash_password(password)
+            await auth_repo.update_password(current_user.id,hashed_password)
+            
+        return updated_user.user_to_user_response()
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"An unexpected error occurred: {str(e)}"
+        )

@@ -6,13 +6,13 @@ POST http://localhost:8888/users/
 content-type: application/json
 
 {
-    "email": "nuevooooooooo@example.com",
-    "name": "Test User",
-    "contact_person_email": "example2223232323@example.com",
+    "email": "wacho@wacho.com",
+    "name": "wacho",
+    "contact_person_email": "aaaaa@example.com",
     "contact_person_country_code": "34",
     "contact_person_phone_number": "639104485",
     "diversity_type": "visual",
-    "password": "password123"
+    "password": "password"
 }
 
 ### POST /auth/session - Login (get session token)
@@ -26,7 +26,65 @@ content-type: application/json
 
 ### GET /auth/me - Get current user (requires session token from login)
 GET http://localhost:8888/auth/me
-Authorization: 0660ed3c-c97f-452e-9ebf-d89715b77a1c
+Authorization: bf7d2996-353f-45ae-ae1c-e53a65aefe15
+
+### PATCH /users/me - Update current user profile (partial update)
+PATCH http://localhost:8888/users/me
+Authorization: bf7d2996-353f-45ae-ae1c-e53a65aefe15
+content-type: application/json
+
+{
+    "name": "Updated Name",
+    "contact_person_phone_number": "612345678"
+}
+
+### PATCH /users/me - Update only name
+PATCH http://localhost:8888/users/me
+Authorization: bf7d2996-353f-45ae-ae1c-e53a65aefe15
+content-type: application/json
+
+{
+    "name": "Another Name Change"
+}
+
+### PATCH /users/me - Update password
+PATCH http://localhost:8888/users/me
+Authorization: bf7d2996-353f-45ae-ae1c-e53a65aefe15
+content-type: application/json
+
+{
+    "password": "unacosanueva"
+}
+
+### PATCH /users/me - Update contact information
+PATCH http://localhost:8888/users/me
+Authorization: bf7d2996-353f-45ae-ae1c-e53a65aefe15
+content-type: application/json
+
+{
+    "contact_person_email": "newcontact@example.com",
+    "contact_person_country_code": "1",
+    "contact_person_phone_number": "5551234567"
+}
+
+### PATCH /users/me - Invalid data (test 400 error)
+PATCH http://localhost:8888/users/me
+Authorization: bf7d2996-353f-45ae-ae1c-e53a65aefe15
+content-type: application/json
+
+{
+    "name": "A",
+    "contact_person_phone_number": "123"
+}
+
+### PATCH /users/me - Invalid session (test 401 error)
+PATCH http://localhost:8888/users/me
+Authorization: invalid-session-id
+content-type: application/json
+
+{
+    "name": "Test"
+}
 
 ### POST /auth/logout - Logout (delete session)
 POST http://localhost:8888/auth/logout

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusBar, useColorScheme } from 'react-native';
+import { StatusBar, useColorScheme,View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import RegisterScreen from './RegisterScreen';
@@ -12,6 +12,8 @@ import SplashScreen from './SplashScreen';
 import { IconButton } from 'react-native-paper';
 import { clearSession } from '../utils/session';
 import { LogBox } from 'react-native';
+import ProfileScreen from './ProfileScreen';
+
 
 LogBox.ignoreLogs([
   'Sending `onAnimatedValueUpdate` with no listeners registered.',
@@ -37,14 +39,25 @@ export default function App() {
             screenOptions={({navigation}) => ({ //Parenthesis syntax is an implicit return of the object
               headerShown: true,
               headerRight: () => (
-                <IconButton
-                  icon="logout"
-                  size={24}
-                  onPress={() => handleLogout(navigation)}
-                  accessibilityLabel="Log out button"
-                  accessibilityHint="Press to log out of your account"
-                  accessibilityRole="button"
-                />
+                <View style={{flexDirection: 'row'}}>
+                  <IconButton
+                    icon="account-circle"
+                    size={24}
+                    onPress={() => navigation.navigate('Profile')}
+                    accessibilityLabel="Profile button"
+                    accessibilityHint="Press to view your Profile"
+                    accessibilityRole="button"
+                  />
+                  <IconButton
+                    icon="logout"
+                    size={24}
+                    onPress={() => handleLogout(navigation)}
+                    accessibilityLabel="Log out button"
+                    accessibilityHint="Press to log out of your account"
+                    accessibilityRole="button"
+                  />
+                </View>
+                
               ),
             })}
             >
@@ -52,7 +65,23 @@ export default function App() {
               <Stack.Screen name='Login' component={LoginScreen} options={{ headerShown: false }} />
               <Stack.Screen name='Home' component={HomeScreen} />
               <Stack.Screen name='Splash' component={SplashScreen} options={{ headerShown: false }} />
-
+              <Stack.Screen 
+                name='Profile' 
+                component={ProfileScreen} 
+                options={({navigation}) => ({
+                  headerShown: true,
+                  headerRight: () => (
+                    <IconButton
+                    icon="logout"
+                    size={24}
+                    onPress={() => handleLogout(navigation)}
+                    accessibilityLabel="Log out button"
+                    accessibilityHint="Press to log out of your account"
+                    accessibilityRole="button"
+                  />
+                  ),
+                })} 
+              />
           </Stack.Navigator>
         </NavigationContainer>
       </PaperProvider>
