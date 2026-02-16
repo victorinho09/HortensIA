@@ -38,9 +38,23 @@ export default function SplashScreen({ navigation }: Props) {
     };
 
   return (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" />
-      <Text variant="bodyLarge" style={styles.text}>Loading...</Text>
+    <View 
+      style={styles.container}
+      accessibilityLabel="Loading screen"
+    >
+      <ActivityIndicator 
+        size="large" 
+        accessibilityLabel="Loading indicator"
+        accessibilityHint="Please wait while we check your session"
+      />
+      <Text 
+        variant="bodyLarge" 
+        style={styles.text}
+        accessibilityLabel="Loading message"
+        accessibilityLiveRegion="polite"
+      >
+        Loading...
+      </Text>
     </View>
   );
 }

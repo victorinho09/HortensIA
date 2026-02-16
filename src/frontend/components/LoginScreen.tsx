@@ -76,24 +76,41 @@ export default function LoginScreen({ navigation }: Props) {
        <Text 
           variant="headlineMedium" 
           style={styles.title}
+          accessibilityRole="header"
+          accessibilityLabel="Login page"
         >
           Login
         </Text>
         <Text 
           variant="bodyMedium" 
           style={styles.subtitle}
+          accessibilityLabel="Log in to your account to get started"
         >
           Log in to your account to get started
         </Text>
 
         {apiError && (
-          <HelperText type="error" visible style={styles.apiError}>
+          <HelperText 
+            type="error" 
+            visible 
+            style={styles.apiError}
+            accessible={true}
+            accessibilityLabel="Error message"
+            accessibilityLiveRegion="polite"
+          >
             {apiError}
           </HelperText>
         )}
 
         {successMessage && (
-          <HelperText type="info" visible style={styles.successMessage}>
+          <HelperText 
+            type="info" 
+            visible 
+            style={styles.successMessage}
+            accessible={true}
+            accessibilityLabel="Success message"
+            accessibilityLiveRegion="polite"
+          >
             {successMessage}
           </HelperText>
         )}
@@ -111,10 +128,19 @@ export default function LoginScreen({ navigation }: Props) {
               autoCapitalize="none"
               left={<TextInput.Icon icon="email" />}
               style={styles.input}
+              accessibilityLabel="Email address input field"
+              accessibilityHint="Enter your email address"
+              accessibilityRole="text"
             />
 
             {touched.email && errors.email && (
-              <HelperText type="error" visible={!!errors.email}>
+              <HelperText 
+                type="error" 
+                visible={!!errors.email}
+                accessible={true}
+                accessibilityLabel="Email validation error"
+                accessibilityLiveRegion="polite"
+              >
                 {errors.email}
               </HelperText>
             )}
@@ -128,15 +154,29 @@ export default function LoginScreen({ navigation }: Props) {
               mode="outlined"
               secureTextEntry = {!showPassword}
               right={
-                <TextInput.Icon icon={showPassword ? "eye-off" : "eye"}
-                onPress={() => setShowPassword(!showPassword)} />
+                <TextInput.Icon 
+                  icon={showPassword ? "eye-off" : "eye"}
+                  onPress={() => setShowPassword(!showPassword)}
+                  accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+                  accessibilityHint="Toggle password visibility"
+                  accessibilityRole="button"
+                />
               }
               left={<TextInput.Icon icon="lock" />}
               style={styles.input}
+              accessibilityLabel="Password input field"
+              accessibilityHint="Enter your password"
+              accessibilityRole="text"
             />
 
             {touched.password && errors.password && (
-              <HelperText type="error" visible={!!errors.password}>
+              <HelperText 
+                type="error" 
+                visible={!!errors.password}
+                accessible={true}
+                accessibilityLabel="Password validation error"
+                accessibilityLiveRegion="polite"
+              >
                 {errors.password}
               </HelperText>
             )}
@@ -147,6 +187,10 @@ export default function LoginScreen({ navigation }: Props) {
               disabled={!isFormValid}
               loading={loading}
               style={[styles.button, !isFormValid && styles.buttonDisabled]}
+              accessibilityLabel="Log in button"
+              accessibilityHint="Press to log in with your credentials"
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !isFormValid }}
             >
               {loading ? 'Logging in...' : 'Log in'}
             </Button>
@@ -162,6 +206,9 @@ export default function LoginScreen({ navigation }: Props) {
                 variant='bodyMedium'
                 style={[styles.link, { color: theme.colors.primary }]}
                 onPress={() => {navigation.navigate('Register')}}
+                accessibilityLabel="Register link"
+                accessibilityHint="Navigate to registration page"
+                accessibilityRole="link"
               >
                 Register
               </Text>

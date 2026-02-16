@@ -41,6 +41,9 @@ export default function App() {
                   icon="logout"
                   size={24}
                   onPress={() => handleLogout(navigation)}
+                  accessibilityLabel="Log out button"
+                  accessibilityHint="Press to log out of your account"
+                  accessibilityRole="button"
                 />
               ),
             })}

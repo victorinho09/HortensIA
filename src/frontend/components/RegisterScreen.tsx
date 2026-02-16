@@ -106,21 +106,44 @@ export default function RegisterScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text variant="headlineMedium" style={styles.title}>
+        <Text 
+          variant="headlineMedium" 
+          style={styles.title}
+          accessibilityRole="header"
+          accessibilityLabel="Register page"
+        >
           Register
         </Text>
-        <Text variant="bodyMedium" style={styles.subtitle}>
+        <Text 
+          variant="bodyMedium" 
+          style={styles.subtitle}
+          accessibilityLabel="Create your account to get started"
+        >
           Create your account to get started
         </Text>
 
         {apiError && (
-          <HelperText type="error" visible style={styles.apiError}>
+          <HelperText 
+            type="error" 
+            visible 
+            style={styles.apiError}
+            accessible={true}
+            accessibilityLabel="Error message"
+            accessibilityLiveRegion="polite"
+          >
             {apiError}
           </HelperText>
         )}
 
         {successMessage && (
-          <HelperText type="info" visible style={styles.successMessage}>
+          <HelperText 
+            type="info" 
+            visible 
+            style={styles.successMessage}
+            accessible={true}
+            accessibilityLabel="Success message"
+            accessibilityLiveRegion="polite"
+          >
             {successMessage}
           </HelperText>
         )}
@@ -136,9 +159,19 @@ export default function RegisterScreen({ navigation }: Props) {
               mode="outlined"
               left={<TextInput.Icon icon="account" />}
               style={styles.input}
+              accessibilityLabel="Name input field"
+              accessibilityHint="Enter your full name"
+              accessibilityRole="text"
             />
             {touched.name && errors.name && (
-              <HelperText type="error" visible style={styles.helperText}>
+              <HelperText 
+                type="error" 
+                visible 
+                style={styles.helperText}
+                accessible={true}
+                accessibilityLabel="Name validation error"
+                accessibilityLiveRegion="polite"
+              >
                 {errors.name}
               </HelperText>
             )}
@@ -154,10 +187,19 @@ export default function RegisterScreen({ navigation }: Props) {
               autoCapitalize="none"
               left={<TextInput.Icon icon="email" />}
               style={styles.input}
+              accessibilityLabel="Email address input field"
+              accessibilityHint="Enter your email address"
+              accessibilityRole="text"
             />
 
             {touched.email && errors.email && (
-              <HelperText type="error" visible={!!errors.email}>
+              <HelperText 
+                type="error" 
+                visible={!!errors.email}
+                accessible={true}
+                accessibilityLabel="Email validation error"
+                accessibilityLiveRegion="polite"
+              >
                 {errors.email}
               </HelperText>
             )}
@@ -171,15 +213,29 @@ export default function RegisterScreen({ navigation }: Props) {
               mode="outlined"
               secureTextEntry = {!showPassword}
               right={
-                <TextInput.Icon icon={showPassword ? "eye-off" : "eye"}
-                onPress={() => setShowPassword(!showPassword)} />
+                <TextInput.Icon 
+                  icon={showPassword ? "eye-off" : "eye"}
+                  onPress={() => setShowPassword(!showPassword)}
+                  accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+                  accessibilityHint="Toggle password visibility"
+                  accessibilityRole="button"
+                />
               }
               left={<TextInput.Icon icon="lock" />}
               style={styles.input}
+              accessibilityLabel="Password input field"
+              accessibilityHint="Enter your password, minimum 8 characters"
+              accessibilityRole="text"
             />
 
             {touched.password && errors.password && (
-              <HelperText type="error" visible={!!errors.password}>
+              <HelperText 
+                type="error" 
+                visible={!!errors.password}
+                accessible={true}
+                accessibilityLabel="Password validation error"
+                accessibilityLiveRegion="polite"
+              >
                 {errors.password}
               </HelperText>
             )}
@@ -195,22 +251,39 @@ export default function RegisterScreen({ navigation }: Props) {
               right={
                 <TextInput.Icon 
                   icon={showConfirmPassword ? "eye-off" : "eye"}
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)} 
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  accessibilityLabel={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                  accessibilityHint="Toggle confirm password visibility"
+                  accessibilityRole="button"
                 />
               }
               left={<TextInput.Icon icon="lock-check" />}
               style={styles.input}
+              accessibilityLabel="Confirm password input field"
+              accessibilityHint="Re-enter your password to confirm"
+              accessibilityRole="text"
             />
 
             {touched.confirmPassword && errors.confirmPassword && (
-              <HelperText type="error" visible={!!errors.confirmPassword}>
+              <HelperText 
+                type="error" 
+                visible={!!errors.confirmPassword}
+                accessible={true}
+                accessibilityLabel="Confirm password validation error"
+                accessibilityLiveRegion="polite"
+              >
                 {errors.confirmPassword}
               </HelperText>
             )}
 
             <Divider style={styles.divider} />
 
-            <Text variant="titleMedium" style={styles.sectionTitle}>
+            <Text 
+              variant="titleMedium" 
+              style={styles.sectionTitle}
+              accessibilityRole="header"
+              accessibilityLabel="Additional information section"
+            >
               Additional Information (Optional)
             </Text>
 
@@ -225,10 +298,19 @@ export default function RegisterScreen({ navigation }: Props) {
               autoCapitalize="none"
               left={<TextInput.Icon icon="email-outline" />}
               style={styles.input}
+              accessibilityLabel="Contact email input field"
+              accessibilityHint="Enter an alternative contact email"
+              accessibilityRole="text"
             />
 
             {touched.contactEmail && errors.contactEmail && (
-              <HelperText type="error" visible={!!errors.contactEmail}>
+              <HelperText 
+                type="error" 
+                visible={!!errors.contactEmail}
+                accessible={true}
+                accessibilityLabel="Contact email validation error"
+                accessibilityLiveRegion="polite"
+              >
                 {errors.contactEmail}
               </HelperText>
             )}
@@ -244,6 +326,9 @@ export default function RegisterScreen({ navigation }: Props) {
                 placeholder="600123456"
                 left={<TextInput.Icon icon="cellphone" />}
                 style={[styles.input, styles.phoneInput]}
+                accessibilityLabel="Phone number input field"
+                accessibilityHint="Enter your phone number"
+                accessibilityRole="text"
               />
 
               <TextInput
@@ -256,18 +341,35 @@ export default function RegisterScreen({ navigation }: Props) {
                 placeholder="34"
                 left={<TextInput.Icon icon="phone" />}
                 style={[styles.input, styles.countryCodeInput]}
+                accessibilityLabel="Country code input field"
+                accessibilityHint="Enter your country calling code"
+                accessibilityRole="text"
               />
             </View>
 
             <View>
               {touched.phone && errors.phone && (
-                <HelperText type="error" visible style={styles.helperText}>
+                <HelperText 
+                  type="error" 
+                  visible 
+                  style={styles.helperText}
+                  accessible={true}
+                  accessibilityLabel="Phone validation error"
+                  accessibilityLiveRegion="polite"
+                >
                   {errors.phone}
                 </HelperText>
               )}
 
               {touched.countryCode && errors.countryCode && (
-                <HelperText type="error" visible style={styles.helperText}>
+                <HelperText 
+                  type="error" 
+                  visible 
+                  style={styles.helperText}
+                  accessible={true}
+                  accessibilityLabel="Country code validation error"
+                  accessibilityLiveRegion="polite"
+                >
                   {errors.countryCode}
                 </HelperText>
               )}
@@ -282,10 +384,19 @@ export default function RegisterScreen({ navigation }: Props) {
               placeholder="e.g., Visual, Hearing, Motor..."
               left={<TextInput.Icon icon="account-group" />}
               style={styles.input}
+              accessibilityLabel="Diversity type input field"
+              accessibilityHint="Enter your diversity type if applicable"
+              accessibilityRole="text"
             />
 
             {touched.diversityType && errors.diversityType && (
-              <HelperText type="error" visible={!!errors.diversityType}>
+              <HelperText 
+                type="error" 
+                visible={!!errors.diversityType}
+                accessible={true}
+                accessibilityLabel="Diversity type validation error"
+                accessibilityLiveRegion="polite"
+              >
                 {errors.diversityType}
               </HelperText>
             )}
@@ -296,6 +407,10 @@ export default function RegisterScreen({ navigation }: Props) {
               disabled={!isFormValid}
               loading={loading}
               style={[styles.button, !isFormValid && styles.buttonDisabled]}
+              accessibilityLabel="Create account button"
+              accessibilityHint="Press to create your account"
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !isFormValid }}
             >
               {loading ? 'Creating...' : 'Create Account'}
             </Button>
@@ -306,6 +421,9 @@ export default function RegisterScreen({ navigation }: Props) {
                 navigation.navigate('Login');
               }}
               style={styles.linkButton}
+              accessibilityLabel="Sign in link"
+              accessibilityHint="Navigate to login page"
+              accessibilityRole="link"
             >
               Already have an account? Sign In
             </Button>

@@ -15,6 +15,8 @@ export default function HomeScreen({navigation}: Props){
         <Text 
             variant="headlineMedium" 
             style={styles.title}
+            accessibilityRole="header"
+            accessibilityLabel="Home page"
             >
             Home 
         </Text>
