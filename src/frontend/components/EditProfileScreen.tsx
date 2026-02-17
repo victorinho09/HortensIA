@@ -82,20 +82,23 @@ export default function EditProfileScreen({navigation}: Props){
 
                 const updates: any = {};
 
-                // Only add fields that have changed AND are not empty
-                if (formData.name !== originalData.name && formData.name.trim()) {
-                    updates.name = formData.name;
+                // Helper to normalize values for comparison (null and empty string are equivalent)
+                const normalize = (value: any) => (value === null || value === '') ? null : value;
+
+                // Only add fields that have changed
+                if (normalize(formData.name) !== normalize(originalData.name)) {
+                    updates.name = formData.name.trim() || null;
                 }
-                if (formData.contactEmail !== originalData.contact_person_email) {
+                if (normalize(formData.contactEmail) !== normalize(originalData.contact_person_email)) {
                     updates.contact_person_email = formData.contactEmail.trim() || null;
                 }
-                if (formData.countryCode !== originalData.contact_person_country_code) {
+                if (normalize(formData.countryCode) !== normalize(originalData.contact_person_country_code)) {
                     updates.contact_person_country_code = formData.countryCode.trim() || null;
                 }
-                if (formData.phone !== originalData.contact_person_phone_number) {
+                if (normalize(formData.phone) !== normalize(originalData.contact_person_phone_number)) {
                     updates.contact_person_phone_number = formData.phone.trim() || null;
                 }
-                if (formData.diversityType !== originalData.diversity_type) {
+                if (normalize(formData.diversityType) !== normalize(originalData.diversity_type)) {
                     updates.diversity_type = formData.diversityType.trim() || null;
                 }
 

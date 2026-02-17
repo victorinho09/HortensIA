@@ -138,8 +138,17 @@ class UserRepository:
         if isinstance(user_id, str):
             user_id = str_to_uuid(user_id)
         
-        # Remove None values from update data
-        filtered_data = {k: v for k, v in user_data.items() if v is not None}
+        # Fields that cannot be set to null (only email is truly required)
+        REQUIRED_FIELDS = {'email'}
+        
+        # Filter out null values for required fields only
+        # Optional fields (name, contact_person_*, diversity_type) can be set to null
+        filtered_data = {}
+        for key, value in user_data.items():
+            if value is None and key in REQUIRED_FIELDS:
+                # Skip null values for required fields
+                continue
+            filtered_data[key] = value
         
         if not filtered_data:
             # No updates to perform, just return current user
