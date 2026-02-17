@@ -14,6 +14,7 @@ from backend.models import (
     UserCreate, 
     UserCreateOAuth,
     UserUpdate,
+    PasswordChange,
     UserInsert,
     UserResponse,
     UserRole,
@@ -373,7 +374,6 @@ class TestUserUpdateModel:
         user_update = UserUpdate()
         assert user_update.email is None
         assert user_update.name is None
-        assert user_update.password is None
         assert user_update.contact_person_email is None
         assert user_update.contact_person_country_code is None
         assert user_update.contact_person_phone_number is None
@@ -387,14 +387,12 @@ class TestUserUpdateModel:
         user_update = UserUpdate(**sample_user_update_data)
         assert user_update.email == sample_user_update_data["email"]
         assert user_update.name == sample_user_update_data["name"]
-        assert user_update.password is None
     
     def test_user_update_with_all_fields(self):
         """Test UserUpdate with all fields populated"""
         user_update = UserUpdate(
             email="updated@example.com",
             name="Updated Name",
-            password="newpassword123",
             contact_person_email="newcontact@example.com",
             contact_person_country_code="34",
             contact_person_phone_number="611111111",
@@ -418,12 +416,19 @@ class TestUserUpdateModel:
         with pytest.raises(ValidationError):
             UserUpdate(email="invalid-email")
     
-    def test_user_update_with_password_too_short(self):
-        """Test UserUpdate creation fails with password shorter than 8 characters"""
-        with pytest.raises(ValidationError) as exc_info:
-            UserUpdate(password="short")
-        errors = exc_info.value.errors()
-        assert any("password" in str(error["loc"]) for error in errors)
+    def test_user_update_does_not_accept_password(self):
+        """Test that password field was removed from UserUpdate (use PasswordChange instead)"""
+        # Password can be passed but will be ignored since it's not a field in UserUpdate
+        user_update = UserUpdate(
+            email="test@example.com",
+            name="Test User",
+            password="somepassword123"  # This should be ignored
+        )
+        # UserUpdate should not have a password attribute
+        assert not hasattr(user_update, 'password')
+        # Only the valid fields should be set
+        assert user_update.email == "test@example.com"
+        assert user_update.name == "Test User"
     
     def test_user_update_with_name_too_short(self):
         """Test UserUpdate creation fails with name shorter than 2 characters"""
@@ -454,6 +459,142 @@ class TestUserUpdateModel:
         settings = {"language": "en", "notifications": {"email": True}}
         user_update = UserUpdate(settings=settings)
         assert user_update.settings == settings
+
+
+class TestPasswordChangeModel:
+    """Test suite for PasswordChange model"""
+    
+    # Valid creation tests
+    
+    def test_password_change_with_valid_data(self):
+        """Test PasswordChange creation with valid data"""
+        password_change = PasswordChange(
+            current_password="oldpass123",
+            new_password="newpass123"
+        )
+        assert password_change.current_password == "oldpass123"
+        assert password_change.new_password == "newpass123"
+    
+    def test_password_change_with_minimum_length(self):
+        """Test PasswordChange with minimum password length (8 characters)"""
+        password_change = PasswordChange(
+            current_password="12345678",
+            new_password="abcdefgh"
+        )
+        assert password_change.current_password == "12345678"
+        assert password_change.new_password == "abcdefgh"
+    
+    def test_password_change_with_long_passwords(self):
+        """Test PasswordChange with long passwords"""
+        long_password = "a" * 100
+        password_change = PasswordChange(
+            current_password=long_password,
+            new_password=long_password + "new"
+        )
+        assert len(password_change.current_password) == 100
+        assert len(password_change.new_password) == 103
+    
+    def test_password_change_with_special_characters(self):
+        """Test PasswordChange with special characters in passwords"""
+        password_change = PasswordChange(
+            current_password="P@ssw0rd!#$%",
+            new_password="N3w!P@ss#2024"
+        )
+        assert password_change.current_password == "P@ssw0rd!#$%"
+        assert password_change.new_password == "N3w!P@ss#2024"
+    
+    def test_password_change_with_unicode_characters(self):
+        """Test PasswordChange with unicode characters"""
+        password_change = PasswordChange(
+            current_password="pássw0rd123",
+            new_password="新password123"
+        )
+        assert password_change.current_password == "pássw0rd123"
+        assert password_change.new_password == "新password123"
+    
+    # Validation tests
+    
+    def test_password_change_without_current_password_fails(self):
+        """Test PasswordChange creation fails without current_password"""
+        with pytest.raises(ValidationError) as exc_info:
+            PasswordChange(new_password="newpass123")
+        errors = exc_info.value.errors()
+        assert any("current_password" in str(error["loc"]) for error in errors)
+    
+    def test_password_change_without_new_password_fails(self):
+        """Test PasswordChange creation fails without new_password"""
+        with pytest.raises(ValidationError) as exc_info:
+            PasswordChange(current_password="oldpass123")
+        errors = exc_info.value.errors()
+        assert any("new_password" in str(error["loc"]) for error in errors)
+    
+    def test_password_change_with_current_password_too_short(self):
+        """Test PasswordChange fails with current_password shorter than 8 characters"""
+        with pytest.raises(ValidationError) as exc_info:
+            PasswordChange(current_password="short", new_password="validpass123")
+        errors = exc_info.value.errors()
+        assert any("current_password" in str(error["loc"]) for error in errors)
+    
+    def test_password_change_with_new_password_too_short(self):
+        """Test PasswordChange fails with new_password shorter than 8 characters"""
+        with pytest.raises(ValidationError) as exc_info:
+            PasswordChange(current_password="validpass123", new_password="short")
+        errors = exc_info.value.errors()
+        assert any("new_password" in str(error["loc"]) for error in errors)
+    
+    def test_password_change_with_both_passwords_too_short(self):
+        """Test PasswordChange fails when both passwords are too short"""
+        with pytest.raises(ValidationError) as exc_info:
+            PasswordChange(current_password="short", new_password="brief")
+        errors = exc_info.value.errors()
+        # Should have errors for both fields
+        error_fields = [str(error["loc"]) for error in errors]
+        assert any("current_password" in field for field in error_fields)
+        assert any("new_password" in field for field in error_fields)
+    
+    def test_password_change_with_empty_current_password(self):
+        """Test PasswordChange fails with empty current_password"""
+        with pytest.raises(ValidationError) as exc_info:
+            PasswordChange(current_password="", new_password="validpass123")
+        errors = exc_info.value.errors()
+        assert any("current_password" in str(error["loc"]) for error in errors)
+    
+    def test_password_change_with_empty_new_password(self):
+        """Test PasswordChange fails with empty new_password"""
+        with pytest.raises(ValidationError) as exc_info:
+            PasswordChange(current_password="validpass123", new_password="")
+        errors = exc_info.value.errors()
+        assert any("new_password" in str(error["loc"]) for error in errors)
+    
+    def test_password_change_same_passwords_allowed(self):
+        """Test PasswordChange allows same password for current and new (backend validates this)"""
+        # Model validation doesn't prevent same passwords - business logic does
+        password_change = PasswordChange(
+            current_password="samepass123",
+            new_password="samepass123"
+        )
+        assert password_change.current_password == password_change.new_password
+    
+    def test_password_change_model_dump(self):
+        """Test PasswordChange model_dump serialization"""
+        password_change = PasswordChange(
+            current_password="oldpass123",
+            new_password="newpass123"
+        )
+        dumped = password_change.model_dump()
+        assert dumped["current_password"] == "oldpass123"
+        assert dumped["new_password"] == "newpass123"
+        assert len(dumped) == 2  # Only these two fields
+    
+    def test_password_change_model_dump_json(self):
+        """Test PasswordChange model_dump_json serialization"""
+        password_change = PasswordChange(
+            current_password="oldpass123",
+            new_password="newpass123"
+        )
+        json_str = password_change.model_dump_json()
+        assert "oldpass123" in json_str
+        assert "newpass123" in json_str
 
 
 class TestCompleteUserModel:
