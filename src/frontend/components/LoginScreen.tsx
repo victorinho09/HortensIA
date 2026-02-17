@@ -52,7 +52,7 @@ export default function LoginScreen({ navigation }: Props) {
 
         setTimeout(() => {
           navigation.replace('Home');
-        }, 1000);
+        }, 500);
       } catch (error: any) {
         const errorMessage =
           error.response?.data?.detail ||
@@ -73,14 +73,6 @@ export default function LoginScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-       <Text 
-          variant="headlineMedium" 
-          style={styles.title}
-          accessibilityRole="header"
-          accessibilityLabel="Login page"
-        >
-          Login
-        </Text>
         <Text 
           variant="bodyMedium" 
           style={styles.subtitle}

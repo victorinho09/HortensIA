@@ -10,9 +10,11 @@ import LoginScreen from './LoginScreen';
 import HomeScreen from './HomeScreen';
 import SplashScreen from './SplashScreen';
 import { IconButton } from 'react-native-paper';
-import { clearSession } from '../utils/session';
+import { clearSession, getSession } from '../utils/session';
 import { LogBox } from 'react-native';
 import ProfileScreen from './ProfileScreen';
+import EditProfileScreen from './EditProfileScreen';
+import { logout } from '../utils/api';
 
 
 LogBox.ignoreLogs([
@@ -25,8 +27,18 @@ export default function App() {
   const isDarkMode = useColorScheme() === 'dark';
   const theme = isDarkMode ? MD3DarkTheme : MD3LightTheme;
   const handleLogout = async (navigation: any) => {
-    await clearSession();
-    navigation.replace('Login');
+    try{
+      const sessionId = await getSession();
+      if (sessionId){
+        await logout(sessionId); //Deletes session from db
+      }
+    } catch(error){
+      console.error('Logout failed: ', error);
+    } finally{
+      await clearSession();
+      navigation.replace('Login');
+    }
+    
   };
 
   return (
@@ -81,6 +93,11 @@ export default function App() {
                   />
                   ),
                 })} 
+              />
+              <Stack.Screen 
+                name='EditProfile' 
+                component={EditProfileScreen} 
+                options={{ title: 'Edit Profile' }} 
               />
           </Stack.Navigator>
         </NavigationContainer>

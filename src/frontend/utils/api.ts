@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
-import {getSession} from './session';
+import { getSession } from './session';
 
 export const createUser = async (data: {
     name?: string;
@@ -50,3 +50,31 @@ export const logout = async (sessionId: string) =>{
     });
     return response.data; //Returns status code 404.
 }
+
+export const updateProfile = async (updates: Partial<{
+  name: string;
+  email: string;
+  password: string;
+  contact_person_email: string;
+  contact_person_country_code: string;
+  contact_person_phone_number: string;
+  diversity_type: string;
+}>) => {
+  const sessionId = await getSession();
+  if (!sessionId) {
+    throw new Error('No session found');
+  }
+
+  const response = await axios.patch(
+    `${API_BASE_URL}/users/me`,
+    updates,
+    {
+      headers: {
+        'authorization': sessionId,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+
+  return response.data;
+};

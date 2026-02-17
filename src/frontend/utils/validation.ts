@@ -37,16 +37,28 @@ export const validateContactEmail = (contactEmail: string): string =>{
 }
 
 export const validateCountryCode = (code: string, phone: string): string => {
-  if (!code && !phone) return ''; // Both empty is okay
-  if (!code && phone) return 'Country code required with phone number';
-  if (!/^\d{1,3}$/.test(code)) return 'Invalid country code';
+  // Both empty is okay (optional fields)
+  if (!code.trim() && !phone.trim()) return '';
+  
+  // If phone is provided, country code is required
+  if (!code.trim() && phone.trim()) return 'Country code required with phone number';
+  
+  // If country code is provided, validate format (only if not empty)
+  if (code.trim() && !/^\d{1,3}$/.test(code.trim())) return 'Invalid country code (1-3 digits)';
+  
   return '';
 };
 
 export const validatePhone = (phone: string, countryCode: string): string => {
-  if (!phone && !countryCode) return ''; // Both empty is okay
-  if (!phone && countryCode) return 'Phone number required with country code';
-  if (!/^\d{6,15}$/.test(phone)) return 'Invalid phone number';
+  // Both empty is okay (optional fields)
+  if (!phone.trim() && !countryCode.trim()) return '';
+  
+  // If country code is provided, phone number is required
+  if (!phone.trim() && countryCode.trim()) return 'Phone number required with country code';
+  
+  // If phone is provided, validate format (only if not empty)
+  if (phone.trim() && !/^\d{6,15}$/.test(phone.trim())) return 'Phone number must be 6-15 digits';
+  
   return '';
 };
 

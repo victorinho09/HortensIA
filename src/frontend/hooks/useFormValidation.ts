@@ -40,12 +40,21 @@ export const useFormValidation = <T extends Record<string, string>>(
     return Object.values(newErrors).every(error => error === '');
   };
 
+  const setAllTouched = () => {
+    const allTouched = {} as Record<keyof T, boolean>;
+    for (const field in formData) {
+      allTouched[field] = true;
+    }
+    setTouched(allTouched);
+  };
+
   return { 
     formData, 
     errors, 
     touched, 
     handleBlur, 
     handleChange, 
-    validateForm 
+    validateForm,
+    setAllTouched
   };
 };

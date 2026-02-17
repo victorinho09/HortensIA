@@ -107,14 +107,6 @@ export default function RegisterScreen({ navigation }: Props) {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text 
-          variant="headlineMedium" 
-          style={styles.title}
-          accessibilityRole="header"
-          accessibilityLabel="Register page"
-        >
-          Register
-        </Text>
-        <Text 
           variant="bodyMedium" 
           style={styles.subtitle}
           accessibilityLabel="Create your account to get started"
@@ -158,6 +150,7 @@ export default function RegisterScreen({ navigation }: Props) {
               onBlur={handleBlur('name')}
               mode="outlined"
               left={<TextInput.Icon icon="account" />}
+              error={touched.name && !!errors.name}
               style={styles.input}
               accessibilityLabel="Name input field"
               accessibilityHint="Enter your full name"
@@ -186,6 +179,7 @@ export default function RegisterScreen({ navigation }: Props) {
               keyboardType="email-address"
               autoCapitalize="none"
               left={<TextInput.Icon icon="email" />}
+              error={touched.email && !!errors.email}
               style={styles.input}
               accessibilityLabel="Email address input field"
               accessibilityHint="Enter your email address"
@@ -222,6 +216,7 @@ export default function RegisterScreen({ navigation }: Props) {
                 />
               }
               left={<TextInput.Icon icon="lock" />}
+              error={touched.password && !!errors.password}
               style={styles.input}
               accessibilityLabel="Password input field"
               accessibilityHint="Enter your password, minimum 8 characters"
@@ -258,6 +253,7 @@ export default function RegisterScreen({ navigation }: Props) {
                 />
               }
               left={<TextInput.Icon icon="lock-check" />}
+              error={touched.confirmPassword && !!errors.confirmPassword}
               style={styles.input}
               accessibilityLabel="Confirm password input field"
               accessibilityHint="Re-enter your password to confirm"
@@ -297,6 +293,7 @@ export default function RegisterScreen({ navigation }: Props) {
               keyboardType="email-address"
               autoCapitalize="none"
               left={<TextInput.Icon icon="email-outline" />}
+              error={touched.contactEmail && !!errors.contactEmail}
               style={styles.input}
               accessibilityLabel="Contact email input field"
               accessibilityHint="Enter an alternative contact email"
@@ -325,6 +322,7 @@ export default function RegisterScreen({ navigation }: Props) {
                 keyboardType="phone-pad"
                 placeholder="600123456"
                 left={<TextInput.Icon icon="cellphone" />}
+                error={touched.phone && !!errors.phone}
                 style={[styles.input, styles.phoneInput]}
                 accessibilityLabel="Phone number input field"
                 accessibilityHint="Enter your phone number"
@@ -340,6 +338,7 @@ export default function RegisterScreen({ navigation }: Props) {
                 keyboardType="number-pad"
                 placeholder="34"
                 left={<TextInput.Icon icon="phone" />}
+                error={touched.countryCode && !!errors.countryCode}
                 style={[styles.input, styles.countryCodeInput]}
                 accessibilityLabel="Country code input field"
                 accessibilityHint="Enter your country calling code"
@@ -383,6 +382,7 @@ export default function RegisterScreen({ navigation }: Props) {
               mode="outlined"
               placeholder="e.g., Visual, Hearing, Motor..."
               left={<TextInput.Icon icon="account-group" />}
+              error={touched.diversityType && !!errors.diversityType}
               style={styles.input}
               accessibilityLabel="Diversity type input field"
               accessibilityHint="Enter your diversity type if applicable"

@@ -7,7 +7,7 @@ export const commonStyles = StyleSheet.create({
   },
   content: {
     padding: 16,
-    paddingTop: 16,
+    paddingTop: 4,
     paddingBottom: 16,
   },
   title: {
@@ -19,9 +19,12 @@ export const commonStyles = StyleSheet.create({
   },
   subtitle: {
     textAlign: 'center',
-    color: '#666',
-    marginBottom: 24,
-    fontSize: 14,
+    color: '#555',
+    marginBottom: 32,
+    marginTop: 4,
+    fontSize: 16,
+    lineHeight: 22,
+    paddingHorizontal: 20,
   },
   card: {
     borderRadius: 12,
@@ -62,6 +65,7 @@ export const commonStyles = StyleSheet.create({
   helperText: {
     marginTop: -8,
     fontSize: 12,
+    color: '#d32f2f',
   },
   buttonDisabled: {
     opacity: 0.5,
