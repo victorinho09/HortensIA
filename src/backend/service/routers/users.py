@@ -4,9 +4,9 @@ Users Router
 from backend.databases.session_repository import SessionRepository
 from backend.service.dependencies import get_current_user_from_session
 from fastapi import APIRouter, HTTPException, status, Response, Depends, Header
-from backend.models.user import UserCreate, UserResponse, UserInsert, UserUpdate
+from backend.models.user import UserCreate, UserResponse, UserInsert, UserUpdate,PasswordChange
 from backend.models.auth import AuthIdentityInsert
-from backend.utils.hash import hash_password
+from backend.utils.hash import hash_password, verify_password
 from backend.utils.uuid import generate_uuid, validate_uuid
 from backend.models.auth import Provider
 from backend.databases.user_repository import UserRepository
@@ -206,7 +206,6 @@ async def update_current_user(
     """
     try:
         update_data = user_update.model_dump(exclude_unset=True)
-        password = update_data.pop('password', None)
         
         user_repo = UserRepository(db)
         updated_user = await user_repo.update(current_user.id, update_data)
@@ -216,12 +215,7 @@ async def update_current_user(
                 status_code=404,
                 detail="User not found"
             )
-        
-        if password:
-            auth_repo = AuthRepository(db)
-            hashed_password = hash_password(password)
-            await auth_repo.update_password(current_user.id,hashed_password)
-            
+
         return updated_user.user_to_user_response()
 
     except HTTPException:
@@ -230,4 +224,89 @@ async def update_current_user(
         raise HTTPException(
             status_code=500,
             detail=f"An unexpected error occurred: {str(e)}"
+        )
+
+@router.patch(
+    "/me/password",
+    status_code = 200,
+    responses={
+        200: {
+            "description": "Password changed successfully",
+            "content": {
+                "application/json": {
+                    "example": {"message": "Password changed successfully"}
+                }
+            }
+        },
+        400: {
+            "description": "Invalid current password",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Current password is incorrect"}
+                }
+            }
+        },
+        401: {
+            "description": "Unauthorized - Invalid or expired session",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Invalid or expired session"}
+                } 
+            }
+        },
+        404: {
+            "description": "Not Found - User not found",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "User not found"}
+                }
+            }
+        },
+        500: {
+            "description": "Internal Server Error",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "An unexpected error occurred"}
+                }
+            }
+        }
+    }
+)
+async def change_password(
+    password_change: PasswordChange,
+    current_user: UserResponse = Depends(get_current_user_from_session),
+    db: Session = Depends(get_db)
+):
+    """
+    Change the current user's password
+    Requires current password for verification
+    """
+    try:
+        user_repo = UserRepository(db)
+        user_with_password = await user_repo.get_by_email_with_password(current_user.email)
+
+        if not user_with_password:
+            raise HTTPException(
+                status_code=404,
+                detail="User not found"
+            )
+        
+        current_hash = user_with_password["password_hash"]
+        if not verify_password(password_change.current_password,current_hash):
+            raise HTTPException(
+                status_code= 400,
+                detail= "Current password is incorrect"
+            )
+        
+        auth_repo = AuthRepository(db)
+        new_hash = hash_password(password_change.new_password)
+        await auth_repo.update_password(current_user.id,new_hash)
+
+        return {"message" : "Password changed successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code = 500,
+            detail = f"An unexpected error ocurred: {str(e)}"
         )

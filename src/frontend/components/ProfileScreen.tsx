@@ -116,6 +116,16 @@ export default function ProfileScreen({navigation}: Props){
             >
                 Edit Profile
             </Button>
+
+            <Button 
+                mode="outlined" 
+                onPress={() => navigation.navigate('ChangePassword')}
+                style={styles.button}
+                accessibilityLabel="Change password button"
+                accessibilityHint="Press to change your password"
+            >
+                Change Password
+            </Button>
         </ScrollView>
         </SafeAreaView>
     );

@@ -78,3 +78,25 @@ export const updateProfile = async (updates: Partial<{
 
   return response.data;
 };
+
+export const changePassword = async (currentPassword: string, newPassword: string) => {
+    const sessionId = await getSession();
+    if (!sessionId){
+        throw new Error('No session found');
+    }
+
+    const response = await axios.patch(
+        `${API_BASE_URL}/users/me/password`,
+        {
+            current_password: currentPassword,
+            new_password: newPassword
+        },
+        {
+            headers: {
+                'authorization' : sessionId,
+            },
+        }
+    );
+
+    return response.data
+}

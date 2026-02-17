@@ -6,7 +6,7 @@ POST http://localhost:8888/users/
 content-type: application/json
 
 {
-    "email": "wacho@wacho.com",
+    "email": "nuevo@wacho.com",
     "name": "wacho",
     "contact_person_email": "aaaaa@example.com",
     "contact_person_country_code": "34",
@@ -20,17 +20,17 @@ POST http://localhost:8888/auth/session
 content-type: application/json
 
 {
-    "email": "example2222234223@example.com",
-    "password": "password123"
+    "email": "nuevo@wacho.com",
+    "password": "password"
 }
 
 ### GET /auth/me - Get current user (requires session token from login)
 GET http://localhost:8888/auth/me
-Authorization: bf7d2996-353f-45ae-ae1c-e53a65aefe15
+Authorization: f3756463-d020-48b8-9743-35227fad3e7b
 
 ### PATCH /users/me - Update current user profile (partial update)
 PATCH http://localhost:8888/users/me
-Authorization: bf7d2996-353f-45ae-ae1c-e53a65aefe15
+Authorization: f3756463-d020-48b8-9743-35227fad3e7b
 content-type: application/json
 
 {
@@ -40,25 +40,16 @@ content-type: application/json
 
 ### PATCH /users/me - Update only name
 PATCH http://localhost:8888/users/me
-Authorization: bf7d2996-353f-45ae-ae1c-e53a65aefe15
+Authorization: f3756463-d020-48b8-9743-35227fad3e7b
 content-type: application/json
 
 {
     "name": "Another Name Change"
 }
 
-### PATCH /users/me - Update password
-PATCH http://localhost:8888/users/me
-Authorization: bf7d2996-353f-45ae-ae1c-e53a65aefe15
-content-type: application/json
-
-{
-    "password": "unacosanueva"
-}
-
 ### PATCH /users/me - Update contact information
 PATCH http://localhost:8888/users/me
-Authorization: bf7d2996-353f-45ae-ae1c-e53a65aefe15
+Authorization: f3756463-d020-48b8-9743-35227fad3e7b
 content-type: application/json
 
 {
@@ -69,7 +60,7 @@ content-type: application/json
 
 ### PATCH /users/me - Invalid data (test 400 error)
 PATCH http://localhost:8888/users/me
-Authorization: bf7d2996-353f-45ae-ae1c-e53a65aefe15
+Authorization: f3756463-d020-48b8-9743-35227fad3e7b
 content-type: application/json
 
 {
@@ -89,3 +80,43 @@ content-type: application/json
 ### POST /auth/logout - Logout (delete session)
 POST http://localhost:8888/auth/logout
 Authorization: 0660ed3c-c97f-452e-9ebf-d89715b77a1c
+
+### PATCH /users/me/password - Change password (success)
+PATCH http://localhost:8888/users/me/password
+Authorization: f3756463-d020-48b8-9743-35227fad3e7b
+content-type: application/json
+
+{
+    "current_password": "newpassword",
+    "new_password": "newpassword123"
+}
+
+### PATCH /users/me/password - Wrong current password (test 400 error)
+PATCH http://localhost:8888/users/me/password
+Authorization: f3756463-d020-48b8-9743-35227fad3e7b
+content-type: application/json
+
+{
+    "current_password": "wrongpassword",
+    "new_password": "newpassword123"
+}
+
+### PATCH /users/me/password - Invalid session (test 401 error)
+PATCH http://localhost:8888/users/me/password
+Authorization: invalid-session-id
+content-type: application/json
+
+{
+    "current_password": "password123",
+    "new_password": "newpassword123"
+}
+
+### PATCH /users/me/password - Password too short (test 400 validation error)
+PATCH http://localhost:8888/users/me/password
+Authorization: f3756463-d020-48b8-9743-35227fad3e7b
+content-type: application/json
+
+{
+    "current_password": "newpassword123",
+    "new_password": "short"
+}

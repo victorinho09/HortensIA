@@ -62,7 +62,6 @@ class UserUpdate(BaseModel):
     """Schema for updating an existing user"""
     email: Optional[EmailStr] = Field(default=None, description=FIELD_DESCRIPTIONS["email"])
     name: Optional[str] = Field(default=None, min_length=2, description=FIELD_DESCRIPTIONS["name"])
-    password: Optional[str] = Field(default=None, min_length=8, description=FIELD_DESCRIPTIONS["password"])
     contact_person_email: Optional[EmailStr] = Field(default=None, description=FIELD_DESCRIPTIONS["contact_person_email"])
     #Country code and phone number must be strings, if not, there are problems with the number of 0's
     contact_person_country_code: Optional[str] = Field(default=None,max_length=4, description=FIELD_DESCRIPTIONS["contact_person_country_code"])
@@ -72,6 +71,12 @@ class UserUpdate(BaseModel):
     email_verified: Optional[bool] = Field(default=None, description=FIELD_DESCRIPTIONS["email_verified"])
     settings: Optional[Dict[str, Any]] = Field(default=None, description=FIELD_DESCRIPTIONS["settings"])
 
+class PasswordChange(BaseModel):
+    """
+    Schema for changing user password
+    """
+    current_password: str = Field(...,min_length=8,description="Current password for verification")
+    new_password: str = Field(...,min_length=8,description="New password to change")
 
 class UserInsert(UserBase):
     """
