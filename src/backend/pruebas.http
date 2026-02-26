@@ -14,7 +14,6 @@ content-type: application/json
     "diversity_type": "visual",
     "password": "password"
 }
-
 ### POST /auth/session - Login (get session token)
 POST http://localhost:8888/auth/session
 content-type: application/json
