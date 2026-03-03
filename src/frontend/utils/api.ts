@@ -51,6 +51,19 @@ export const logout = async (sessionId: string) =>{
     return response.data; //Returns status code 404.
 }
 
+export const deleteAccount = async (): Promise<void> => {
+  const sessionId = await getSession();
+  if (!sessionId) {
+    throw new Error('No session found');
+  }
+
+  await axios.delete(`${API_BASE_URL}/users/me`, {
+    headers: {
+      'authorization': sessionId,
+    },
+  });
+};
+
 export const updateProfile = async (updates: Partial<{
   name: string;
   email: string;

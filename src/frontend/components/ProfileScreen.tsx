@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, Alert } from 'react-native';
 import { Text, Button, Card, ActivityIndicator, Divider } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from './navigation/types';
-import { getSession } from '../utils/session';
-import { getCurrentUser } from '../utils/api';
+import { getSession, clearSession } from '../utils/session';
+import { getCurrentUser, deleteAccount } from '../utils/api';
 import { profileStyles as styles } from './styles/ProfileScreen.styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
@@ -125,6 +125,39 @@ export default function ProfileScreen({navigation}: Props){
                 accessibilityHint="Press to change your password"
             >
                 Change Password
+            </Button>
+
+            <Button
+                mode="outlined"
+                onPress={() =>
+                    Alert.alert(
+                        'Delete Account',
+                        'This will permanently delete your account and all your data. This action cannot be undone.',
+                        [
+                            { text: 'Cancel', style: 'cancel' },
+                            {
+                                text: 'Delete',
+                                style: 'destructive',
+                                onPress: async () => {
+                                    try {
+                                        await deleteAccount();
+                                        await clearSession();
+                                        navigation.replace('Login');
+                                    } catch (err) {
+                                        Alert.alert('Error', 'Could not delete account. Please try again.');
+                                        console.error(err);
+                                    }
+                                },
+                            },
+                        ]
+                    )
+                }
+                style={styles.dangerButton}
+                textColor="#d32f2f"
+                accessibilityLabel="Delete account button"
+                accessibilityHint="Press to permanently delete your account"
+            >
+                Delete Account
             </Button>
         </ScrollView>
         </SafeAreaView>

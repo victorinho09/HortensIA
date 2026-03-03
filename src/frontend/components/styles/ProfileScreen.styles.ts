@@ -74,4 +74,10 @@ export const profileStyles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
   },
+  dangerButton: {
+    ...commonStyles.button,
+    marginTop: 4,
+    marginBottom: 16,
+    borderColor: '#d32f2f',
+  },
 });

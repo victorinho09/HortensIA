@@ -310,3 +310,61 @@ async def change_password(
             status_code = 500,
             detail = f"An unexpected error ocurred: {str(e)}"
         )
+
+@router.delete(
+    "/me",
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        204: {
+            "description": "Account deleted successfully"
+        },
+        401: {
+            "description": "Unauthorized - Invalid or expired session",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Invalid or expired session"}
+                }
+            }
+        },
+        404: {
+            "description": "Not Found - User not found",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "User not found"}
+                }
+            }
+        },
+        500: {
+            "description": "Internal Server Error",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "An unexpected error occurred"}
+                }
+            }
+        }
+    }
+)
+async def delete_current_user(
+    current_user: UserResponse = Depends(get_current_user_from_session),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete the current user's account and all associated data.
+    """
+    try:
+        user_repo = UserRepository(db)
+        deleted = await user_repo.delete(current_user.id)
+
+        if not deleted:
+            raise HTTPException(
+                status_code=404,
+                detail="User not found"
+            )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"An unexpected error occurred: {str(e)}"
+        )
