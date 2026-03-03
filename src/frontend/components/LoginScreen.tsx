@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, View, Image } from 'react-native';
 import { Text, Card, TextInput, Button, HelperText,useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -19,7 +19,6 @@ export default function LoginScreen({ navigation }: Props) {
   const theme = useTheme()
 
   const [apiError, setApiError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -38,21 +37,14 @@ export default function LoginScreen({ navigation }: Props) {
     if (validateForm()) {
       setLoading(true);
       setApiError(''); //To clear previous errors
-      setSuccessMessage(''); //To clear previous success messages
       try {
         const response = await login(formData.email, formData.password); 
         console.log('LoginScreen - Login response:', response);
 
         await saveSession(response.session_id)
         console.log('LoginScreen - Session saved:', response.session_id);
-        
-        setSuccessMessage(
-          'Log in successful! Redirecting to home page...',
-        );
 
-        setTimeout(() => {
-          navigation.replace('Home');
-        }, 500);
+        navigation.replace('Splash');
       } catch (error: any) {
         const errorMessage =
           error.response?.data?.detail ||
@@ -73,6 +65,14 @@ export default function LoginScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
+        <Image
+          source={require('../assets/logo.png')}
+          style={styles.logo}
+          accessibilityLabel="App logo"
+        />
+        <Text variant="headlineSmall" style={styles.appName}>
+          Hortensia
+        </Text>
         <Text 
           variant="bodyMedium" 
           style={styles.subtitle}
@@ -94,19 +94,6 @@ export default function LoginScreen({ navigation }: Props) {
           </HelperText>
         )}
 
-        {successMessage && (
-          <HelperText 
-            type="info" 
-            visible 
-            style={styles.successMessage}
-            accessible={true}
-            accessibilityLabel="Success message"
-            accessibilityLiveRegion="polite"
-          >
-            {successMessage}
-          </HelperText>
-        )}
-
         <Card style={styles.card}>
           <Card.Content>
             <TextInput
@@ -118,6 +105,8 @@ export default function LoginScreen({ navigation }: Props) {
               mode="outlined"
               keyboardType="email-address"
               autoCapitalize="none"
+              autoComplete="email"
+              textContentType="emailAddress"
               left={<TextInput.Icon icon="email" />}
               style={styles.input}
               accessibilityLabel="Email address input field"
@@ -145,6 +134,8 @@ export default function LoginScreen({ navigation }: Props) {
               onBlur={handleBlur('password')}
               mode="outlined"
               secureTextEntry = {!showPassword}
+              textContentType="password"
+              autoComplete="current-password"
               right={
                 <TextInput.Icon 
                   icon={showPassword ? "eye-off" : "eye"}

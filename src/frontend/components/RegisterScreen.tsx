@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, View, Image } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from './navigation/types';
 import {
@@ -30,7 +30,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
 export default function RegisterScreen({ navigation }: Props) {
   const [apiError, setApiError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -62,7 +61,6 @@ export default function RegisterScreen({ navigation }: Props) {
     if (validateForm()) {
       setLoading(true);
       setApiError(''); //To clear previous errors
-      setSuccessMessage(''); //To clear previous success messages
       try {
         await createUser({
           name: formData.name,
@@ -78,13 +76,7 @@ export default function RegisterScreen({ navigation }: Props) {
         const loginResponse = await login(formData.email,formData.password);
         await saveSession(loginResponse.session_id);
 
-        setSuccessMessage(
-          'Account created successfully! Logged in automatically. Redirecting to home page',
-        );
-
-        setTimeout(() => {
-          navigation.replace('Home');
-        }, 1000);
+        navigation.reset({ index: 0, routes: [{ name: 'Splash' }] });
       } catch (error: any) {
         const errorMessage =
           error.response?.data?.detail ||
@@ -106,6 +98,14 @@ export default function RegisterScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
+        <Image
+          source={require('../assets/logo.png')}
+          style={styles.logo}
+          accessibilityLabel="App logo"
+        />
+        <Text variant="headlineSmall" style={styles.appName}>
+          Hortensia
+        </Text>
         <Text 
           variant="bodyMedium" 
           style={styles.subtitle}
@@ -124,19 +124,6 @@ export default function RegisterScreen({ navigation }: Props) {
             accessibilityLiveRegion="polite"
           >
             {apiError}
-          </HelperText>
-        )}
-
-        {successMessage && (
-          <HelperText 
-            type="info" 
-            visible 
-            style={styles.successMessage}
-            accessible={true}
-            accessibilityLabel="Success message"
-            accessibilityLiveRegion="polite"
-          >
-            {successMessage}
           </HelperText>
         )}
 

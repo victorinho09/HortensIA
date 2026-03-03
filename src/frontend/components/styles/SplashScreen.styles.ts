@@ -8,6 +8,20 @@ const SplashSpecificStyles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
+  logo: {
+    width: 120,
+    height: 120,
+    borderRadius: 28,
+    marginBottom: 16,
+  },
+  appName: {
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 32,
+  },
+  spinner: {
+    marginTop: 8,
+  },
   text: {
     marginTop: 16,
   },

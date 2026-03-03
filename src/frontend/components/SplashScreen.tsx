@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, Image } from 'react-native';
 import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from './navigation/types';
@@ -42,19 +42,20 @@ export default function SplashScreen({ navigation }: Props) {
       style={styles.container}
       accessibilityLabel="Loading screen"
     >
+      <Image
+        source={require('../assets/logo.png')}
+        style={styles.logo}
+        accessibilityLabel="App logo"
+      />
+      <Text variant="headlineMedium" style={styles.appName}>
+        Hortensia
+      </Text>
       <ActivityIndicator 
-        size="large" 
+        size="large"
+        style={styles.spinner}
         accessibilityLabel="Loading indicator"
         accessibilityHint="Please wait while we check your session"
       />
-      <Text 
-        variant="bodyLarge" 
-        style={styles.text}
-        accessibilityLabel="Loading message"
-        accessibilityLiveRegion="polite"
-      >
-        Loading...
-      </Text>
     </View>
   );
 }

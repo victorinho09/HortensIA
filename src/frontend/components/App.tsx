@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusBar, useColorScheme,View } from 'react-native';
+import { StatusBar, useColorScheme, View, Image } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 import RegisterScreen from './RegisterScreen';
@@ -50,6 +50,13 @@ export default function App() {
             initialRouteName='Splash' 
             screenOptions={({navigation}) => ({ //Parenthesis syntax is an implicit return of the object
               headerShown: true,
+              headerTitle: () => (
+                <Image
+                  source={require('../assets/logo.png')}
+                  style={{ width: 32, height: 32, borderRadius: 8 }}
+                  accessibilityLabel="App logo"
+                />
+              ),
               headerRight: () => (
                 <View style={{flexDirection: 'row'}}>
                   <IconButton

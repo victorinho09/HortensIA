@@ -11,6 +11,20 @@ const loginSpecificStyles = StyleSheet.create({
     flexGrow: 1,
     padding: 24,
     justifyContent: 'center',
+    alignItems: 'stretch',
+  },
+  logo: {
+    width: 80,
+    height: 80,
+    borderRadius: 18,
+    alignSelf: 'center',
+    marginBottom: 8,
+  },
+  appName: {
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#333',
+    marginBottom: 4,
   },
   title: {
     ...commonStyles.title,
