@@ -6,7 +6,7 @@ from backend.models.auth import Provider
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update, delete
 from backend.models.user import UserInsert, User
-from backend.databases.models import AuthIdentities, UserTable
+from backend.databases.models import AuthIdentities, SessionTable, UserTable
 from backend.utils.uuid import UUIDType, str_to_uuid
 
 
@@ -174,6 +174,7 @@ class UserRepository:
     async def delete(self, user_id: str | UUIDType) -> bool:
         """
         Delete a user from the database.
+        Removes related sessions and auth identities first to avoid FK violations.
         
         Args:
             user_id: User's unique identifier
@@ -184,14 +185,17 @@ class UserRepository:
         # Convert string to UUID if needed
         if isinstance(user_id, str):
             user_id = str_to_uuid(user_id)
-        
-        # Build DELETE query
-        query = delete(UserTable).where(UserTable.id == user_id)
-        
-        result = self.db.execute(query)
+
+        # Delete related sessions first
+        self.db.execute(delete(SessionTable).where(SessionTable.user_id == user_id))
+
+        # Delete related auth identities
+        self.db.execute(delete(AuthIdentities).where(AuthIdentities.user_id == user_id))
+
+        # Delete the user
+        result = self.db.execute(delete(UserTable).where(UserTable.id == user_id))
         self.db.commit()
-        
-        # Return True if a row was deleted
+
         return result.rowcount > 0
     
     def _row_to_user(self, user_row: UserTable) -> User:
