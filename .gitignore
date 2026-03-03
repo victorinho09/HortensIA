@@ -133,3 +133,5 @@ yarn-error.log*
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+.github/copilot-instructions.md
