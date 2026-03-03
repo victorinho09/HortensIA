@@ -1,20 +1,45 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { ScrollView, Alert } from 'react-native';
-import { Text, Button, Card, ActivityIndicator, Divider } from 'react-native-paper';
+import React, { useState, useCallback } from 'react';
+import { View, ScrollView, Alert } from 'react-native';
+import { TextInput, Button, Text, ActivityIndicator, Card, Divider, HelperText } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from './navigation/types';
 import { getSession, clearSession } from '../utils/session';
-import { getCurrentUser, deleteAccount } from '../utils/api';
+import { getCurrentUser, updateProfile, deleteAccount } from '../utils/api';
+import { useFormValidation } from '../hooks/useFormValidation';
+import {
+    validateName,
+    validateContactEmail,
+    validateCountryCode,
+    validatePhone,
+    validateDiversityType,
+} from '../utils/validation';
 import { profileStyles as styles } from './styles/ProfileScreen.styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
 export default function ProfileScreen({navigation}: Props){
-    const [user,setUser] = useState<any>(null);
     const [loading, setLoading] = useState(false);
-    const [error,setError] = useState('');
+    const [error, setError] = useState('');
+    const [originalData, setOriginalData] = useState<any>(null);
+
+    const {formData, errors, touched, handleBlur, handleChange, validateForm, setAllTouched} = useFormValidation(
+        {
+            name: '',
+            contactEmail: '',
+            countryCode: '',
+            phone: '',
+            diversityType: '',
+        },
+        (data) => ({
+            name: validateName,
+            contactEmail: validateContactEmail,
+            countryCode: (value: string) => validateCountryCode(value, data.phone),
+            phone: (value: string) => validatePhone(value, data.countryCode),
+            diversityType: validateDiversityType,
+        })
+    );
 
     const loadUserData = useCallback(async () => {
         try {
@@ -25,11 +50,19 @@ export default function ProfileScreen({navigation}: Props){
                 return;
             }
             const userData = await getCurrentUser(sessionId);
-            setUser(userData);
-        } catch(err){
+
+            handleChange('name')(userData.name || '');
+            handleChange('contactEmail')(userData.contact_person_email || '');
+            handleChange('countryCode')(userData.contact_person_country_code || '');
+            handleChange('phone')(userData.contact_person_phone_number || '');
+            handleChange('diversityType')(userData.diversity_type || '');
+            setAllTouched();
+
+            setOriginalData(userData);
+        } catch (err) {
             setError('Failed to load profile');
             console.error(err);
-        } finally{
+        } finally {
             setLoading(false);
         }
     }, [navigation]);
@@ -40,126 +73,240 @@ export default function ProfileScreen({navigation}: Props){
         }, [loadUserData])
     );
 
-    if (loading){
-        return (
-        <SafeAreaView style={styles.container}>
-            <ActivityIndicator size="large" style={styles.centerContent} />
-        </SafeAreaView>
-        );
-    }
+    const isFormValid = Object.values(errors).every(e => e === '');
 
+    const handleSave = async () => {
+        if (validateForm()) {
+            try {
+                setLoading(true);
+                setError('');
 
-    if (error || !user) {
+                const normalize = (value: any) => (value === null || value === '') ? null : value;
+                const updates: any = {};
+
+                if (normalize(formData.name) !== normalize(originalData.name))
+                    updates.name = formData.name.trim() || null;
+                if (normalize(formData.contactEmail) !== normalize(originalData.contact_person_email))
+                    updates.contact_person_email = formData.contactEmail.trim() || null;
+                if (normalize(formData.countryCode) !== normalize(originalData.contact_person_country_code))
+                    updates.contact_person_country_code = formData.countryCode.trim() || null;
+                if (normalize(formData.phone) !== normalize(originalData.contact_person_phone_number))
+                    updates.contact_person_phone_number = formData.phone.trim() || null;
+                if (normalize(formData.diversityType) !== normalize(originalData.diversity_type))
+                    updates.diversity_type = formData.diversityType.trim() || null;
+
+                if (Object.keys(updates).length === 0) return;
+
+                await updateProfile(updates);
+                await loadUserData();
+            } catch (err: any) {
+                setError(err.response?.data?.detail || 'Failed to update profile');
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
+    if (loading && !originalData) {
         return (
-        <SafeAreaView style={styles.container}>
-            <Text style={styles.errorText}>{error || 'Failed to load profile'}</Text>
-        </SafeAreaView>
+            <SafeAreaView style={styles.container}>
+                <ActivityIndicator size="large" style={styles.centerContent} />
+            </SafeAreaView>
         );
     }
 
     return (
         <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.content}>
-            <Text 
-                variant="bodyMedium" 
-                style={styles.subtitle}
-            >
-                View and manage your account information
-            </Text>
+            <ScrollView contentContainerStyle={styles.content}>
+                <Text variant="bodyMedium" style={styles.subtitle}>
+                    View and manage your account information
+                </Text>
 
-            <Card style={styles.card}>
-                <Card.Content>
-                    <Text variant="titleMedium" style={styles.sectionTitle}>Personal Information</Text>
-                    <Divider style={styles.divider} />
-                    
-                    <Text style={styles.label}>Name</Text>
-                    <Text style={styles.value}>{user.name}</Text>
-                    
-                    <Text style={styles.label}>Email</Text>
-                    <Text style={styles.value}>{user.email}</Text>
-                </Card.Content>
-            </Card>
+                {error ? (
+                    <HelperText
+                        type="error"
+                        visible
+                        style={styles.errorText}
+                        accessible={true}
+                        accessibilityLiveRegion="polite"
+                    >
+                        {error}
+                    </HelperText>
+                ) : null}
 
-            <Card style={styles.card}>
-                <Card.Content>
-                    <Text variant="titleMedium" style={styles.sectionTitle}>Contact Information</Text>
-                    <Divider style={styles.divider} />
-                    
-                    <Text style={styles.label}>Contact Email</Text>
-                    <Text style={styles.value}>{user.contact_person_email || 'Not set'}</Text>
-                    
-                    <Text style={styles.label}>Phone Number</Text>
-                    <Text style={styles.value}>
-                        {user.contact_person_country_code && user.contact_person_phone_number
-                        ? `+${user.contact_person_country_code} ${user.contact_person_phone_number}`
-                        : 'Not set'}
-                    </Text>
-                </Card.Content>
-            </Card>
+                {originalData && (
+                    <>
+                        <Card style={styles.card}>
+                            <Card.Content>
+                                <Text variant="titleMedium" style={styles.sectionTitle}>Personal Information</Text>
+                                <Divider style={styles.divider} />
 
-            <Card style={styles.card}>
-                <Card.Content>
-                    <Text variant="titleMedium" style={styles.sectionTitle}>Accessibility</Text>
-                    <Divider style={styles.divider} />
-                    
-                    <Text style={styles.label}>Diversity Type</Text>
-                    <Text style={styles.value}>{user.diversity_type || 'Not set'}</Text>
-                </Card.Content>
-            </Card>
+                                <TextInput
+                                    label="Name"
+                                    value={formData.name}
+                                    onChangeText={handleChange('name')}
+                                    onBlur={handleBlur('name')}
+                                    mode="outlined"
+                                    left={<TextInput.Icon icon="account" />}
+                                    error={touched.name && !!errors.name}
+                                    disabled={loading}
+                                    style={styles.input}
+                                />
+                                {touched.name && errors.name && (
+                                    <HelperText type="error" visible accessible={true} accessibilityLiveRegion="polite">
+                                        {errors.name}
+                                    </HelperText>
+                                )}
 
-            <Button 
-                mode="contained" 
-                onPress={() => navigation.navigate('EditProfile')}
-                style={styles.button}
-                accessibilityLabel="Edit profile button"
-                accessibilityHint="Press to edit your profile information"
-            >
-                Edit Profile
-            </Button>
+                                <TextInput
+                                    label="Email"
+                                    value={originalData.email}
+                                    mode="outlined"
+                                    left={<TextInput.Icon icon="email" />}
+                                    disabled
+                                    style={styles.input}
+                                />
+                                <HelperText type="info" visible>
+                                    Email cannot be changed
+                                </HelperText>
+                            </Card.Content>
+                        </Card>
 
-            <Button 
-                mode="outlined" 
-                onPress={() => navigation.navigate('ChangePassword')}
-                style={styles.button}
-                accessibilityLabel="Change password button"
-                accessibilityHint="Press to change your password"
-            >
-                Change Password
-            </Button>
+                        <Card style={styles.card}>
+                            <Card.Content>
+                                <Text variant="titleMedium" style={styles.sectionTitle}>Contact Information</Text>
+                                <Divider style={styles.divider} />
 
-            <Button
-                mode="outlined"
-                onPress={() =>
-                    Alert.alert(
-                        'Delete Account',
-                        'This will permanently delete your account and all your data. This action cannot be undone.',
-                        [
-                            { text: 'Cancel', style: 'cancel' },
-                            {
-                                text: 'Delete',
-                                style: 'destructive',
-                                onPress: async () => {
-                                    try {
-                                        await deleteAccount();
-                                        await clearSession();
-                                        navigation.replace('Login');
-                                    } catch (err) {
-                                        Alert.alert('Error', 'Could not delete account. Please try again.');
-                                        console.error(err);
-                                    }
+                                <TextInput
+                                    label="Contact Email"
+                                    value={formData.contactEmail}
+                                    onChangeText={handleChange('contactEmail')}
+                                    onBlur={handleBlur('contactEmail')}
+                                    mode="outlined"
+                                    left={<TextInput.Icon icon="email-outline" />}
+                                    error={touched.contactEmail && !!errors.contactEmail}
+                                    disabled={loading}
+                                    style={styles.input}
+                                />
+                                {touched.contactEmail && errors.contactEmail && (
+                                    <HelperText type="error" visible accessible={true} accessibilityLiveRegion="polite">
+                                        {errors.contactEmail}
+                                    </HelperText>
+                                )}
+
+                                <View style={styles.row}>
+                                    <TextInput
+                                        label="Country Code"
+                                        value={formData.countryCode}
+                                        onChangeText={handleChange('countryCode')}
+                                        onBlur={handleBlur('countryCode')}
+                                        mode="outlined"
+                                        error={touched.countryCode && !!errors.countryCode}
+                                        disabled={loading}
+                                        style={[styles.input, styles.countryCodeInput]}
+                                    />
+                                    <TextInput
+                                        label="Phone Number"
+                                        value={formData.phone}
+                                        onChangeText={handleChange('phone')}
+                                        onBlur={handleBlur('phone')}
+                                        mode="outlined"
+                                        error={touched.phone && !!errors.phone}
+                                        disabled={loading}
+                                        style={[styles.input, styles.phoneInput]}
+                                    />
+                                </View>
+                                {touched.phone && errors.phone && (
+                                    <HelperText type="error" visible accessible={true} accessibilityLiveRegion="polite">
+                                        {errors.phone}
+                                    </HelperText>
+                                )}
+                            </Card.Content>
+                        </Card>
+
+                        <Card style={styles.card}>
+                            <Card.Content>
+                                <Text variant="titleMedium" style={styles.sectionTitle}>Accessibility</Text>
+                                <Divider style={styles.divider} />
+
+                                <TextInput
+                                    label="Diversity Type"
+                                    value={formData.diversityType}
+                                    onChangeText={handleChange('diversityType')}
+                                    onBlur={handleBlur('diversityType')}
+                                    mode="outlined"
+                                    left={<TextInput.Icon icon="wheelchair-accessibility" />}
+                                    error={touched.diversityType && !!errors.diversityType}
+                                    disabled={loading}
+                                    style={styles.input}
+                                />
+                                {touched.diversityType && errors.diversityType && (
+                                    <HelperText type="error" visible accessible={true} accessibilityLiveRegion="polite">
+                                        {errors.diversityType}
+                                    </HelperText>
+                                )}
+                            </Card.Content>
+                        </Card>
+                    </>
+                )}
+
+                <Button
+                    mode="contained"
+                    onPress={handleSave}
+                    loading={loading}
+                    disabled={loading || !isFormValid}
+                    style={[styles.button, (loading || !isFormValid) && styles.buttonDisabled]}
+                    accessibilityLabel="Save changes button"
+                    accessibilityHint="Press to save your profile updates"
+                    accessibilityState={{ disabled: loading || !isFormValid }}
+                >
+                    Save Changes
+                </Button>
+
+                <Button
+                    mode="outlined"
+                    onPress={() => navigation.navigate('ChangePassword')}
+                    style={styles.button}
+                    accessibilityLabel="Change password button"
+                    accessibilityHint="Press to change your password"
+                >
+                    Change Password
+                </Button>
+
+                <Button
+                    mode="outlined"
+                    onPress={() =>
+                        Alert.alert(
+                            'Delete Account',
+                            'This will permanently delete your account and all your data. This action cannot be undone.',
+                            [
+                                { text: 'Cancel', style: 'cancel' },
+                                {
+                                    text: 'Delete',
+                                    style: 'destructive',
+                                    onPress: async () => {
+                                        try {
+                                            await deleteAccount();
+                                            await clearSession();
+                                            navigation.replace('Login');
+                                        } catch (err) {
+                                            Alert.alert('Error', 'Could not delete account. Please try again.');
+                                            console.error(err);
+                                        }
+                                    },
                                 },
-                            },
-                        ]
-                    )
-                }
-                style={styles.dangerButton}
-                textColor="#d32f2f"
-                accessibilityLabel="Delete account button"
-                accessibilityHint="Press to permanently delete your account"
-            >
-                Delete Account
-            </Button>
-        </ScrollView>
+                            ]
+                        )
+                    }
+                    style={styles.dangerButton}
+                    textColor="#d32f2f"
+                    accessibilityLabel="Delete account button"
+                    accessibilityHint="Press to permanently delete your account"
+                >
+                    Delete Account
+                </Button>
+            </ScrollView>
         </SafeAreaView>
     );
 }

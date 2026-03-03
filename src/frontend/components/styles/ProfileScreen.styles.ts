@@ -80,4 +80,7 @@ export const profileStyles = StyleSheet.create({
     marginBottom: 16,
     borderColor: '#d32f2f',
   },
+  buttonDisabled: {
+    opacity: 0.5,
+  },
 });

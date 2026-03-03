@@ -13,7 +13,6 @@ import { IconButton } from 'react-native-paper';
 import { clearSession, getSession } from '../utils/session';
 import { LogBox } from 'react-native';
 import ProfileScreen from './ProfileScreen';
-import EditProfileScreen from './EditProfileScreen';
 import ChangePasswordScreen from './ChangePasswordScreen';
 import { logout } from '../utils/api';
 
@@ -94,11 +93,6 @@ export default function App() {
                   />
                   ),
                 })} 
-              />
-              <Stack.Screen 
-                name='EditProfile' 
-                component={EditProfileScreen} 
-                options={{ title: 'Edit Profile' }} 
               />
               <Stack.Screen 
                 name='ChangePassword' 
