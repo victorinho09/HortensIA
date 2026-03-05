@@ -2,6 +2,9 @@ import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import { getSession } from './session';
 
+// Fail fast if the backend is unreachable (e.g. wrong IP or backend not running)
+axios.defaults.timeout = 2000;
+
 export const createUser = async (data: {
     name?: string;
     email: string;

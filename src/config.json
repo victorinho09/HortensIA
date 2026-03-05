@@ -17,7 +17,8 @@
       "port": 8081
     },
     "ios": {
-      "simulator": "iPhone 12 Pro Max"
+      "simulator": "iPhone 12 Pro Max",
+      "device": "Victorr"
     }
   },
   "database": {

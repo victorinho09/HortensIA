@@ -8,10 +8,10 @@ export const config = {
   },
   backend: {
     api: {
-      host: '127.0.0.1',
+      host: '172.20.10.3',
       port: 8888,
-      url: 'http://localhost:8888',
-      docs_url: 'http://localhost:8888/docs',
+      url: 'http://172.20.10.3:8888',
+      docs_url: 'http://172.20.10.3:8888/docs',
     },
   },
 };

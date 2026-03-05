@@ -1,7 +1,7 @@
 import React from 'react';
-import { StatusBar, useColorScheme, View, Image } from 'react-native';
+import { StatusBar, View, Image } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { PaperProvider, MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
+import { PaperProvider, MD3LightTheme } from 'react-native-paper';
 import RegisterScreen from './RegisterScreen';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from './navigation/types';
@@ -24,8 +24,7 @@ LogBox.ignoreLogs([
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
-  const isDarkMode = useColorScheme() === 'dark';
-  const theme = isDarkMode ? MD3DarkTheme : MD3LightTheme;
+  const theme = MD3LightTheme;
   const handleLogout = async (navigation: any) => {
     try{
       const sessionId = await getSession();
@@ -44,7 +43,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <PaperProvider theme={theme}>
-        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        <StatusBar barStyle="dark-content" />
         <NavigationContainer>
           <Stack.Navigator 
             initialRouteName='Splash' 

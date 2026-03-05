@@ -48,7 +48,7 @@ export default function SplashScreen({ navigation }: Props) {
         accessibilityLabel="App logo"
       />
       <Text variant="headlineMedium" style={styles.appName}>
-        Hortensia
+        HortensIA
       </Text>
       <ActivityIndicator 
         size="large"
