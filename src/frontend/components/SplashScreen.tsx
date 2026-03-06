@@ -30,8 +30,8 @@ export default function SplashScreen({ navigation }: Props) {
 
       console.log('SplashScreen - Validating session with backend...');
       await getCurrentUser(sessionId); //Have to check if session is valid (not expired)
-      console.log('SplashScreen - Session valid! Going to Home');
-      navigation.replace('Home');
+      console.log('SplashScreen - Session valid! Going to LiveCamera');
+      navigation.replace('LiveCamera');
     } catch (error) {
       //getCurrentUser fails it throws error
       console.log('SplashScreen - Session validation failed:', error);

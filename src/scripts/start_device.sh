@@ -63,6 +63,9 @@ sed -i '' \
 sed -i '' \
     "s|docs_url: 'http://[^']*:$BACKEND_PORT/docs'|docs_url: 'http://$MAC_IP:$BACKEND_PORT/docs'|g" \
     frontend/config.ts
+sed -i '' \
+    "s|url: 'ws://[^']*:$BACKEND_PORT'|url: 'ws://$MAC_IP:$BACKEND_PORT'|g" \
+    frontend/config.ts
 
 # Check that a physical device is connected
 DEVICE_UDID=$(xcrun xctrace list devices 2>/dev/null | grep -v "Simulator" | grep -v "==" | grep "$IOS_DEVICE" | grep -o "([0-9A-Fa-f-]*)" | tail -1 | tr -d "()")

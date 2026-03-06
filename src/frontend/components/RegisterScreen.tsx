@@ -78,7 +78,7 @@ export default function RegisterScreen({ navigation }: Props) {
         const loginResponse = await login(formData.email, formData.password);
         await saveSession(loginResponse.session_id);
 
-        navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+        navigation.reset({ index: 0, routes: [{ name: 'LiveCamera' }] });
       } catch (error: any) {
         const errorMessage =
           error.response?.data?.detail ||

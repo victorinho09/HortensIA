@@ -13,6 +13,9 @@ export const config = {
       url: 'http://192.168.1.76:8888',
       docs_url: 'http://192.168.1.76:8888/docs',
     },
+    ws: {
+      url: 'ws://192.168.1.76:8888',
+    },
   },
 };
 
