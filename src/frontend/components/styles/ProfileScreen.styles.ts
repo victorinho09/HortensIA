@@ -11,8 +11,8 @@ export const profileStyles = StyleSheet.create({
   },
   title: {
     ...commonStyles.title,
-    marginTop: 0,
-    marginBottom: 4,
+    marginTop: 12,
+    marginBottom: 20,
   },
   subtitle: {
     ...commonStyles.subtitle,
@@ -42,7 +42,7 @@ export const profileStyles = StyleSheet.create({
   phoneInput: {
     ...commonStyles.phoneInput,
   },
-  
+
   // ProfileScreen-specific styles
   sectionTitle: {
     fontWeight: 'bold',

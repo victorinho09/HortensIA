@@ -78,7 +78,7 @@ export default function RegisterScreen({ navigation }: Props) {
         const loginResponse = await login(formData.email, formData.password);
         await saveSession(loginResponse.session_id);
 
-        navigation.reset({ index: 0, routes: [{ name: 'Splash' }] });
+        navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
       } catch (error: any) {
         const errorMessage =
           error.response?.data?.detail ||
@@ -110,7 +110,7 @@ export default function RegisterScreen({ navigation }: Props) {
           accessibilityLabel="App logo"
         />
         <Text variant="headlineSmall" style={styles.appName}>
-          Hortensia
+          HortensIA
         </Text>
         <Text
           variant="bodyMedium"
@@ -350,7 +350,7 @@ export default function RegisterScreen({ navigation }: Props) {
             <Button
               mode="text"
               onPress={() => {
-                navigation.navigate('Login');
+                navigation.replace('Login');
               }}
               style={styles.linkButton}
               accessibilityLabel="Sign in link"

@@ -76,13 +76,13 @@ export default function ChangePasswordScreen({ navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets={true}
       >
-        <Text variant="bodyMedium" style={styles.subtitle}>
+        <Text variant="bodyLarge" style={styles.subtitle}>
           Change your account password
         </Text>
 

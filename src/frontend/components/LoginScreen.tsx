@@ -44,7 +44,7 @@ export default function LoginScreen({ navigation }: Props) {
         await saveSession(response.session_id);
         console.log('LoginScreen - Session saved:', response.session_id);
 
-        navigation.replace('Splash');
+        navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
       } catch (error: any) {
         const errorMessage =
           error.response?.data?.detail ||
@@ -165,7 +165,7 @@ export default function LoginScreen({ navigation }: Props) {
                 variant="bodyMedium"
                 style={[styles.link, { color: theme.colors.primary }]}
                 onPress={() => {
-                  navigation.navigate('Register');
+                  navigation.replace('Register');
                 }}
                 accessibilityLabel="Register link"
                 accessibilityHint="Navigate to registration page"
