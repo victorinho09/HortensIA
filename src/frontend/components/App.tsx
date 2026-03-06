@@ -1,5 +1,5 @@
 import React from 'react';
-import { StatusBar, View, Image } from 'react-native';
+import { StatusBar, View, Image, Alert } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider, MD3LightTheme } from 'react-native-paper';
 import RegisterScreen from './RegisterScreen';
@@ -25,19 +25,33 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
   const theme = MD3LightTheme;
+
   const handleLogout = async (navigation: any) => {
-    try{
-      const sessionId = await getSession();
-      if (sessionId){
-        await logout(sessionId); //Deletes session from db
-      }
-    } catch(error){
-      console.error('Logout failed: ', error);
-    } finally{
-      await clearSession();
-      navigation.replace('Login');
-    }
-    
+    Alert.alert('Log out', 'Are you sure you want to log out?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Log out',
+          style: 'destructive',
+          onPress: async () =>{
+            try{
+              const sessionId = await getSession();
+              if (sessionId){
+                await logout(sessionId); //Deletes session from db
+              }
+            } catch(error){
+              console.error('Logout failed: ', error);
+            } finally{
+              await clearSession();
+              navigation.replace('Login');
+            }
+          }
+        }
+      ]
+    )
   };
 
   return (
