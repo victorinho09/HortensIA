@@ -83,8 +83,8 @@ export default function LiveCameraScreen({ navigation }: Props) {
   if (!device) {
     return (
       <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-        <View style={styles.permissionsContainer}>
-          <Text variant="bodyMedium" style={{ color: '#fff' }} accessibilityRole="alert">
+        <View style={styles.overlay}>
+          <Text variant="bodyMedium" style={styles.statusText} accessibilityRole="alert">
             No camera device found.
           </Text>
         </View>
