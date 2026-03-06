@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { TextInput, Button, Text, Card, HelperText } from 'react-native-paper';
+import { ScrollView } from 'react-native';
+import { Button, Text, Card, HelperText } from 'react-native-paper';
+import FormInput from './common/FormInput';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from './navigation/types';
@@ -76,167 +77,121 @@ export default function ChangePasswordScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets={true}
       >
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <Text variant="bodyMedium" style={styles.subtitle}>
-            Change your account password
-          </Text>
+        <Text variant="bodyMedium" style={styles.subtitle}>
+          Change your account password
+        </Text>
 
-          {error && (
-            <HelperText
-              type="error"
-              visible
-              style={styles.apiError}
-              accessible={true}
-              accessibilityLabel="Error message"
-              accessibilityLiveRegion="polite"
-            >
-              {error}
-            </HelperText>
-          )}
-
-          {success && (
-            <HelperText
-              type="info"
-              visible
-              style={styles.successMessage}
-              accessible={true}
-              accessibilityLabel="Success message"
-              accessibilityLiveRegion="polite"
-            >
-              {success}
-            </HelperText>
-          )}
-
-          <Card style={styles.card}>
-            <Card.Content>
-              <TextInput
-                label="Current Password *"
-                value={formData.currentPassword}
-                onChangeText={handleChange('currentPassword')}
-                onBlur={handleBlur('currentPassword')}
-                mode="outlined"
-                secureTextEntry={!showCurrentPassword}
-                right={
-                  <TextInput.Icon
-                    icon={showCurrentPassword ? 'eye-off' : 'eye'}
-                    onPress={() => setShowCurrentPassword(!showCurrentPassword)}
-                    accessibilityLabel={showCurrentPassword ? 'Hide password' : 'Show password'}
-                  />
-                }
-                left={<TextInput.Icon icon="lock" />}
-                error={touched.currentPassword && !!errors.currentPassword}
-                disabled={loading}
-                style={styles.input}
-                accessibilityLabel="Current password input field"
-                accessibilityHint="Enter your current password"
-                returnKeyType="next"
-                submitBehavior="submit"
-                onSubmitEditing={() => newPasswordRef.current?.focus()}
-              />
-              {touched.currentPassword && errors.currentPassword && (
-                <HelperText
-                  type="error"
-                  visible
-                  accessible={true}
-                  accessibilityLabel="Current password validation error"
-                  accessibilityLiveRegion="polite"
-                >
-                  {errors.currentPassword}
-                </HelperText>
-              )}
-
-              <TextInput
-                label="New Password *"
-                value={formData.newPassword}
-                onChangeText={handleChange('newPassword')}
-                onBlur={handleBlur('newPassword')}
-                mode="outlined"
-                secureTextEntry={!showNewPassword}
-                right={
-                  <TextInput.Icon
-                    icon={showNewPassword ? 'eye-off' : 'eye'}
-                    onPress={() => setShowNewPassword(!showNewPassword)}
-                    accessibilityLabel={showNewPassword ? 'Hide password' : 'Show password'}
-                  />
-                }
-                left={<TextInput.Icon icon="lock-reset" />}
-                error={touched.newPassword && !!errors.newPassword}
-                disabled={loading}
-                style={styles.input}
-                accessibilityLabel="New password input field"
-                accessibilityHint="Enter your new password, minimum 8 characters"
-                ref={newPasswordRef}
-                returnKeyType="next"
-                submitBehavior="submit"
-                onSubmitEditing={() => confirmPasswordRef.current?.focus()}
-              />
-              {touched.newPassword && errors.newPassword && (
-                <HelperText
-                  type="error"
-                  visible
-                  accessible={true}
-                  accessibilityLabel="New password validation error"
-                  accessibilityLiveRegion="polite"
-                >
-                  {errors.newPassword}
-                </HelperText>
-              )}
-
-              <TextInput
-                label="Confirm New Password *"
-                value={formData.confirmPassword}
-                onChangeText={handleChange('confirmPassword')}
-                onBlur={handleBlur('confirmPassword')}
-                mode="outlined"
-                secureTextEntry={!showConfirmPassword}
-                right={
-                  <TextInput.Icon
-                    icon={showConfirmPassword ? 'eye-off' : 'eye'}
-                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                    accessibilityLabel={showConfirmPassword ? 'Hide password' : 'Show password'}
-                  />
-                }
-                left={<TextInput.Icon icon="lock-check" />}
-                error={touched.confirmPassword && !!errors.confirmPassword}
-                disabled={loading}
-                style={styles.input}
-                accessibilityLabel="Confirm new password input field"
-                accessibilityHint="Re-enter your new password to confirm"
-                ref={confirmPasswordRef}
-                returnKeyType="done"
-              />
-              {touched.confirmPassword && errors.confirmPassword && (
-                <HelperText
-                  type="error"
-                  visible
-                  accessible={true}
-                  accessibilityLabel="Confirm password validation error"
-                  accessibilityLiveRegion="polite"
-                >
-                  {errors.confirmPassword}
-                </HelperText>
-              )}
-            </Card.Content>
-          </Card>
-
-          <Button
-            mode="contained"
-            onPress={handleSubmit}
-            loading={loading}
-            disabled={loading || !isFormValid}
-            style={[styles.button, !isFormValid && styles.buttonDisabled]}
-            accessibilityLabel="Change password button"
-            accessibilityHint="Press to change your password"
-            accessibilityState={{ disabled: loading || !isFormValid }}
+        {error && (
+          <HelperText
+            type="error"
+            visible
+            style={styles.apiError}
+            accessible={true}
+            accessibilityLabel="Error message"
+            accessibilityLiveRegion="polite"
           >
-            {loading ? 'Changing...' : 'Change Password'}
-          </Button>
-        </ScrollView>
-      </KeyboardAvoidingView>
+            {error}
+          </HelperText>
+        )}
+
+        {success && (
+          <HelperText
+            type="info"
+            visible
+            style={styles.successMessage}
+            accessible={true}
+            accessibilityLabel="Success message"
+            accessibilityLiveRegion="polite"
+          >
+            {success}
+          </HelperText>
+        )}
+
+        <Card style={styles.card}>
+          <Card.Content>
+            <FormInput
+              label="Current Password *"
+              value={formData.currentPassword}
+              onChangeText={handleChange('currentPassword')}
+              onBlur={handleBlur('currentPassword')}
+              touched={touched.currentPassword}
+              errorMessage={errors.currentPassword}
+              accessibilityLabel="Current password input field"
+              accessibilityHint="Enter your current password"
+              icon="lock"
+              secureTextEntry={!showCurrentPassword}
+              showSecureToggle
+              isSecureVisible={showCurrentPassword}
+              onToggleSecure={() => setShowCurrentPassword(!showCurrentPassword)}
+              returnKeyType="next"
+              submitBehavior="submit"
+              onSubmitEditing={() => newPasswordRef.current?.focus()}
+              disabled={loading}
+              style={styles.input}
+            />
+
+            <FormInput
+              ref={newPasswordRef}
+              label="New Password *"
+              value={formData.newPassword}
+              onChangeText={handleChange('newPassword')}
+              onBlur={handleBlur('newPassword')}
+              touched={touched.newPassword}
+              errorMessage={errors.newPassword}
+              accessibilityLabel="New password input field"
+              accessibilityHint="Enter your new password, minimum 8 characters"
+              icon="lock-reset"
+              secureTextEntry={!showNewPassword}
+              showSecureToggle
+              isSecureVisible={showNewPassword}
+              onToggleSecure={() => setShowNewPassword(!showNewPassword)}
+              returnKeyType="next"
+              submitBehavior="submit"
+              onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+              disabled={loading}
+              style={styles.input}
+            />
+
+            <FormInput
+              ref={confirmPasswordRef}
+              label="Confirm New Password *"
+              value={formData.confirmPassword}
+              onChangeText={handleChange('confirmPassword')}
+              onBlur={handleBlur('confirmPassword')}
+              touched={touched.confirmPassword}
+              errorMessage={errors.confirmPassword}
+              accessibilityLabel="Confirm new password input field"
+              accessibilityHint="Re-enter your new password to confirm"
+              icon="lock-check"
+              secureTextEntry={!showConfirmPassword}
+              showSecureToggle
+              isSecureVisible={showConfirmPassword}
+              onToggleSecure={() => setShowConfirmPassword(!showConfirmPassword)}
+              returnKeyType="done"
+              disabled={loading}
+              style={styles.input}
+            />
+          </Card.Content>
+        </Card>
+
+        <Button
+          mode="contained"
+          onPress={handleSubmit}
+          loading={loading}
+          disabled={loading || !isFormValid}
+          style={[styles.button, !isFormValid && styles.buttonDisabled]}
+          accessibilityLabel="Change password button"
+          accessibilityHint="Press to change your password"
+          accessibilityState={{ disabled: loading || !isFormValid }}
+        >
+          {loading ? 'Changing...' : 'Change Password'}
+        </Button>
+      </ScrollView>
     </SafeAreaView>
   );
 }

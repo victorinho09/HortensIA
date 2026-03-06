@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { ScrollView, View, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Image, ScrollView } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from './navigation/types';
-import { Text, Card, TextInput, Divider, Button, HelperText } from 'react-native-paper';
+import { Text, Card, Divider, Button, HelperText } from 'react-native-paper';
+import FormInput from './common/FormInput';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { styles } from './styles/RegisterScreen.styles';
 import {
@@ -98,362 +99,269 @@ export default function RegisterScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets={true}
       >
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <Image
-            source={require('../assets/logo.png')}
-            style={styles.logo}
-            accessibilityLabel="App logo"
-          />
-          <Text variant="headlineSmall" style={styles.appName}>
-            Hortensia
-          </Text>
-          <Text
-            variant="bodyMedium"
-            style={styles.subtitle}
-            accessibilityLabel="Create your account to get started"
+        <Image
+          source={require('../assets/logo.png')}
+          style={styles.logo}
+          accessibilityLabel="App logo"
+        />
+        <Text variant="headlineSmall" style={styles.appName}>
+          Hortensia
+        </Text>
+        <Text
+          variant="bodyMedium"
+          style={styles.subtitle}
+          accessibilityLabel="Create your account to get started"
+        >
+          Create your account to get started
+        </Text>
+
+        {apiError && (
+          <HelperText
+            type="error"
+            visible
+            style={styles.apiError}
+            accessible={true}
+            accessibilityLabel="Error message"
+            accessibilityLiveRegion="polite"
           >
-            Create your account to get started
-          </Text>
+            {apiError}
+          </HelperText>
+        )}
 
-          {apiError && (
-            <HelperText
-              type="error"
-              visible
-              style={styles.apiError}
-              accessible={true}
-              accessibilityLabel="Error message"
-              accessibilityLiveRegion="polite"
+        <Card style={styles.card}>
+          <Card.Content>
+            <FormInput
+              label="Name"
+              placeholder="Victor Vega"
+              value={formData.name}
+              onChangeText={handleChange('name')}
+              onBlur={handleBlur('name')}
+              touched={touched.name}
+              errorMessage={errors.name}
+              accessibilityLabel="Name input field"
+              accessibilityHint="Enter your full name"
+              icon="account"
+              returnKeyType="next"
+              submitBehavior="submit"
+              onSubmitEditing={() => emailRef.current?.focus()}
+              style={styles.input}
+            />
+
+            <FormInput
+              ref={emailRef}
+              label="Email *"
+              placeholder="testaccount@gmail.com"
+              value={formData.email}
+              onChangeText={handleChange('email')}
+              onBlur={handleBlur('email')}
+              touched={touched.email}
+              errorMessage={errors.email}
+              accessibilityLabel="Email address input field"
+              accessibilityHint="Enter your email address"
+              icon="email"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              returnKeyType="next"
+              submitBehavior="submit"
+              onSubmitEditing={() => passwordRef.current?.focus()}
+              style={styles.input}
+            />
+
+            <FormInput
+              ref={passwordRef}
+              label="Password *"
+              placeholder="New Password"
+              value={formData.password}
+              onChangeText={handleChange('password')}
+              onBlur={handleBlur('password')}
+              touched={touched.password}
+              errorMessage={errors.password}
+              accessibilityLabel="Password input field"
+              accessibilityHint="Enter your password, minimum 8 characters"
+              icon="lock"
+              secureTextEntry={!showPassword}
+              showSecureToggle
+              isSecureVisible={showPassword}
+              onToggleSecure={() => setShowPassword(!showPassword)}
+              returnKeyType="next"
+              submitBehavior="submit"
+              onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+              style={styles.input}
+            />
+
+            <FormInput
+              ref={confirmPasswordRef}
+              label="Confirm Password *"
+              placeholder="Confirm Password"
+              value={formData.confirmPassword}
+              onChangeText={handleChange('confirmPassword')}
+              onBlur={handleBlur('confirmPassword')}
+              touched={touched.confirmPassword}
+              errorMessage={errors.confirmPassword}
+              accessibilityLabel="Confirm password input field"
+              accessibilityHint="Re-enter your password to confirm"
+              icon="lock-check"
+              secureTextEntry={!showConfirmPassword}
+              showSecureToggle
+              isSecureVisible={showConfirmPassword}
+              onToggleSecure={() => setShowConfirmPassword(!showConfirmPassword)}
+              returnKeyType="next"
+              submitBehavior="submit"
+              onSubmitEditing={() => contactEmailRef.current?.focus()}
+              style={styles.input}
+            />
+
+            <Divider style={styles.divider} />
+
+            <Text
+              variant="titleMedium"
+              style={styles.sectionTitle}
+              accessibilityRole="header"
+              accessibilityLabel="Additional information section"
             >
-              {apiError}
-            </HelperText>
-          )}
+              Additional Information (Optional)
+            </Text>
 
-          <Card style={styles.card}>
-            <Card.Content>
-              <TextInput
-                label="Name"
-                placeholder="Victor Vega"
-                value={formData.name}
-                onChangeText={handleChange('name')}
-                onBlur={handleBlur('name')}
-                mode="outlined"
-                left={<TextInput.Icon icon="account" />}
-                error={touched.name && !!errors.name}
-                style={styles.input}
-                accessibilityLabel="Name input field"
-                accessibilityHint="Enter your full name"
-                accessibilityRole="text"
+            <FormInput
+              ref={contactEmailRef}
+              label="Contact Email"
+              placeholder="myfriend@gmail.com"
+              value={formData.contactEmail}
+              onChangeText={handleChange('contactEmail')}
+              onBlur={handleBlur('contactEmail')}
+              touched={touched.contactEmail}
+              errorMessage={errors.contactEmail}
+              accessibilityLabel="Contact email input field"
+              accessibilityHint="Enter an alternative contact email"
+              icon="email-outline"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              returnKeyType="next"
+              submitBehavior="submit"
+              onSubmitEditing={() => phoneRef.current?.focus()}
+              style={styles.input}
+            />
+
+            <View style={styles.row}>
+              <FormInput
+                ref={phoneRef}
+                label="Phone Number"
+                value={formData.phone}
+                onChangeText={handleChange('phone')}
+                onBlur={handleBlur('phone')}
+                touched={touched.phone}
+                errorMessage={errors.phone}
+                showInlineError={false}
+                accessibilityLabel="Phone number input field"
+                accessibilityHint="Enter your phone number"
+                icon="cellphone"
+                keyboardType="phone-pad"
+                placeholder="600123456"
                 returnKeyType="next"
                 submitBehavior="submit"
-                onSubmitEditing={() => emailRef.current?.focus()}
+                onSubmitEditing={() => countryCodeRef.current?.focus()}
+                style={[styles.input, styles.phoneInput]}
               />
-              {touched.name && errors.name && (
+
+              <FormInput
+                ref={countryCodeRef}
+                label="CC"
+                value={formData.countryCode}
+                onChangeText={handleChange('countryCode')}
+                onBlur={handleBlur('countryCode')}
+                touched={touched.countryCode}
+                errorMessage={errors.countryCode}
+                showInlineError={false}
+                accessibilityLabel="Country code input field"
+                accessibilityHint="Enter your country calling code"
+                icon="phone"
+                keyboardType="number-pad"
+                placeholder="34"
+                returnKeyType="next"
+                submitBehavior="submit"
+                onSubmitEditing={() => diversityTypeRef.current?.focus()}
+                style={[styles.input, styles.countryCodeInput]}
+              />
+            </View>
+
+            <View>
+              {touched.phone && errors.phone && (
                 <HelperText
                   type="error"
                   visible
                   style={styles.helperText}
                   accessible={true}
-                  accessibilityLabel="Name validation error"
+                  accessibilityLabel="Phone validation error"
                   accessibilityLiveRegion="polite"
                 >
-                  {errors.name}
+                  {errors.phone}
                 </HelperText>
               )}
 
-              <TextInput
-                label="Email *"
-                placeholder="testaccount@gmail.com"
-                value={formData.email}
-                onChangeText={handleChange('email')}
-                onBlur={handleBlur('email')}
-                mode="outlined"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                left={<TextInput.Icon icon="email" />}
-                error={touched.email && !!errors.email}
-                style={styles.input}
-                accessibilityLabel="Email address input field"
-                accessibilityHint="Enter your email address"
-                accessibilityRole="text"
-                ref={emailRef}
-                returnKeyType="next"
-                submitBehavior="submit"
-                onSubmitEditing={() => passwordRef.current?.focus()}
-              />
-
-              {touched.email && errors.email && (
+              {touched.countryCode && errors.countryCode && (
                 <HelperText
                   type="error"
-                  visible={!!errors.email}
+                  visible
+                  style={styles.helperText}
                   accessible={true}
-                  accessibilityLabel="Email validation error"
+                  accessibilityLabel="Country code validation error"
                   accessibilityLiveRegion="polite"
                 >
-                  {errors.email}
+                  {errors.countryCode}
                 </HelperText>
               )}
+            </View>
 
-              <TextInput
-                label="Password *"
-                placeholder="New Password"
-                value={formData.password}
-                onChangeText={handleChange('password')}
-                onBlur={handleBlur('password')}
-                mode="outlined"
-                secureTextEntry={!showPassword}
-                right={
-                  <TextInput.Icon
-                    icon={showPassword ? 'eye-off' : 'eye'}
-                    onPress={() => setShowPassword(!showPassword)}
-                    accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-                    accessibilityHint="Toggle password visibility"
-                    accessibilityRole="button"
-                  />
-                }
-                left={<TextInput.Icon icon="lock" />}
-                error={touched.password && !!errors.password}
-                style={styles.input}
-                accessibilityLabel="Password input field"
-                accessibilityHint="Enter your password, minimum 8 characters"
-                accessibilityRole="text"
-                ref={passwordRef}
-                returnKeyType="next"
-                submitBehavior="submit"
-                onSubmitEditing={() => confirmPasswordRef.current?.focus()}
-              />
+            <FormInput
+              ref={diversityTypeRef}
+              label="Diversity Type"
+              value={formData.diversityType}
+              onChangeText={handleChange('diversityType')}
+              onBlur={handleBlur('diversityType')}
+              touched={touched.diversityType}
+              errorMessage={errors.diversityType}
+              accessibilityLabel="Diversity type input field"
+              accessibilityHint="Enter your diversity type if applicable"
+              icon="account-group"
+              placeholder="e.g., Visual, Hearing, Motor..."
+              returnKeyType="done"
+              style={styles.input}
+            />
 
-              {touched.password && errors.password && (
-                <HelperText
-                  type="error"
-                  visible={!!errors.password}
-                  accessible={true}
-                  accessibilityLabel="Password validation error"
-                  accessibilityLiveRegion="polite"
-                >
-                  {errors.password}
-                </HelperText>
-              )}
+            <Button
+              mode="contained"
+              onPress={handleSubmit}
+              disabled={!isFormValid}
+              loading={loading}
+              style={[styles.button, !isFormValid && styles.buttonDisabled]}
+              accessibilityLabel="Create account button"
+              accessibilityHint="Press to create your account"
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !isFormValid }}
+            >
+              {loading ? 'Creating...' : 'Create Account'}
+            </Button>
 
-              <TextInput
-                label="Confirm Password *"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChangeText={handleChange('confirmPassword')}
-                onBlur={handleBlur('confirmPassword')}
-                mode="outlined"
-                secureTextEntry={!showConfirmPassword}
-                right={
-                  <TextInput.Icon
-                    icon={showConfirmPassword ? 'eye-off' : 'eye'}
-                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                    accessibilityLabel={
-                      showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'
-                    }
-                    accessibilityHint="Toggle confirm password visibility"
-                    accessibilityRole="button"
-                  />
-                }
-                left={<TextInput.Icon icon="lock-check" />}
-                error={touched.confirmPassword && !!errors.confirmPassword}
-                style={styles.input}
-                accessibilityLabel="Confirm password input field"
-                accessibilityHint="Re-enter your password to confirm"
-                accessibilityRole="text"
-                ref={confirmPasswordRef}
-                returnKeyType="next"
-                submitBehavior="submit"
-                onSubmitEditing={() => contactEmailRef.current?.focus()}
-              />
-
-              {touched.confirmPassword && errors.confirmPassword && (
-                <HelperText
-                  type="error"
-                  visible={!!errors.confirmPassword}
-                  accessible={true}
-                  accessibilityLabel="Confirm password validation error"
-                  accessibilityLiveRegion="polite"
-                >
-                  {errors.confirmPassword}
-                </HelperText>
-              )}
-
-              <Divider style={styles.divider} />
-
-              <Text
-                variant="titleMedium"
-                style={styles.sectionTitle}
-                accessibilityRole="header"
-                accessibilityLabel="Additional information section"
-              >
-                Additional Information (Optional)
-              </Text>
-
-              <TextInput
-                label="Contact Email"
-                placeholder="myfriend@gmail.com"
-                value={formData.contactEmail}
-                onChangeText={handleChange('contactEmail')}
-                onBlur={handleBlur('contactEmail')}
-                mode="outlined"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                left={<TextInput.Icon icon="email-outline" />}
-                error={touched.contactEmail && !!errors.contactEmail}
-                style={styles.input}
-                accessibilityLabel="Contact email input field"
-                accessibilityHint="Enter an alternative contact email"
-                accessibilityRole="text"
-                ref={contactEmailRef}
-                returnKeyType="next"
-                submitBehavior="submit"
-                onSubmitEditing={() => phoneRef.current?.focus()}
-              />
-
-              {touched.contactEmail && errors.contactEmail && (
-                <HelperText
-                  type="error"
-                  visible={!!errors.contactEmail}
-                  accessible={true}
-                  accessibilityLabel="Contact email validation error"
-                  accessibilityLiveRegion="polite"
-                >
-                  {errors.contactEmail}
-                </HelperText>
-              )}
-
-              <View style={styles.row}>
-                <TextInput
-                  label="Phone Number"
-                  value={formData.phone}
-                  onChangeText={handleChange('phone')}
-                  onBlur={handleBlur('phone')}
-                  mode="outlined"
-                  keyboardType="phone-pad"
-                  placeholder="600123456"
-                  left={<TextInput.Icon icon="cellphone" />}
-                  error={touched.phone && !!errors.phone}
-                  style={[styles.input, styles.phoneInput]}
-                  accessibilityLabel="Phone number input field"
-                  accessibilityHint="Enter your phone number"
-                  accessibilityRole="text"
-                  ref={phoneRef}
-                  returnKeyType="next"
-                  submitBehavior="submit"
-                  onSubmitEditing={() => countryCodeRef.current?.focus()}
-                />
-
-                <TextInput
-                  label="CC"
-                  value={formData.countryCode}
-                  onChangeText={handleChange('countryCode')}
-                  onBlur={handleBlur('countryCode')}
-                  mode="outlined"
-                  keyboardType="number-pad"
-                  placeholder="34"
-                  left={<TextInput.Icon icon="phone" />}
-                  error={touched.countryCode && !!errors.countryCode}
-                  style={[styles.input, styles.countryCodeInput]}
-                  accessibilityLabel="Country code input field"
-                  accessibilityHint="Enter your country calling code"
-                  accessibilityRole="text"
-                  ref={countryCodeRef}
-                  returnKeyType="next"
-                  submitBehavior="submit"
-                  onSubmitEditing={() => diversityTypeRef.current?.focus()}
-                />
-              </View>
-
-              <View>
-                {touched.phone && errors.phone && (
-                  <HelperText
-                    type="error"
-                    visible
-                    style={styles.helperText}
-                    accessible={true}
-                    accessibilityLabel="Phone validation error"
-                    accessibilityLiveRegion="polite"
-                  >
-                    {errors.phone}
-                  </HelperText>
-                )}
-
-                {touched.countryCode && errors.countryCode && (
-                  <HelperText
-                    type="error"
-                    visible
-                    style={styles.helperText}
-                    accessible={true}
-                    accessibilityLabel="Country code validation error"
-                    accessibilityLiveRegion="polite"
-                  >
-                    {errors.countryCode}
-                  </HelperText>
-                )}
-              </View>
-
-              <TextInput
-                label="Diversity Type"
-                value={formData.diversityType}
-                onChangeText={handleChange('diversityType')}
-                onBlur={handleBlur('diversityType')}
-                mode="outlined"
-                placeholder="e.g., Visual, Hearing, Motor..."
-                left={<TextInput.Icon icon="account-group" />}
-                error={touched.diversityType && !!errors.diversityType}
-                style={styles.input}
-                accessibilityLabel="Diversity type input field"
-                accessibilityHint="Enter your diversity type if applicable"
-                accessibilityRole="text"
-                ref={diversityTypeRef}
-                returnKeyType="done"
-              />
-
-              {touched.diversityType && errors.diversityType && (
-                <HelperText
-                  type="error"
-                  visible={!!errors.diversityType}
-                  accessible={true}
-                  accessibilityLabel="Diversity type validation error"
-                  accessibilityLiveRegion="polite"
-                >
-                  {errors.diversityType}
-                </HelperText>
-              )}
-
-              <Button
-                mode="contained"
-                onPress={handleSubmit}
-                disabled={!isFormValid}
-                loading={loading}
-                style={[styles.button, !isFormValid && styles.buttonDisabled]}
-                accessibilityLabel="Create account button"
-                accessibilityHint="Press to create your account"
-                accessibilityRole="button"
-                accessibilityState={{ disabled: !isFormValid }}
-              >
-                {loading ? 'Creating...' : 'Create Account'}
-              </Button>
-
-              <Button
-                mode="text"
-                onPress={() => {
-                  navigation.navigate('Login');
-                }}
-                style={styles.linkButton}
-                accessibilityLabel="Sign in link"
-                accessibilityHint="Navigate to login page"
-                accessibilityRole="link"
-              >
-                Already have an account? Sign In
-              </Button>
-            </Card.Content>
-          </Card>
-        </ScrollView>
-      </KeyboardAvoidingView>
+            <Button
+              mode="text"
+              onPress={() => {
+                navigation.navigate('Login');
+              }}
+              style={styles.linkButton}
+              accessibilityLabel="Sign in link"
+              accessibilityHint="Navigate to login page"
+              accessibilityRole="link"
+            >
+              Already have an account? Sign In
+            </Button>
+          </Card.Content>
+        </Card>
+      </ScrollView>
     </SafeAreaView>
   );
 }

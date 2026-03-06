@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Alert, ScrollView } from 'react-native';
 import {
   TextInput,
   Button,
@@ -9,6 +9,7 @@ import {
   Divider,
   HelperText,
 } from 'react-native-paper';
+import FormInput from './common/FormInput';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
@@ -132,261 +133,241 @@ export default function ProfileScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets={true}
       >
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <Text variant="bodyMedium" style={styles.subtitle}>
-            View and manage your account information
-          </Text>
+        <Text variant="bodyMedium" style={styles.subtitle}>
+          View and manage your account information
+        </Text>
 
-          {error ? (
-            <HelperText
-              type="error"
-              visible
-              style={styles.errorText}
-              accessible={true}
-              accessibilityLiveRegion="polite"
-            >
-              {error}
-            </HelperText>
-          ) : null}
+        {error ? (
+          <HelperText
+            type="error"
+            visible
+            style={styles.errorText}
+            accessible={true}
+            accessibilityLiveRegion="polite"
+          >
+            {error}
+          </HelperText>
+        ) : null}
 
-          {originalData && (
-            <>
-              <Card style={styles.card}>
-                <Card.Content>
-                  <Text variant="titleMedium" style={styles.sectionTitle}>
-                    Personal Information
-                  </Text>
-                  <Divider style={styles.divider} />
+        {originalData && (
+          <>
+            <Card style={styles.card}>
+              <Card.Content>
+                <Text variant="titleMedium" style={styles.sectionTitle}>
+                  Personal Information
+                </Text>
+                <Divider style={styles.divider} />
 
-                  <TextInput
-                    label="Name"
-                    value={formData.name}
-                    onChangeText={handleChange('name')}
-                    onBlur={handleBlur('name')}
-                    mode="outlined"
-                    left={<TextInput.Icon icon="account" />}
-                    error={touched.name && !!errors.name}
+                <FormInput
+                  label="Name"
+                  value={formData.name}
+                  onChangeText={handleChange('name')}
+                  onBlur={handleBlur('name')}
+                  touched={touched.name}
+                  errorMessage={errors.name}
+                  accessibilityLabel="Name input field"
+                  accessibilityHint="Enter your full name"
+                  icon="account"
+                  disabled={loading}
+                  returnKeyType="next"
+                  submitBehavior="submit"
+                  onSubmitEditing={() => contactEmailRef.current?.focus()}
+                  style={styles.input}
+                />
+
+                <TextInput
+                  label="Email"
+                  value={originalData.email}
+                  mode="outlined"
+                  left={<TextInput.Icon icon="email" />}
+                  disabled
+                  style={styles.input}
+                  accessibilityLabel="Email address (read only)"
+                  accessibilityHint="Email cannot be changed"
+                  accessibilityRole="text"
+                />
+                <HelperText type="info" visible>
+                  Email cannot be changed
+                </HelperText>
+              </Card.Content>
+            </Card>
+
+            <Card style={styles.card}>
+              <Card.Content>
+                <Text variant="titleMedium" style={styles.sectionTitle}>
+                  Contact Information
+                </Text>
+                <Divider style={styles.divider} />
+
+                <FormInput
+                  ref={contactEmailRef}
+                  label="Contact Email"
+                  value={formData.contactEmail}
+                  onChangeText={handleChange('contactEmail')}
+                  onBlur={handleBlur('contactEmail')}
+                  touched={touched.contactEmail}
+                  errorMessage={errors.contactEmail}
+                  accessibilityLabel="Contact email input field"
+                  accessibilityHint="Enter an alternative contact email"
+                  icon="email-outline"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  disabled={loading}
+                  returnKeyType="next"
+                  submitBehavior="submit"
+                  onSubmitEditing={() => countryCodeRef.current?.focus()}
+                  style={styles.input}
+                />
+
+                <View style={styles.row}>
+                  <FormInput
+                    ref={countryCodeRef}
+                    label="Country Code"
+                    value={formData.countryCode}
+                    onChangeText={handleChange('countryCode')}
+                    onBlur={handleBlur('countryCode')}
+                    touched={touched.countryCode}
+                    errorMessage={errors.countryCode}
+                    showInlineError={false}
+                    accessibilityLabel="Country code input field"
+                    accessibilityHint="Enter your country calling code"
+                    keyboardType="number-pad"
                     disabled={loading}
-                    style={styles.input}
-                    accessibilityLabel="Name input field"
-                    accessibilityHint="Enter your full name"
-                    accessibilityRole="text"
                     returnKeyType="next"
                     submitBehavior="submit"
-                    onSubmitEditing={() => contactEmailRef.current?.focus()}
+                    onSubmitEditing={() => phoneRef.current?.focus()}
+                    style={[styles.input, styles.countryCodeInput]}
                   />
-                  {touched.name && errors.name && (
-                    <HelperText
-                      type="error"
-                      visible
-                      accessible={true}
-                      accessibilityLiveRegion="polite"
-                    >
-                      {errors.name}
-                    </HelperText>
-                  )}
-
-                  <TextInput
-                    label="Email"
-                    value={originalData.email}
-                    mode="outlined"
-                    left={<TextInput.Icon icon="email" />}
-                    disabled
-                    style={styles.input}
-                    accessibilityLabel="Email address (read only)"
-                    accessibilityHint="Email cannot be changed"
-                    accessibilityRole="text"
+                  <FormInput
+                    ref={phoneRef}
+                    label="Phone Number"
+                    value={formData.phone}
+                    onChangeText={handleChange('phone')}
+                    onBlur={handleBlur('phone')}
+                    touched={touched.phone}
+                    errorMessage={errors.phone}
+                    showInlineError={false}
+                    accessibilityLabel="Phone number input field"
+                    accessibilityHint="Enter your phone number"
+                    keyboardType="phone-pad"
+                    disabled={loading}
+                    returnKeyType="next"
+                    submitBehavior="submit"
+                    onSubmitEditing={() => diversityTypeRef.current?.focus()}
+                    style={[styles.input, styles.phoneInput]}
                   />
-                  <HelperText type="info" visible>
-                    Email cannot be changed
+                </View>
+                {touched.countryCode && errors.countryCode ? (
+                  <HelperText
+                    type="error"
+                    visible
+                    accessible={true}
+                    accessibilityLiveRegion="polite"
+                  >
+                    {errors.countryCode}
                   </HelperText>
-                </Card.Content>
-              </Card>
+                ) : null}
+                {touched.phone && errors.phone ? (
+                  <HelperText
+                    type="error"
+                    visible
+                    accessible={true}
+                    accessibilityLiveRegion="polite"
+                  >
+                    {errors.phone}
+                  </HelperText>
+                ) : null}
+              </Card.Content>
+            </Card>
 
-              <Card style={styles.card}>
-                <Card.Content>
-                  <Text variant="titleMedium" style={styles.sectionTitle}>
-                    Contact Information
-                  </Text>
-                  <Divider style={styles.divider} />
+            <Card style={styles.card}>
+              <Card.Content>
+                <Text variant="titleMedium" style={styles.sectionTitle}>
+                  Accessibility
+                </Text>
+                <Divider style={styles.divider} />
 
-                  <TextInput
-                    label="Contact Email"
-                    value={formData.contactEmail}
-                    onChangeText={handleChange('contactEmail')}
-                    onBlur={handleBlur('contactEmail')}
-                    mode="outlined"
-                    left={<TextInput.Icon icon="email-outline" />}
-                    error={touched.contactEmail && !!errors.contactEmail}
-                    disabled={loading}
-                    style={styles.input}
-                    accessibilityLabel="Contact email input field"
-                    accessibilityHint="Enter an alternative contact email"
-                    accessibilityRole="text"
-                    ref={contactEmailRef}
-                    returnKeyType="next"
-                    submitBehavior="submit"
-                    onSubmitEditing={() => countryCodeRef.current?.focus()}
-                  />
-                  {touched.contactEmail && errors.contactEmail && (
-                    <HelperText
-                      type="error"
-                      visible
-                      accessible={true}
-                      accessibilityLiveRegion="polite"
-                    >
-                      {errors.contactEmail}
-                    </HelperText>
-                  )}
+                <FormInput
+                  ref={diversityTypeRef}
+                  label="Diversity Type"
+                  value={formData.diversityType}
+                  onChangeText={handleChange('diversityType')}
+                  onBlur={handleBlur('diversityType')}
+                  touched={touched.diversityType}
+                  errorMessage={errors.diversityType}
+                  accessibilityLabel="Diversity type input field"
+                  accessibilityHint="Enter your diversity type if applicable"
+                  icon="wheelchair-accessibility"
+                  disabled={loading}
+                  returnKeyType="done"
+                  style={styles.input}
+                />
+              </Card.Content>
+            </Card>
+          </>
+        )}
 
-                  <View style={styles.row}>
-                    <TextInput
-                      label="Country Code"
-                      value={formData.countryCode}
-                      onChangeText={handleChange('countryCode')}
-                      onBlur={handleBlur('countryCode')}
-                      mode="outlined"
-                      error={touched.countryCode && !!errors.countryCode}
-                      disabled={loading}
-                      style={[styles.input, styles.countryCodeInput]}
-                      accessibilityLabel="Country code input field"
-                      accessibilityHint="Enter your country calling code"
-                      accessibilityRole="text"
-                      ref={countryCodeRef}
-                      returnKeyType="next"
-                      submitBehavior="submit"
-                      onSubmitEditing={() => phoneRef.current?.focus()}
-                    />
-                    <TextInput
-                      label="Phone Number"
-                      value={formData.phone}
-                      onChangeText={handleChange('phone')}
-                      onBlur={handleBlur('phone')}
-                      mode="outlined"
-                      error={touched.phone && !!errors.phone}
-                      disabled={loading}
-                      style={[styles.input, styles.phoneInput]}
-                      accessibilityLabel="Phone number input field"
-                      accessibilityHint="Enter your phone number"
-                      accessibilityRole="text"
-                      ref={phoneRef}
-                      returnKeyType="next"
-                      submitBehavior="submit"
-                      onSubmitEditing={() => diversityTypeRef.current?.focus()}
-                    />
-                  </View>
-                  {touched.phone && errors.phone && (
-                    <HelperText
-                      type="error"
-                      visible
-                      accessible={true}
-                      accessibilityLiveRegion="polite"
-                    >
-                      {errors.phone}
-                    </HelperText>
-                  )}
-                </Card.Content>
-              </Card>
+        <Button
+          mode="contained"
+          onPress={handleSave}
+          loading={loading}
+          disabled={loading || !isFormValid}
+          style={[styles.button, (loading || !isFormValid) && styles.buttonDisabled]}
+          accessibilityLabel="Save changes button"
+          accessibilityHint="Press to save your profile updates"
+          accessibilityState={{ disabled: loading || !isFormValid }}
+        >
+          Save Changes
+        </Button>
 
-              <Card style={styles.card}>
-                <Card.Content>
-                  <Text variant="titleMedium" style={styles.sectionTitle}>
-                    Accessibility
-                  </Text>
-                  <Divider style={styles.divider} />
+        <Button
+          mode="outlined"
+          onPress={() => navigation.navigate('ChangePassword')}
+          style={styles.button}
+          accessibilityLabel="Change password button"
+          accessibilityHint="Press to change your password"
+        >
+          Change Password
+        </Button>
 
-                  <TextInput
-                    label="Diversity Type"
-                    value={formData.diversityType}
-                    onChangeText={handleChange('diversityType')}
-                    onBlur={handleBlur('diversityType')}
-                    mode="outlined"
-                    left={<TextInput.Icon icon="wheelchair-accessibility" />}
-                    error={touched.diversityType && !!errors.diversityType}
-                    disabled={loading}
-                    style={styles.input}
-                    accessibilityLabel="Diversity type input field"
-                    accessibilityHint="Enter your diversity type if applicable"
-                    accessibilityRole="text"
-                    ref={diversityTypeRef}
-                    returnKeyType="done"
-                  />
-                  {touched.diversityType && errors.diversityType && (
-                    <HelperText
-                      type="error"
-                      visible
-                      accessible={true}
-                      accessibilityLiveRegion="polite"
-                    >
-                      {errors.diversityType}
-                    </HelperText>
-                  )}
-                </Card.Content>
-              </Card>
-            </>
-          )}
-
-          <Button
-            mode="contained"
-            onPress={handleSave}
-            loading={loading}
-            disabled={loading || !isFormValid}
-            style={[styles.button, (loading || !isFormValid) && styles.buttonDisabled]}
-            accessibilityLabel="Save changes button"
-            accessibilityHint="Press to save your profile updates"
-            accessibilityState={{ disabled: loading || !isFormValid }}
-          >
-            Save Changes
-          </Button>
-
-          <Button
-            mode="outlined"
-            onPress={() => navigation.navigate('ChangePassword')}
-            style={styles.button}
-            accessibilityLabel="Change password button"
-            accessibilityHint="Press to change your password"
-          >
-            Change Password
-          </Button>
-
-          <Button
-            mode="outlined"
-            onPress={() =>
-              Alert.alert(
-                'Delete Account',
-                'This will permanently delete your account and all your data. This action cannot be undone.',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  {
-                    text: 'Delete',
-                    style: 'destructive',
-                    onPress: async () => {
-                      try {
-                        await deleteAccount();
-                        await clearSession();
-                        navigation.replace('Login');
-                      } catch (err) {
-                        Alert.alert('Error', 'Could not delete account. Please try again.');
-                        console.error(err);
-                      }
-                    },
+        <Button
+          mode="outlined"
+          onPress={() =>
+            Alert.alert(
+              'Delete Account',
+              'This will permanently delete your account and all your data. This action cannot be undone.',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete',
+                  style: 'destructive',
+                  onPress: async () => {
+                    try {
+                      await deleteAccount();
+                      await clearSession();
+                      navigation.replace('Login');
+                    } catch (err) {
+                      Alert.alert('Error', 'Could not delete account. Please try again.');
+                      console.error(err);
+                    }
                   },
-                ]
-              )
-            }
-            style={styles.dangerButton}
-            textColor="#d32f2f"
-            accessibilityLabel="Delete account button"
-            accessibilityHint="Press to permanently delete your account"
-          >
-            Delete Account
-          </Button>
-        </ScrollView>
-      </KeyboardAvoidingView>
+                },
+              ]
+            )
+          }
+          style={styles.dangerButton}
+          textColor="#d32f2f"
+          accessibilityLabel="Delete account button"
+          accessibilityHint="Press to permanently delete your account"
+        >
+          Delete Account
+        </Button>
+      </ScrollView>
     </SafeAreaView>
   );
 }
