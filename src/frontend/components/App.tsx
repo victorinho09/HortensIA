@@ -124,9 +124,6 @@ export default function App() {
               component={LiveCameraScreen}
               options={({ navigation }) => ({
                 title: 'HortensIA',
-                headerStyle: { backgroundColor: '#000' },
-                headerTintColor: '#fff',
-                headerTitleStyle: { color: '#fff' },
                 headerTitle: () => (
                   <Image
                     source={require('../assets/logo.png')}
@@ -139,7 +136,6 @@ export default function App() {
                     <IconButton
                       icon="account-circle"
                       size={24}
-                      iconColor="#fff"
                       onPress={() => navigation.navigate('Profile')}
                       accessibilityLabel="Profile button"
                       accessibilityHint="Press to view your profile"
@@ -148,7 +144,6 @@ export default function App() {
                     <IconButton
                       icon="logout"
                       size={24}
-                      iconColor="#fff"
                       onPress={() => handleLogout(navigation)}
                       accessibilityLabel="Log out button"
                       accessibilityHint="Press to log out"
