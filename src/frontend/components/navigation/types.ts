@@ -6,4 +6,5 @@ export type RootStackParamList = {
   Profile: undefined;
   ChangePassword: undefined;
   LiveCamera: undefined;
+  Permissions: undefined;
 };

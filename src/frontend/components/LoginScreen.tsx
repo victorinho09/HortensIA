@@ -44,7 +44,7 @@ export default function LoginScreen({ navigation }: Props) {
         await saveSession(response.session_id);
         console.log('LoginScreen - Session saved:', response.session_id);
 
-        navigation.reset({ index: 0, routes: [{ name: 'LiveCamera' }] });
+        navigation.reset({ index: 0, routes: [{ name: 'Splash' }] });
       } catch (error: any) {
         const errorMessage =
           error.response?.data?.detail ||

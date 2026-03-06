@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useCallback } from 'react';
-import { View } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { Camera, useCameraDevice } from 'react-native-vision-camera';
-import { Button, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from './navigation/types';
@@ -33,7 +33,7 @@ const STATUS_COLORS: Record<SessionStatus, string> = {
 };
 
 export default function LiveCameraScreen({ navigation }: Props) {
-  const { allGranted, hasCameraPermission, hasMicPermission, requestAll } = usePermissions();
+  const { allGranted } = usePermissions();
   const { status, errorMessage, isSendingFrame, isPlayingAudio, start, stop, sendFrame } =
     useLiveSession();
   const cameraRef = useRef<Camera>(null);
@@ -41,6 +41,13 @@ export default function LiveCameraScreen({ navigation }: Props) {
   const device = useCameraDevice('back');
 
   const isActive = status !== 'idle' && status !== 'error';
+
+  // Redirect to Permissions if user revokes permissions from iOS Settings while in the app
+  useEffect(() => {
+    if (!allGranted) {
+      navigation.replace('Permissions');
+    }
+  }, [allGranted, navigation]);
 
   const captureAndSendFrame = useCallback(async () => {
     if (!cameraRef.current || !isActive) return;
@@ -73,51 +80,11 @@ export default function LiveCameraScreen({ navigation }: Props) {
     };
   }, [isActive, captureAndSendFrame]);
 
-  // Dedicated permissions screen
-  if (!allGranted) {
-    return (
-      <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-        <View style={styles.permissionsContainer}>
-          <Text variant="headlineSmall" style={styles.permissionsTitle}>
-            Permissions Required
-          </Text>
-          <Text variant="bodyMedium" style={styles.permissionsSubtitle}>
-            HortensIA needs access to your camera and microphone to work.
-          </Text>
-          <View style={styles.permissionStatusRow}>
-            <Text
-              style={[
-                styles.permissionItem,
-                { color: hasCameraPermission ? '#22c55e' : '#ef4444' },
-              ]}
-            >
-              {hasCameraPermission ? '✓' : '✗'} Camera
-            </Text>
-            <Text
-              style={[styles.permissionItem, { color: hasMicPermission ? '#22c55e' : '#ef4444' }]}
-            >
-              {hasMicPermission ? '✓' : '✗'} Microphone
-            </Text>
-          </View>
-          <Button
-            mode="contained"
-            onPress={requestAll}
-            style={styles.permissionsButton}
-            accessibilityLabel="Grant permissions button"
-            accessibilityHint="Press to grant camera and microphone permissions"
-          >
-            Grant Permissions
-          </Button>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   if (!device) {
     return (
       <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
         <View style={styles.permissionsContainer}>
-          <Text variant="bodyMedium" style={{ color: '#fff' }}>
+          <Text variant="bodyMedium" style={{ color: '#fff' }} accessibilityRole="alert">
             No camera device found.
           </Text>
         </View>
@@ -140,17 +107,25 @@ export default function LiveCameraScreen({ navigation }: Props) {
       {/* Overlay UI */}
       <View style={styles.overlay}>
         {/* Top: session status */}
-        <View style={styles.statusBar}>
-          <View style={[styles.statusDot, { backgroundColor: STATUS_COLORS[status] }]} />
+        <View style={styles.statusBar} accessibilityLiveRegion="polite">
+          <View
+            style={[styles.statusDot, { backgroundColor: STATUS_COLORS[status] }]}
+            accessibilityElementsHidden={true}
+            importantForAccessibility="no"
+          />
           <Text style={styles.statusText}>{STATUS_LABELS[status]}</Text>
           {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
         </View>
 
         {/* Top-right: live activity indicators */}
-        <View style={styles.indicators}>
+        <View style={styles.indicators} accessibilityLiveRegion="polite">
           {isActive && (
             <View style={styles.indicator}>
-              <View style={styles.recordingDot} />
+              <View
+                style={styles.recordingDot}
+                accessibilityElementsHidden={true}
+                importantForAccessibility="no"
+              />
               <Text style={styles.indicatorText}>Live</Text>
             </View>
           )}
@@ -168,19 +143,18 @@ export default function LiveCameraScreen({ navigation }: Props) {
 
         {/* Bottom: Start / Stop */}
         <View style={styles.controls}>
-          <Button
-            mode={isActive ? 'outlined' : 'contained'}
+          <TouchableOpacity
+            style={styles.captureButtonContainer}
             onPress={isActive ? stop : start}
-            style={isActive ? styles.stopButton : styles.startButton}
-            textColor={isActive ? '#fff' : undefined}
             accessibilityLabel={isActive ? 'Stop session button' : 'Start session button'}
             accessibilityHint={
               isActive ? 'Press to stop the live session' : 'Press to start the live session'
             }
+            accessibilityRole="button"
             accessibilityState={{ disabled: false }}
           >
-            {isActive ? 'Stop' : 'Start'}
-          </Button>
+            <View style={isActive ? styles.captureButtonInnerActive : styles.captureButtonInner} />
+          </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>

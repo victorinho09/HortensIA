@@ -18,24 +18,24 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
 
-  // Status bar (top)
+  // Status bar (top-left corner)
   statusBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignSelf: 'flex-start',
     paddingHorizontal: 16,
     paddingVertical: 10,
     gap: 8,
   },
   statusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
   },
   statusText: {
     color: '#fff',
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: 18,
   },
   errorText: {
     color: '#ef4444',
@@ -76,46 +76,25 @@ export const styles = StyleSheet.create({
     paddingBottom: 40,
     alignItems: 'center',
   },
-  startButton: {
-    minWidth: 140,
-    borderRadius: 30,
-  },
-  stopButton: {
-    minWidth: 140,
-    borderRadius: 30,
-    borderColor: '#ef4444',
-    backgroundColor: 'rgba(239,68,68,0.2)',
-  },
-
-  // Permissions screen
-  permissionsContainer: {
-    flex: 1,
+  captureButtonContainer: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    borderWidth: 4,
+    borderColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 32,
   },
-  permissionsTitle: {
-    color: '#fff',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 12,
+  captureButtonInner: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#fff',
   },
-  permissionsSubtitle: {
-    color: '#ccc',
-    textAlign: 'center',
-    marginBottom: 32,
-  },
-  permissionStatusRow: {
-    flexDirection: 'row',
-    gap: 24,
-    marginBottom: 32,
-  },
-  permissionItem: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  permissionsButton: {
-    minWidth: 200,
+  captureButtonInnerActive: {
+    width: 32,
+    height: 32,
     borderRadius: 8,
+    backgroundColor: '#ef4444',
   },
 });

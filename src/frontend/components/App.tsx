@@ -15,6 +15,7 @@ import { LogBox } from 'react-native';
 import ProfileScreen from './ProfileScreen';
 import ChangePasswordScreen from './ChangePasswordScreen';
 import LiveCameraScreen from './LiveCameraScreen';
+import PermissionsScreen from './PermissionsScreen';
 import { logout } from '../utils/api';
 
 LogBox.ignoreLogs(['Sending `onAnimatedValueUpdate` with no listeners registered.']);
@@ -119,11 +120,12 @@ export default function App() {
               component={ChangePasswordScreen}
               options={{ title: 'Change Password' }}
             />
+            <Stack.Screen name="Permissions" component={PermissionsScreen} />
             <Stack.Screen
               name="LiveCamera"
               component={LiveCameraScreen}
               options={({ navigation }) => ({
-                title: 'HortensIA',
+                title: 'Live Camera',
                 headerTitle: () => (
                   <Image
                     source={require('../assets/logo.png')}

@@ -1,22 +1,18 @@
+import { Linking } from 'react-native';
 import { useCameraPermission, useMicrophonePermission } from 'react-native-vision-camera';
 
 export function usePermissions() {
-  const { hasPermission: hasCameraPermission, requestPermission: requestCameraPermission } =
-    useCameraPermission();
-  const { hasPermission: hasMicPermission, requestPermission: requestMicPermission } =
-    useMicrophonePermission();
+  const { hasPermission: hasCameraPermission } = useCameraPermission();
+  const { hasPermission: hasMicPermission } = useMicrophonePermission();
 
   const allGranted = hasCameraPermission && hasMicPermission;
 
-  const requestAll = async () => {
-    if (!hasCameraPermission) await requestCameraPermission();
-    if (!hasMicPermission) await requestMicPermission();
-  };
+  const openSettings = () => Linking.openSettings();
 
   return {
     hasCameraPermission,
     hasMicPermission,
     allGranted,
-    requestAll,
+    openSettings,
   };
 }
