@@ -42,3 +42,21 @@ async def get_current_user_from_session(
 
     await session_repo.update_last_activity(authorization)
     return user_response
+
+async def validate_session(session_id: str, db: Session) -> UserResponse | None:
+    """
+    Validates a session for WebSocket connections.
+    Unlike get_current_user_from_session, this does not use FastAPI Depends
+    and returns None instead of raising an exception, so the caller can
+    decide how to handle the failure
+
+    Returns:
+        UserResponse if session is valid, None otherwise.
+    """
+    try:
+        validate_uuid(session_id)
+    except ValueError:
+        return None
+    
+    session_repo = SessionRepository(db)
+    return await session_repo.get_user_by_session(session_id)

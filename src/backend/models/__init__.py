@@ -19,6 +19,17 @@ from .user import (
 from backend.utils.uuid import UUIDType, generate_uuid, validate_uuid, uuid_to_str, str_to_uuid
 from backend.utils.hash import hash_password, verify_password, needs_rehash
 from .auth import AuthIdentityInsert, AuthIdentity, Provider
+from .websocket import (
+    ClientMessageType,
+    FrameMessage,
+    ServerMessageTypes,
+    AlertMessage,
+    AlertSeverity,
+    DetectedObject,
+    DetectionMessage,
+    StatusMessage,
+    ErrorMessage,
+)
 
 __all__ = [
     # User models
@@ -45,4 +56,14 @@ __all__ = [
     "AuthIdentityInsert",
     "AuthIdentity",
     "Provider",
+    # Websocket message models
+    "ClientMessageType",
+    "FrameMessage",
+    "ServerMessageTypes",
+    "AlertSeverity",
+    "DetectedObject",
+    "AlertMessage",
+    "DetectionMessage",
+    "StatusMessage",
+    "ErrorMessage",
 ]

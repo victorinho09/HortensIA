@@ -1,6 +1,8 @@
 """
 Users Router
 """
+import logging
+
 from backend.databases.session_repository import SessionRepository
 from backend.service.dependencies import get_current_user_from_session
 from fastapi import APIRouter, HTTPException, status, Response, Depends, Header
@@ -16,6 +18,8 @@ from sqlalchemy.orm import Session
 
 
 router = APIRouter()
+
+logger = logging.getLogger(__name__)
 
 @router.post(
     "/session",
@@ -73,14 +77,7 @@ router = APIRouter()
 )
 async def session(credentials: LoginRequest, db: Session = Depends(get_db)) -> LoginResponse:
     try:
-        """
-        print("\n" + "="*50)
-        print("POST /auth/session ENDPOINT - Received data:")
-        print("="*50)
-        print(f"Email: {credentials.email}")
-        print(f"Password: {credentials.password}")
-        print("="*50 + "\n")
-        """
+        logger.debug("POST /auth/session - email=%s", credentials.email)
         # Initialize repositories
         user_repo = UserRepository(db)
         session_repo = SessionRepository(db)

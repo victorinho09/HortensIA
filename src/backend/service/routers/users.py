@@ -1,6 +1,8 @@
 """
 Users Router
 """
+import logging
+
 from backend.databases.session_repository import SessionRepository
 from backend.service.dependencies import get_current_user_from_session
 from fastapi import APIRouter, HTTPException, status, Response, Depends, Header
@@ -16,6 +18,8 @@ from sqlalchemy.orm import Session
 
 
 router = APIRouter()
+
+logger = logging.getLogger(__name__)
 
 @router.post(
     "/",
@@ -78,17 +82,8 @@ async def users(user_data: UserCreate, response: Response, db: Session = Depends
     Creates both user record and authentication identity.
     """
     try:
-        print("\n" + "="*50)
-        print("USERS ENDPOINT - Received data:")
-        print("="*50)
-        print(f"Name: {user_data.name}")
-        print(f"Email: {user_data.email}")
-        print(f"Password: {user_data.password}")
-        print(f"Contact Email: {user_data.contact_person_email}")
-        print(f"Country Code: {user_data.contact_person_country_code}")
-        print(f"Phone: {user_data.contact_person_phone_number}")
-        print(f"Diversity Type: {user_data.diversity_type}")
-        print("="*50 + "\n")
+        logger.debug("POST /users/ - name=%s email=%s diversity_type=%s",
+                     user_data.name, user_data.email, user_data.diversity_type)
         
         # Initialize repositories
         user_repo = UserRepository(db)

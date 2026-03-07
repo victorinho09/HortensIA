@@ -124,3 +124,36 @@ def sample_login_response_data(sample_user_response_data) -> dict:
         "session_id": "123e4567-e89b-12d3-a456-426614174000",
         "user": sample_user_response_data
     }
+
+
+@pytest.fixture(scope="function")
+def sample_frame_message_data() -> dict:
+    """Provide sample FrameMessage data for testing."""
+    return {
+        "type": "frame",
+        "data": "aGVsbG8gd29ybGQ=",  # base64 of "hello world"
+        "timestamp": 1709827200000.0,
+    }
+
+
+@pytest.fixture(scope="function")
+def sample_detected_object_data() -> dict:
+    """Provide sample DetectedObject data for testing."""
+    return {
+        "class_name": "car",
+        "confidence": 0.92,
+        "bbox": [0.1, 0.2, 0.5, 0.8],
+    }
+
+
+@pytest.fixture(scope="function")
+def sample_alert_message_data() -> dict:
+    """Provide sample AlertMessage data for testing."""
+    return {
+        "message": "Caution, car detected nearby",
+        "severity": "critical",
+        "objects": [
+            {"class_name": "car", "confidence": 0.92, "bbox": [0.1, 0.2, 0.5, 0.8]}
+        ],
+        "timestamp": 1709827200000.0,
+    }
