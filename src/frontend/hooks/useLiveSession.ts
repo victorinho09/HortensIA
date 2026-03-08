@@ -47,13 +47,19 @@ export function useLiveSession() {
       };
 
       ws.onmessage = (_event) => {
-        // TODO: parse message and play audio when audio library is decided
-        // Expected backend message format: { type: 'audio', data: '<base64_audio>', format: 'mp3' | 'pcm' }
-        setState((prev) => ({ ...prev, status: 'speaking', isPlayingAudio: true }));
-        // Placeholder: return to streaming after simulated playback delay
-        setTimeout(() => {
-          setState((prev) => ({ ...prev, status: 'streaming', isPlayingAudio: false }));
-        }, 1500);
+
+        try{
+          const msg = JSON.parse(_event.data);
+          if (msg.type === 'status'){
+            //connection status - no action needed, server just confirmed the opening of the websocket
+
+          } else if( msg.type === 'error'){
+            setState((prev) => ({...prev, status: 'error', errorMessage: msg.message}));
+          }
+          //TODO: handle 'alert' messages
+        } catch {
+          //ignore malformed messages
+        }
       };
 
       ws.onerror = () => {
@@ -95,7 +101,7 @@ export function useLiveSession() {
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
 
     setState((prev) => ({ ...prev, isSendingFrame: true }));
-    ws.send(JSON.stringify({ type: 'frame', data: frameData }));
+    ws.send(JSON.stringify({ type: 'frame', data: frameData, timestamp: Date.now() }));
     setState((prev) => ({ ...prev, isSendingFrame: false, status: 'processing' }));
   }, []);
 
