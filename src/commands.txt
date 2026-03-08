@@ -9,6 +9,9 @@ uvicorn backend.service.main:app --reload --host 127.0.0.1 --port 8888
 lsof -ti :8888
 lsof -ti :8888 | xargs kill -9
 
+# View backend logs in real time (on macOS /tmp is a symlink to /private/tmp)
+tail -f /private/tmp/backend.log
+
 cd /Users/victorvegamartinez/NasPrivateVictor/uni/2025_2026/TFG_HP/ceu-hortensia/src/frontend
 npm install
 

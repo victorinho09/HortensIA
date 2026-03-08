@@ -43,8 +43,7 @@ sleep 2
 if lsof -ti :$BACKEND_PORT > /dev/null 2>&1; then
     : # Backend already running
 else
-    uvicorn backend.service.main:app --reload --host 0.0.0.0 --port $BACKEND_PORT > /dev/null 2>&1 &
-    sleep 2
+    PYTHONUNBUFFERED=1 uvicorn backend.service.main:app --reload --host 0.0.0.0 --port $BACKEND_PORT --log-level debug > /tmp/backend.log 2>&1 &    sleep 2
 fi
 
 # Detect current local IP and update frontend config.ts

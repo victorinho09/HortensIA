@@ -50,3 +50,25 @@ Storage service for media files (images, videos).
 
 **Location:** `databases/media_storage/`  
 **Dependencies:** boto3, Pillow
+
+## Running
+
+Use the provided scripts from the `scripts/` directory:
+
+```bash
+# Start database + backend + iOS app (physical device)
+sh scripts/start_device.sh
+
+# Stop all services
+sh scripts/stop_device.sh
+```
+
+### Viewing backend logs
+
+The backend writes logs to `/tmp/backend.log`. To follow them in real time:
+
+> **macOS**: `/tmp` is a symlink to `/private/tmp`, so `tail -f` requires the real path.
+
+```bash
+tail -f /private/tmp/backend.log
+```
