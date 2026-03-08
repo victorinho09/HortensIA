@@ -89,6 +89,12 @@ htmlcov/
 *.cover
 .hypothesis/
 
+# Virtual environments
+.venv/
+.tfg/
+venv/
+env/
+
 # ============================================
 # Base de Datos
 # ============================================
