@@ -16,5 +16,8 @@
 # Testing
 -r tests/requirements.txt
 
+# Backend ai
+-r ai/requirements.txt
+
 
 

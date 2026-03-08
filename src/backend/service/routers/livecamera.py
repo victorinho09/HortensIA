@@ -17,11 +17,14 @@ from backend.models.websocket import (
     FrameMessage,
     StatusMessage,
     ErrorMessage,
+    DetectionMessage,
 )
+from backend.ai.yolo import YOLODetector
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+_detector = YOLODetector()
 
 async def _send_message(websocket: WebSocket, message) -> None:
     """
@@ -97,8 +100,21 @@ async def live_session(websocket: WebSocket, session_id: str):
                 continue
 
             if isinstance(message, FrameMessage):
-                #TODO: Forward message to Yolov8
-                logger.debug("Frame received correctly. Ts:%.0f len: %d", message.timestamp, len(message.data))
+                try:
+                    detections, processing_ms = _detector.detect(message.data)
+                    logger.debug(
+                        "Detections (%.1fms): %s",
+                        processing_ms,
+                        [(d.class_name, round(d.confidence, 2)) for d in detections]
+                    )
+                    await _send_message(websocket,DetectionMessage(
+                        objects= detections,
+                        frame_timestamp= message.timestamp,
+                        procesing_ms=processing_ms,
+                    ))
+                    logger.debug("Frame received correctly. Ts:%.0f len: %d", message.timestamp, len(message.data))
+                except ValueError as e:
+                    logger.warning("Invalid frame data: {e}")
             
     except WebSocketDisconnect:
         logger.info("Live session disconnected: session_id=%s", session_id)

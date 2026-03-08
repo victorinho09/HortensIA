@@ -12,7 +12,7 @@ import { styles } from './styles/LiveCameraScreen.styles';
 type Props = NativeStackScreenProps<RootStackParamList, 'LiveCamera'>;
 
 // Default capture interval — adjust when frame frequency is decided
-const FRAME_INTERVAL_MS = 1000;
+const FRAME_INTERVAL_MS = 250;
 
 const STATUS_LABELS: Record<SessionStatus, string> = {
   idle: 'Idle',
@@ -52,14 +52,19 @@ export default function LiveCameraScreen({ navigation }: Props) {
   const captureAndSendFrame = useCallback(async () => {
     if (!cameraRef.current || !isActive) return;
     try {
-      // TODO: replace placeholder with real frame capture when frequency is decided
-      // Steps:
-      //   1. const photo = await cameraRef.current.takePhoto({ flash: 'off', enableShutterSound: false });
-      //   2. const base64 = await RNFS.readFile(photo.path, 'base64'); // requires react-native-fs
-      //   3. sendFrame(base64);
-      sendFrame('__placeholder__');
-    } catch {
+      const photo = await cameraRef.current.takePhoto({flash: 'off', enableShutterSound: false});
+      const response = await fetch(`file://${photo.path}`);
+      const blob = await response.blob();
+      const base64 = await new Promise<string>((resolve,reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      sendFrame(base64);
+    } catch (err){
       // Frame capture failed — continue silently, do not interrupt session
+      console.debug('[LiveCamera] Frame capture failed:', err);
     }
   }, [isActive, sendFrame]);
 

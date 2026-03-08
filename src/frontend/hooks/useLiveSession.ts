@@ -55,8 +55,11 @@ export function useLiveSession() {
 
           } else if( msg.type === 'error'){
             setState((prev) => ({...prev, status: 'error', errorMessage: msg.message}));
+          } else if(msg.type === 'detection'){
+            console.log('[WS] detection:', msg.objects, `(${msg.procesing_ms?.toFixed(1)}ms)`);
+          } else if (msg.type === 'alert') {
+            console.warn('[WS] alert:', msg.severity, msg.message, msg.objects);
           }
-          //TODO: handle 'alert' messages
         } catch {
           //ignore malformed messages
         }
