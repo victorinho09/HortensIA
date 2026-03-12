@@ -2,6 +2,12 @@ import { useState, useRef, useCallback } from 'react';
 import { config } from '../config';
 import { getSession } from '../utils/session';
 
+export interface DetectedObject {
+  class_name: string;
+  confidence: number;
+  bbox: [number, number, number, number]; // [x1, y1, x2, y2] normalized [0-1]
+}
+
 export type SessionStatus =
   | 'idle'
   | 'connecting'
@@ -15,6 +21,7 @@ interface LiveSessionState {
   errorMessage: string | null;
   isSendingFrame: boolean;
   isPlayingAudio: boolean;
+  detections: DetectedObject[];
 }
 
 export function useLiveSession() {
@@ -24,6 +31,7 @@ export function useLiveSession() {
     errorMessage: null,
     isSendingFrame: false,
     isPlayingAudio: false,
+    detections: [],
   });
 
   const start = useCallback(async () => {
@@ -33,6 +41,7 @@ export function useLiveSession() {
         errorMessage: null,
         isSendingFrame: false,
         isPlayingAudio: false,
+        detections: [],
       });
 
       const sessionId = await getSession();
@@ -47,16 +56,15 @@ export function useLiveSession() {
       };
 
       ws.onmessage = (_event) => {
-
-        try{
+        try {
           const msg = JSON.parse(_event.data);
-          if (msg.type === 'status'){
+          if (msg.type === 'status') {
             //connection status - no action needed, server just confirmed the opening of the websocket
-
-          } else if( msg.type === 'error'){
-            setState((prev) => ({...prev, status: 'error', errorMessage: msg.message}));
-          } else if(msg.type === 'detection'){
+          } else if (msg.type === 'error') {
+            setState((prev) => ({ ...prev, status: 'error', errorMessage: msg.message }));
+          } else if (msg.type === 'detection') {
             console.log('[WS] detection:', msg.objects, `(${msg.procesing_ms?.toFixed(1)}ms)`);
+            setState((prev) => ({ ...prev, detections: msg.objects || [] }));
           } else if (msg.type === 'alert') {
             console.warn('[WS] alert:', msg.severity, msg.message, msg.objects);
           }
@@ -71,6 +79,7 @@ export function useLiveSession() {
           status: 'error',
           errorMessage: 'Connection failed',
           isSendingFrame: false,
+          detections: [],
         }));
       };
 
@@ -80,6 +89,7 @@ export function useLiveSession() {
           status: prev.status === 'error' ? 'error' : 'idle',
           isSendingFrame: false,
           isPlayingAudio: false,
+          detections: [],
         }));
       };
     } catch (err: any) {
@@ -87,6 +97,7 @@ export function useLiveSession() {
         ...prev,
         status: 'error',
         errorMessage: err.message || 'Failed to start session',
+        detections: [],
       }));
     }
   }, []);
@@ -96,7 +107,13 @@ export function useLiveSession() {
       wsRef.current.close();
       wsRef.current = null;
     }
-    setState({ status: 'idle', errorMessage: null, isSendingFrame: false, isPlayingAudio: false });
+    setState({
+      status: 'idle',
+      errorMessage: null,
+      isSendingFrame: false,
+      isPlayingAudio: false,
+      detections: [],
+    });
   }, []);
 
   const sendFrame = useCallback((frameData: string) => {
