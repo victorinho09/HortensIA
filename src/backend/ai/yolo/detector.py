@@ -70,7 +70,7 @@ class YOLODetector:
         w, h = image.size
 
         start = time.perf_counter()
-        results = self._model(image,device=self._device, verbose= False, conf=0.4)
+        results = self._model(image,device=self._device, verbose= False, conf=0.5)
         elapsed_ms = (time.perf_counter() - start) * 1000
 
         detections = self._parse_results(results, w, h)
