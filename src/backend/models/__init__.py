@@ -31,6 +31,8 @@ from .websocket import (
     ErrorMessage,
 )
 
+from backend.ai.yolo.coco_taxonomy import COCOSupercategory
+
 __all__ = [
     # User models
     "User",
@@ -66,4 +68,6 @@ __all__ = [
     "DetectionMessage",
     "StatusMessage",
     "ErrorMessage",
+    # AI supercategory model
+    "COCOSupercategory"
 ]

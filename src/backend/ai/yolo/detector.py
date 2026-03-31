@@ -15,7 +15,8 @@ import torch
 from PIL import Image
 from ultralytics import YOLO
 
-from backend.models.websocket import DetectedObject
+from backend.models.websocket import DetectedObject, calculate_detection_zone
+from backend.ai.yolo.coco_taxonomy import calculate_detection_supercategory
 
 logger = logging.getLogger(__name__)
 
@@ -51,10 +52,16 @@ class YOLODetector:
         for result in results:
             for box in result.boxes:
                 x1, y1, x2, y2 = box.xyxy[0].tolist()
+                normalized_bbox = [x1 / width, y1 / height, x2 / width, y2 / height]
+                class_name = result.names[int(box.cls[0])]
+
+
                 detections.append(DetectedObject(
-                    class_name=result.names[int(box.cls[0])],
+                    class_name=class_name,
                     confidence=float(box.conf[0]),
-                    bbox=[x1 / width, y1 / height, x2 / width, y2 / height],
+                    bbox=normalized_bbox,
+                    zone=calculate_detection_zone(normalized_bbox),
+                    supercategory=calculate_detection_supercategory(class_name)
                 ))
         return detections               
 

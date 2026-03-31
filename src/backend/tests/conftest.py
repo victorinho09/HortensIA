@@ -143,6 +143,8 @@ def sample_detected_object_data() -> dict:
         "class_name": "car",
         "confidence": 0.92,
         "bbox": [0.1, 0.2, 0.5, 0.8],
+        "zone": "bottom",
+        "supercategory": "vehicle",
     }
 
 
@@ -153,7 +155,13 @@ def sample_alert_message_data() -> dict:
         "message": "Caution, car detected nearby",
         "severity": "critical",
         "objects": [
-            {"class_name": "car", "confidence": 0.92, "bbox": [0.1, 0.2, 0.5, 0.8]}
+            {
+                "class_name": "car",
+                "confidence": 0.92,
+                "bbox": [0.1, 0.2, 0.5, 0.8],
+                "zone": "bottom",
+                "supercategory": "vehicle",
+            }
         ],
         "timestamp": 1709827200000.0,
     }

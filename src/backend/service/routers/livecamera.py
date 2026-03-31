@@ -19,7 +19,7 @@ from backend.models.websocket import (
     ErrorMessage,
     DetectionMessage,
 )
-from backend.ai.yolo import YOLODetector
+from backend.ai.yolo.detector import YOLODetector
 
 logger = logging.getLogger(__name__)
 

@@ -11,6 +11,7 @@ Server → Client: alert, detection, status, error
 from enum import Enum
 from typing import Literal, Optional
 from pydantic import BaseModel, Field
+from backend.ai.yolo.coco_taxonomy import COCOSupercategory
 
 # Client -> Server messages
 
@@ -19,13 +20,12 @@ class ClientMessageType(str,Enum):
     Types of messages the client can send
     """
     FRAME = "frame"
-    # AUDIO_CHUNCK = "audio_chunck" # TODO: implement audio channel
 
 class FrameMessage(BaseModel):
     """
     A single video frame captured by the device camera.
     Data is a JPEG imgage encoded as base64 string.
-    Yolov8 expects JPEG/PNG input - base64 JPEG is the transport format.
+    Yolov26 expects JPEG/PNG input - base64 JPEG is the transport format.
     """
     type: Literal["frame"] ="frame"
     data: str = Field(..., description="Base64-encoded JPEG image")
@@ -51,6 +51,29 @@ class AlertSeverity(str,Enum):
     WARNING = "warning"
     CRITICAL = "critical"
 
+class DetectionZone(str,Enum):
+    """
+    Vertical risk zones for a detection inside the image
+    """
+    TOP = "top"
+    CENTER = "center"
+    BOTTOM = "bottom"
+
+def calculate_detection_zone(bbox: list[float]) -> DetectionZone:
+    """
+    Classify a detection into a vertical zone using the bottom edge of the
+    bbox. Remember that the bbox format is: [x1, y1, x2, y2], normalized
+    between 0-1
+    """
+
+    y2 = bbox[3]
+
+    if y2 < (1/3):
+        return DetectionZone.TOP
+    if y2 < (2/3):
+        return DetectionZone.CENTER
+    return DetectionZone.BOTTOM
+
 class DetectedObject(BaseModel):
     """
     A single object detected in the frame
@@ -58,6 +81,9 @@ class DetectedObject(BaseModel):
     class_name: str = Field(..., description= "COCO class name")
     confidence: float = Field(..., ge=0.0, le= 1.0, description="Detection confidence 0-1")
     bbox: list[float] = Field(..., min_length=4, max_length=4, description="Bounding box [x1, y1, x2, y2] normalized 0-1")
+    zone: DetectionZone = Field(..., description="Vertical risk zone for detection")
+    supercategory: COCOSupercategory = Field(..., description="Official COCO supercategory for the detected class")
+
 
 class AlertMessage(BaseModel):
     """
