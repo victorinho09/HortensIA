@@ -23,6 +23,7 @@ from backend.ai.yolo.coco_taxonomy import (
     COCOSupercategory,
     calculate_detection_supercategory,
 )
+from backend.ai.yolo.domestic_risk import RiskLevel, RiskSource
 
 
 class TestClientMessageType:
@@ -179,6 +180,11 @@ class TestDetectedObject:
         assert obj.bbox == [0.1, 0.2, 0.5, 0.8]
         assert obj.zone == DetectionZone.BOTTOM
         assert obj.supercategory == COCOSupercategory.VEHICLE
+        assert obj.supercategory_risk_level == RiskLevel.LOW
+        assert obj.supercategory_risk_weight == 0.25
+        assert obj.effective_risk_level == RiskLevel.LOW
+        assert obj.effective_risk_weight == 0.25
+        assert obj.risk_source == RiskSource.SUPERCATEGORY_BASE
 
     def test_confidence_lower_bound(self):
         """Test confidence accepts 0.0"""
@@ -188,6 +194,11 @@ class TestDetectedObject:
             bbox=[0.0, 0.0, 1.0, 1.0],
             zone="bottom",
             supercategory="person",
+            supercategory_risk_level="low",
+            supercategory_risk_weight=0.25,
+            effective_risk_level="low",
+            effective_risk_weight=0.25,
+            risk_source="supercategory_base",
         )
         assert obj.confidence == 0.0
 
@@ -199,33 +210,38 @@ class TestDetectedObject:
             bbox=[0.0, 0.0, 1.0, 1.0],
             zone="bottom",
             supercategory="person",
+            supercategory_risk_level="low",
+            supercategory_risk_weight=0.25,
+            effective_risk_level="low",
+            effective_risk_weight=0.25,
+            risk_source="supercategory_base",
         )
         assert obj.confidence == 1.0
 
     def test_confidence_below_zero_raises_error(self):
         """Test ValidationError when confidence is below 0"""
         with pytest.raises(ValidationError):
-            DetectedObject(class_name="person", confidence=-0.1, bbox=[0.0, 0.0, 1.0, 1.0], zone="bottom", supercategory="person")
+            DetectedObject(class_name="person", confidence=-0.1, bbox=[0.0, 0.0, 1.0, 1.0], zone="bottom", supercategory="person", supercategory_risk_level="low", supercategory_risk_weight=0.25, effective_risk_level="low", effective_risk_weight=0.25, risk_source="supercategory_base")
 
     def test_confidence_above_one_raises_error(self):
         """Test ValidationError when confidence is above 1"""
         with pytest.raises(ValidationError):
-            DetectedObject(class_name="person", confidence=1.1, bbox=[0.0, 0.0, 1.0, 1.0], zone="bottom", supercategory="person")
+            DetectedObject(class_name="person", confidence=1.1, bbox=[0.0, 0.0, 1.0, 1.0], zone="bottom", supercategory="person", supercategory_risk_level="low", supercategory_risk_weight=0.25, effective_risk_level="low", effective_risk_weight=0.25, risk_source="supercategory_base")
 
     def test_bbox_must_have_four_elements(self):
         """Test ValidationError when bbox has fewer than 4 elements"""
         with pytest.raises(ValidationError):
-            DetectedObject(class_name="person", confidence=0.9, bbox=[0.0, 0.0, 1.0], zone="bottom", supercategory="person")
+            DetectedObject(class_name="person", confidence=0.9, bbox=[0.0, 0.0, 1.0], zone="bottom", supercategory="person", supercategory_risk_level="low", supercategory_risk_weight=0.25, effective_risk_level="low", effective_risk_weight=0.25, risk_source="supercategory_base")
 
     def test_bbox_too_many_elements_raises_error(self):
         """Test ValidationError when bbox has more than 4 elements"""
         with pytest.raises(ValidationError):
-            DetectedObject(class_name="person", confidence=0.9, bbox=[0.0, 0.0, 1.0, 1.0, 0.5], zone="bottom", supercategory="person")
+            DetectedObject(class_name="person", confidence=0.9, bbox=[0.0, 0.0, 1.0, 1.0, 0.5], zone="bottom", supercategory="person", supercategory_risk_level="low", supercategory_risk_weight=0.25, effective_risk_level="low", effective_risk_weight=0.25, risk_source="supercategory_base")
 
     def test_missing_class_name_raises_error(self):
         """Test ValidationError when class_name is missing"""
         with pytest.raises(ValidationError):
-            DetectedObject(confidence=0.9, bbox=[0.0, 0.0, 1.0, 1.0], zone="bottom", supercategory="person")
+            DetectedObject(confidence=0.9, bbox=[0.0, 0.0, 1.0, 1.0], zone="bottom", supercategory="person", supercategory_risk_level="low", supercategory_risk_weight=0.25, effective_risk_level="low", effective_risk_weight=0.25, risk_source="supercategory_base")
 
     def test_invalid_zone_raises_error(self):
         """Test ValidationError when zone is not a valid DetectionZone value"""
@@ -236,6 +252,11 @@ class TestDetectedObject:
                 bbox=[0.0, 0.0, 1.0, 1.0],
                 zone="invalid-zone",
                 supercategory="person",
+                supercategory_risk_level="low",
+                supercategory_risk_weight=0.25,
+                effective_risk_level="low",
+                effective_risk_weight=0.25,
+                risk_source="supercategory_base",
             )
 
     def test_invalid_supercategory_raises_error(self):
@@ -247,6 +268,56 @@ class TestDetectedObject:
                 bbox=[0.0, 0.0, 1.0, 1.0],
                 zone="bottom",
                 supercategory="invalid-supercategory",
+                supercategory_risk_level="low",
+                supercategory_risk_weight=0.25,
+                effective_risk_level="low",
+                effective_risk_weight=0.25,
+                risk_source="supercategory_base",
+            )
+
+    def test_invalid_supercategory_risk_level_raises_error(self):
+        with pytest.raises(ValidationError):
+            DetectedObject(
+                class_name="person",
+                confidence=0.9,
+                bbox=[0.0, 0.0, 1.0, 1.0],
+                zone="bottom",
+                supercategory="person",
+                supercategory_risk_level="invalid-risk",
+                supercategory_risk_weight=0.25,
+                effective_risk_level="low",
+                effective_risk_weight=0.25,
+                risk_source="supercategory_base",
+            )
+
+    def test_invalid_effective_risk_level_raises_error(self):
+        with pytest.raises(ValidationError):
+            DetectedObject(
+                class_name="person",
+                confidence=0.9,
+                bbox=[0.0, 0.0, 1.0, 1.0],
+                zone="bottom",
+                supercategory="person",
+                supercategory_risk_level="low",
+                supercategory_risk_weight=0.25,
+                effective_risk_level="invalid-risk",
+                effective_risk_weight=0.25,
+                risk_source="supercategory_base",
+            )
+
+    def test_invalid_risk_source_raises_error(self):
+        with pytest.raises(ValidationError):
+            DetectedObject(
+                class_name="person",
+                confidence=0.9,
+                bbox=[0.0, 0.0, 1.0, 1.0],
+                zone="bottom",
+                supercategory="person",
+                supercategory_risk_level="low",
+                supercategory_risk_weight=0.25,
+                effective_risk_level="low",
+                effective_risk_weight=0.25,
+                risk_source="invalid-source",
             )
 
 
@@ -308,6 +379,11 @@ class TestDetectionMessage:
         assert len(msg.objects) == 1
         assert msg.objects[0].zone == DetectionZone.BOTTOM
         assert msg.objects[0].supercategory == COCOSupercategory.VEHICLE
+        assert msg.objects[0].supercategory_risk_level == RiskLevel.LOW
+        assert msg.objects[0].supercategory_risk_weight == 0.25
+        assert msg.objects[0].effective_risk_level == RiskLevel.LOW
+        assert msg.objects[0].effective_risk_weight == 0.25
+        assert msg.objects[0].risk_source == RiskSource.SUPERCATEGORY_BASE
 
 
 class TestStatusMessage:

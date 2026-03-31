@@ -145,6 +145,11 @@ def sample_detected_object_data() -> dict:
         "bbox": [0.1, 0.2, 0.5, 0.8],
         "zone": "bottom",
         "supercategory": "vehicle",
+        "supercategory_risk_level": "low",
+        "supercategory_risk_weight": 0.25,
+        "effective_risk_level": "low",
+        "effective_risk_weight": 0.25,
+        "risk_source": "supercategory_base",
     }
 
 
@@ -161,6 +166,11 @@ def sample_alert_message_data() -> dict:
                 "bbox": [0.1, 0.2, 0.5, 0.8],
                 "zone": "bottom",
                 "supercategory": "vehicle",
+                "supercategory_risk_level": "low",
+                "supercategory_risk_weight": 0.25,
+                "effective_risk_level": "low",
+                "effective_risk_weight": 0.25,
+                "risk_source": "supercategory_base",
             }
         ],
         "timestamp": 1709827200000.0,

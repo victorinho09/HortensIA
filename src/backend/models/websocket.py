@@ -12,6 +12,7 @@ from enum import Enum
 from typing import Literal, Optional
 from pydantic import BaseModel, Field
 from backend.ai.yolo.coco_taxonomy import COCOSupercategory
+from backend.ai.yolo.domestic_risk import RiskLevel, RiskSource
 
 # Client -> Server messages
 
@@ -83,6 +84,11 @@ class DetectedObject(BaseModel):
     bbox: list[float] = Field(..., min_length=4, max_length=4, description="Bounding box [x1, y1, x2, y2] normalized 0-1")
     zone: DetectionZone = Field(..., description="Vertical risk zone for detection")
     supercategory: COCOSupercategory = Field(..., description="Official COCO supercategory for the detected class")
+    supercategory_risk_level: RiskLevel = Field(..., description="Domestic base risk level for the detected supercategory")
+    supercategory_risk_weight: float = Field(..., ge=0.0, le=1.0, description="Domestic base risk weight for the detected supercategory")
+    effective_risk_level: RiskLevel = Field(..., description="Effective domestic risk level after class override resolution")
+    effective_risk_weight: float = Field(..., ge=0.0, le=1.0, description="Effective domestic risk weight after class override resolution")
+    risk_source: RiskSource = Field(..., description="Source used to resolve the effective domestic risk")
 
 
 class AlertMessage(BaseModel):

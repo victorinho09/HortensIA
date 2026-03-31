@@ -17,6 +17,7 @@ from ultralytics import YOLO
 
 from backend.models.websocket import DetectedObject, calculate_detection_zone
 from backend.ai.yolo.coco_taxonomy import calculate_detection_supercategory
+from backend.ai.yolo.domestic_risk import assess_detection_risk
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +55,8 @@ class YOLODetector:
                 x1, y1, x2, y2 = box.xyxy[0].tolist()
                 normalized_bbox = [x1 / width, y1 / height, x2 / width, y2 / height]
                 class_name = result.names[int(box.cls[0])]
+                supercategory = calculate_detection_supercategory(class_name)
+                risk_assessment = assess_detection_risk(class_name,supercategory)
 
 
                 detections.append(DetectedObject(
@@ -61,7 +64,12 @@ class YOLODetector:
                     confidence=float(box.conf[0]),
                     bbox=normalized_bbox,
                     zone=calculate_detection_zone(normalized_bbox),
-                    supercategory=calculate_detection_supercategory(class_name)
+                    supercategory=calculate_detection_supercategory(class_name),
+                    supercategory_risk_level=risk_assessment.supercategory_level,
+                    supercategory_risk_weight=risk_assessment.supercategory_weight,
+                    effective_risk_level=risk_assessment.effective_level,
+                    effective_risk_weight=risk_assessment.effective_weight,
+                    risk_source=risk_assessment.source,
                 ))
         return detections               
 
