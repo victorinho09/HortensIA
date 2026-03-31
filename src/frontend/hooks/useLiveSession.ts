@@ -63,10 +63,12 @@ export function useLiveSession() {
           } else if (msg.type === 'error') {
             setState((prev) => ({ ...prev, status: 'error', errorMessage: msg.message }));
           } else if (msg.type === 'detection') {
-            console.log('[WS] detection:', msg.objects, `(${msg.procesing_ms?.toFixed(1)}ms)`);
             setState((prev) => ({ ...prev, detections: msg.objects || [] }));
           } else if (msg.type === 'alert') {
-            console.warn('[WS] alert:', msg.severity, msg.message, msg.objects);
+            setState((prev) => ({
+              ...prev,
+              status: prev.status === 'error' ? 'error' : 'streaming',
+            }));
           }
         } catch {
           //ignore malformed messages
