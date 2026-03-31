@@ -32,7 +32,7 @@ class YOLODetector:
     Load once, call detect() per frame.
     """
 
-    def __init__(self, model_name: str = "yolov8s.pt") -> None:
+    def __init__(self, model_name: str = "yolo26m.pt") -> None:
         self._device = _resolve_device()
         logger.info("Loading YOLO model '%s' on device '%s'", model_name,self._device)
         self._model = YOLO(model_name)
