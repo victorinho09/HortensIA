@@ -36,12 +36,23 @@ class YOLODetector:
     Load once, call detect() per frame.
     """
 
-    def __init__(self, model_name: str = "yolo26m.pt") -> None:
+    def __init__(self, model_name: str = "yolo26m.pt",tracker_config: str = "bytetrack.yaml",) -> None:
         self._device = _resolve_device()
+        self._tracker_config = tracker_config
         logger.info("Loading YOLO model '%s' on device '%s'", model_name,self._device)
         self._model = YOLO(model_name)
         self._model.to(self._device)
         logger.info("YOLO model loaded")
+
+    def _track_frame(self, image: Image.Image):
+        return self._model.track(
+            source=image,
+            device=self._device,
+            verbose = False,
+            conf = 0.1,
+            persist=True,
+            tracker = self._tracker_config,
+        )
     
     def _decode_frame(self, frame_b64: str) -> Image.Image:
         try:
@@ -60,12 +71,17 @@ class YOLODetector:
                 supercategory = calculate_detection_supercategory(class_name)
                 risk_assessment = assess_detection_risk(class_name,supercategory)
                 size_assessment = assess_detection_size(normalized_bbox)
-                
+
+                track_id = None
+                if getattr(result.boxes, "is_track",False) and box.id is not None:
+                    track_id = int(box.id.item())
+
 
                 detections.append(DetectedObject(
                     class_name=class_name,
                     confidence=float(box.conf[0]),
                     bbox=normalized_bbox,
+                    track_id=track_id,
                     zone=calculate_detection_zone(normalized_bbox),
                     supercategory=calculate_detection_supercategory(class_name),
                     supercategory_risk_level=risk_assessment.supercategory_level,
@@ -82,16 +98,12 @@ class YOLODetector:
     def detect(self, frame_b64: str) -> tuple[list[DetectedObject], float]:
         """
         Run inference on a base64-encoded JPEG frame.
-
-        Returns:
-            - List of DetectedObject (class name, confidence, bbox normalized 0-1)
-            - Processing time in milliseconds
         """
         image = self._decode_frame(frame_b64)
         w, h = image.size
 
         start = time.perf_counter()
-        results = self._model(image,device=self._device, verbose= False, conf=0.5)
+        results = self._track_frame(image=image)
         elapsed_ms = (time.perf_counter() - start) * 1000
 
         detections = self._parse_results(results, w, h)

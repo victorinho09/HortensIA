@@ -6,6 +6,7 @@ export interface DetectedObject {
   class_name: string;
   confidence: number;
   bbox: [number, number, number, number]; // [x1, y1, x2, y2] normalized [0-1]
+  track_id: number | null;
 }
 
 export type SessionStatus =

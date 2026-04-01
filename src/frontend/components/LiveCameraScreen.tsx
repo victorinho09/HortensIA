@@ -9,21 +9,11 @@ import { BoundingBox } from './common/BoundingBox';
 import { RootStackParamList } from './navigation/types';
 import { styles } from './styles/LiveCameraScreen.styles';
 import { usePermissions } from '../hooks/usePermissions';
-import { useLiveSession, SessionStatus, DetectedObject } from '../hooks/useLiveSession';
+import { useLiveSession, SessionStatus } from '../hooks/useLiveSession';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LiveCamera'>;
 
 const FRAME_INTERVAL_MS = 250;
-const TRACK_IOU_THRESHOLD = 0.2;
-const STABLE_POSITION_DELTA = 0.02;
-const STABLE_CONFIDENCE_DELTA = 0.05;
-const MAX_MISSED_FRAMES = 1;
-
-interface TrackedDetection extends DetectedObject {
-  id: string;
-  lastSeenAt: number;
-  missedFrames: number;
-}
 
 const STATUS_LABELS: Record<SessionStatus, string> = {
   idle: 'Idle',
@@ -43,92 +33,6 @@ const STATUS_COLORS: Record<SessionStatus, string> = {
   error: '#ef4444',
 };
 
-function getIntersectionOverUnion(
-  first: [number, number, number, number],
-  second: [number, number, number, number]
-): number {
-  const [ax1, ay1, ax2, ay2] = first;
-  const [bx1, by1, bx2, by2] = second;
-
-  const intersectionWidth = Math.max(0, Math.min(ax2, bx2) - Math.max(ax1, bx1));
-  const intersectionHeight = Math.max(0, Math.min(ay2, by2) - Math.max(ay1, by1));
-  const intersectionArea = intersectionWidth * intersectionHeight;
-
-  if (intersectionArea <= 0) {
-    return 0;
-  }
-
-  const firstArea = Math.max(0, ax2 - ax1) * Math.max(0, ay2 - ay1);
-  const secondArea = Math.max(0, bx2 - bx1) * Math.max(0, by2 - by1);
-  const unionArea = firstArea + secondArea - intersectionArea;
-
-  return unionArea > 0 ? intersectionArea / unionArea : 0;
-}
-
-function mergeTrackedDetections(
-  previous: TrackedDetection[],
-  incoming: DetectedObject[],
-  now: number,
-  nextTrackIdRef: React.MutableRefObject<number>
-): TrackedDetection[] {
-  const availablePrevious = [...previous];
-  const matched: TrackedDetection[] = [];
-
-  for (const detection of incoming) {
-    let bestIndex = -1;
-    let bestScore = 0;
-
-    availablePrevious.forEach((candidate, index) => {
-      if (candidate.class_name !== detection.class_name) {
-        return;
-      }
-
-      const iou = getIntersectionOverUnion(
-        candidate.bbox as [number, number, number, number],
-        detection.bbox
-      );
-      if (iou > bestScore) {
-        bestScore = iou;
-        bestIndex = index;
-      }
-    });
-
-    if (bestIndex >= 0 && bestScore >= TRACK_IOU_THRESHOLD) {
-      const reused = availablePrevious.splice(bestIndex, 1)[0];
-      const isStable = reused.bbox.every(
-        (value, bboxIndex) => Math.abs(value - detection.bbox[bboxIndex]) <= STABLE_POSITION_DELTA
-      );
-      const hasSimilarConfidence =
-        Math.abs(reused.confidence - detection.confidence) <= STABLE_CONFIDENCE_DELTA;
-
-      matched.push({
-        ...(isStable && hasSimilarConfidence ? reused : detection),
-        id: reused.id,
-        lastSeenAt: now,
-        missedFrames: 0,
-      });
-      continue;
-    }
-
-    matched.push({
-      ...detection,
-      id: `tracked-${nextTrackIdRef.current}`,
-      lastSeenAt: now,
-      missedFrames: 0,
-    });
-    nextTrackIdRef.current += 1;
-  }
-
-  const retained = availablePrevious
-    .map((candidate) => ({
-      ...candidate,
-      missedFrames: candidate.missedFrames + 1,
-    }))
-    .filter((candidate) => candidate.missedFrames <= MAX_MISSED_FRAMES);
-
-  return [...matched, ...retained];
-}
-
 export default function LiveCameraScreen({ navigation }: Props) {
   const { allGranted } = usePermissions();
   const {
@@ -142,11 +46,9 @@ export default function LiveCameraScreen({ navigation }: Props) {
     sendFrame,
   } = useLiveSession();
   const [cameraLayout, setCameraLayout] = React.useState({ width: 0, height: 0 });
-  const [trackedDetections, setTrackedDetections] = React.useState<TrackedDetection[]>([]);
   const cameraRef = useRef<Camera>(null);
   const frameIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isCapturingRef = useRef<boolean>(false);
-  const nextTrackIdRef = useRef<number>(1);
   const device = useCameraDevice('back');
 
   const isActive = status !== 'idle' && status !== 'error';
@@ -156,13 +58,6 @@ export default function LiveCameraScreen({ navigation }: Props) {
       navigation.replace('Permissions');
     }
   }, [allGranted, navigation]);
-
-  useEffect(() => {
-    const now = Date.now();
-    setTrackedDetections((previous) =>
-      mergeTrackedDetections(previous, detections, now, nextTrackIdRef)
-    );
-  }, [detections]);
 
   const captureAndSendFrame = useCallback(async () => {
     if (!cameraRef.current || !isActive || isCapturingRef.current) {
@@ -237,9 +132,9 @@ export default function LiveCameraScreen({ navigation }: Props) {
 
       <View style={styles.overlay}>
         {cameraLayout.width > 0 &&
-          trackedDetections.map((detection) => (
+          detections.map((detection, index) => (
             <BoundingBox
-              key={detection.id}
+              key={detection.track_id !== null ? `track-${detection.track_id}` : `det-${index}`}
               detection={detection}
               frameWidth={cameraLayout.width}
               frameHeight={cameraLayout.height}

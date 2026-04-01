@@ -61,6 +61,7 @@ class DetectedObject(BaseModel):
     class_name: str = Field(..., description= "COCO class name")
     confidence: float = Field(..., ge=0.0, le= 1.0, description="Detection confidence 0-1")
     bbox: list[float] = Field(..., min_length=4, max_length=4, description="Bounding box [x1, y1, x2, y2] normalized 0-1")
+    track_id: int | None = Field(default=None, description="Stable tracker identifier across consecutive frames")
     zone: DetectionZone = Field(..., description="Vertical risk zone for detection")
     supercategory: COCOSupercategory = Field(..., description="Official COCO supercategory for the detected class")
     supercategory_risk_level: RiskLevel = Field(..., description="Domestic base risk level for the detected supercategory")

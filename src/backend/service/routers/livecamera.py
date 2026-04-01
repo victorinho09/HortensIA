@@ -24,7 +24,6 @@ from backend.ai.yolo.detector import YOLODetector
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-_detector = YOLODetector()
 
 async def _send_message(websocket: WebSocket, message) -> None:
     """
@@ -61,8 +60,7 @@ async def live_session(websocket: WebSocket, session_id: str):
     3. Receive loop: parse messages by type, handle accordingly
     4. Clean up on disconnect
     """
-
-    #Validate session before accepting the websocket
+    detector = YOLODetector()
 
     # In REST endpoints, FastAPI handles the db session lifecycle automatically via Depends(get_db).
     # WebSockets are not managed by FastAPI's dependency injection after the connection is established,
@@ -101,7 +99,7 @@ async def live_session(websocket: WebSocket, session_id: str):
 
             if isinstance(message, FrameMessage):
                 try:
-                    detections, processing_ms = _detector.detect(message.data)
+                    detections, processing_ms = detector.detect(message.data)
                     logger.debug(
                         "Detections (%.1fms): %s",
                         processing_ms,

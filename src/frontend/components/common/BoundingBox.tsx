@@ -13,7 +13,8 @@ const RERENDER_POSITION_DELTA = 0.02;
 const RERENDER_CONFIDENCE_DELTA = 0.05;
 
 function BoundingBoxComponent({ detection, frameWidth, frameHeight }: BoundingBoxProps) {
-  const { bbox, class_name, confidence } = detection;
+  const { bbox, class_name, confidence, track_id } = detection;
+  const label = track_id !== null ? `${class_name} #${track_id}` : class_name;
 
   // bbox is an array [x1, y1, x2, y2] normalized [0-1] in landscape orientation
   // Photo is captured in landscape (4224x2376) but preview is portrait (393x705)
@@ -96,7 +97,7 @@ function BoundingBoxComponent({ detection, frameWidth, frameHeight }: BoundingBo
     >
       <Animated.View style={styles.label}>
         <Text style={styles.labelText}>
-          {class_name} {(confidence * 100).toFixed(0)}%
+          {label} {(confidence * 100).toFixed(0)}%
         </Text>
       </Animated.View>
     </Animated.View>
