@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { View, TouchableOpacity } from 'react-native';
-import { Camera, useCameraDevice } from 'react-native-vision-camera';
+import { Camera, useCameraDevice, useCameraFormat } from 'react-native-vision-camera';
 import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -13,7 +13,7 @@ import { useLiveSession, SessionStatus } from '../hooks/useLiveSession';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LiveCamera'>;
 
-const FRAME_INTERVAL_MS = 250;
+const FRAME_INTERVAL_MS = 150;
 
 const STATUS_LABELS: Record<SessionStatus, string> = {
   idle: 'Idle',
@@ -41,15 +41,23 @@ export default function LiveCameraScreen({ navigation }: Props) {
     isSendingFrame,
     isPlayingAudio,
     detections,
+    lastDetectionTelemetry,
     start,
     stop,
     sendFrame,
   } = useLiveSession();
+
   const [cameraLayout, setCameraLayout] = React.useState({ width: 0, height: 0 });
   const cameraRef = useRef<Camera>(null);
   const frameIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isCapturingRef = useRef<boolean>(false);
+  const frameSequenceRef = useRef(0);
   const device = useCameraDevice('back');
+
+  const format = useCameraFormat(device, [
+    { videoResolution: { width: 640, height: 480 } },
+    { videoAspectRatio: 4 / 3 },
+  ]);
 
   const isActive = status !== 'idle' && status !== 'error';
 
@@ -60,32 +68,63 @@ export default function LiveCameraScreen({ navigation }: Props) {
   }, [allGranted, navigation]);
 
   const captureAndSendFrame = useCallback(async () => {
-    if (!cameraRef.current || !isActive || isCapturingRef.current) {
+    if (!cameraRef.current || !isActive || isCapturingRef.current || isSendingFrame) {
       return;
     }
 
     isCapturingRef.current = true;
+
     try {
-      const photo = await cameraRef.current.takePhoto({
-        flash: 'off',
-        enableShutterSound: false,
+      const captureStartedAt = Date.now();
+      const snapshot = await cameraRef.current.takeSnapshot({
+        quality: 80,
       });
-      const response = await fetch(`file://${photo.path}`);
+      const captureFinishedAt = Date.now();
+      const response = await fetch(`file://${snapshot.path}`);
       const blob = await response.blob();
+
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve((reader.result as string).split(',')[1]);
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
+      const encodeFinishedAt = Date.now();
 
-      sendFrame(base64);
+      frameSequenceRef.current += 1;
+
+      sendFrame({
+        frameData: base64,
+        telemetry: {
+          frame_id: `frame-${frameSequenceRef.current}`,
+          capture_started_at: captureStartedAt,
+          capture_finished_at: captureFinishedAt,
+          encode_finished_at: encodeFinishedAt,
+        },
+      });
     } catch {
       // Ignore capture failures to keep the session running.
     } finally {
       isCapturingRef.current = false;
     }
-  }, [isActive, sendFrame]);
+  }, [isActive, sendFrame, isSendingFrame]);
+
+  useEffect(() => {
+    if (!lastDetectionTelemetry) {
+      return;
+    }
+
+    const frameHandle = requestAnimationFrame(() => {
+      const paintedAt = Date.now();
+      console.log('[live][timing][paint]', {
+        frameId: lastDetectionTelemetry.frameId,
+        renderMs: paintedAt - lastDetectionTelemetry.receivedAt,
+        endToEndMs: paintedAt - lastDetectionTelemetry.captureStartedAt,
+      });
+    });
+
+    return () => cancelAnimationFrame(frameHandle);
+  }, [detections, lastDetectionTelemetry]);
 
   useEffect(() => {
     if (isActive) {
@@ -121,8 +160,9 @@ export default function LiveCameraScreen({ navigation }: Props) {
         ref={cameraRef}
         style={styles.camera}
         device={device}
+        format={format}
         isActive={allGranted}
-        photo={true}
+        video={true}
         accessibilityLabel="Live camera preview"
         onLayout={(event) => {
           const { width, height } = event.nativeEvent.layout;

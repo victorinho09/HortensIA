@@ -36,7 +36,7 @@ class YOLODetector:
     Load once, call detect() per frame.
     """
 
-    def __init__(self, model_name: str = "yolo26m.pt",tracker_config: str = "bytetrack.yaml",) -> None:
+    def __init__(self, model_name: str = "yolo26s.pt",tracker_config: str = "bytetrack.yaml",) -> None:
         self._device = _resolve_device()
         self._tracker_config = tracker_config
         logger.info("Loading YOLO model '%s' on device '%s'", model_name,self._device)
@@ -51,6 +51,7 @@ class YOLODetector:
             verbose = False,
             conf = 0.1,
             persist=True,
+            imgsz=640,
             tracker = self._tracker_config,
         )
     

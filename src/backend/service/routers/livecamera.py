@@ -9,11 +9,13 @@ and sends back alerts/detections/status messages.
 
 import json
 import logging
+import time
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from backend.databases.connection import get_db
 from backend.service.dependencies import validate_session
 from backend.models.websocket import (
+    DetectionTelemetry,
     FrameMessage,
     StatusMessage,
     ErrorMessage,
@@ -99,7 +101,20 @@ async def live_session(websocket: WebSocket, session_id: str):
 
             if isinstance(message, FrameMessage):
                 try:
+                    server_received_at = int(time.time() * 1000)
+                    process_started_at = time.perf_counter()
                     detections, processing_ms = detector.detect(message.data)
+                    server_responded_at = int(time.time() * 1000)
+                    telemetry = DetectionTelemetry(
+                        frame_id=message.telemetry.frame_id if message.telemetry else None,
+                        capture_started_at=message.telemetry.capture_started_at if message.telemetry else None,
+                        capture_finished_at=message.telemetry.capture_finished_at if message.telemetry else None,
+                        encode_finished_at=message.telemetry.encode_finished_at if message.telemetry else None,
+                        sent_at=message.telemetry.sent_at if message.telemetry else None,
+                        server_received_at=server_received_at,
+                        server_responded_at=server_responded_at,
+                        processing_ms=round((time.perf_counter() - process_started_at) * 1000, 1),
+                    )
                     logger.debug(
                         "Detections (%.1fms): %s",
                         processing_ms,
@@ -109,6 +124,7 @@ async def live_session(websocket: WebSocket, session_id: str):
                         objects= detections,
                         frame_timestamp= message.timestamp,
                         procesing_ms=processing_ms,
+                        telemetry=telemetry,
                     ))
                     logger.debug("Frame received correctly. Ts:%.0f len: %d", message.timestamp, len(message.data))
                 except ValueError as e:
