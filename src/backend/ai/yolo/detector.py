@@ -15,9 +15,11 @@ import torch
 from PIL import Image
 from ultralytics import YOLO
 
-from backend.models.websocket import DetectedObject, calculate_detection_zone
+from backend.models.websocket import DetectedObject
 from backend.ai.yolo.coco_taxonomy import calculate_detection_supercategory
 from backend.ai.yolo.domestic_risk import assess_detection_risk
+from backend.ai.yolo.object_size import assess_detection_size
+from backend.ai.yolo.detection_zone import calculate_detection_zone
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +59,8 @@ class YOLODetector:
                 class_name = result.names[int(box.cls[0])]
                 supercategory = calculate_detection_supercategory(class_name)
                 risk_assessment = assess_detection_risk(class_name,supercategory)
-
+                size_assessment = assess_detection_size(normalized_bbox)
+                
 
                 detections.append(DetectedObject(
                     class_name=class_name,
@@ -70,6 +73,9 @@ class YOLODetector:
                     effective_risk_level=risk_assessment.effective_level,
                     effective_risk_weight=risk_assessment.effective_weight,
                     risk_source=risk_assessment.source,
+                    size_ratio=size_assessment.size_ratio,
+                    size_category=size_assessment.category,
+                    size_factor=size_assessment.factor,
                 ))
         return detections               
 

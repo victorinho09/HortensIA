@@ -13,6 +13,8 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field
 from backend.ai.yolo.coco_taxonomy import COCOSupercategory
 from backend.ai.yolo.domestic_risk import RiskLevel, RiskSource
+from backend.ai.yolo.object_size import ObjectSizeCategory
+from backend.ai.yolo.detection_zone import DetectionZone
 
 # Client -> Server messages
 
@@ -52,29 +54,6 @@ class AlertSeverity(str,Enum):
     WARNING = "warning"
     CRITICAL = "critical"
 
-class DetectionZone(str,Enum):
-    """
-    Vertical risk zones for a detection inside the image
-    """
-    TOP = "top"
-    CENTER = "center"
-    BOTTOM = "bottom"
-
-def calculate_detection_zone(bbox: list[float]) -> DetectionZone:
-    """
-    Classify a detection into a vertical zone using the bottom edge of the
-    bbox. Remember that the bbox format is: [x1, y1, x2, y2], normalized
-    between 0-1
-    """
-
-    y2 = bbox[3]
-
-    if y2 < (1/3):
-        return DetectionZone.TOP
-    if y2 < (2/3):
-        return DetectionZone.CENTER
-    return DetectionZone.BOTTOM
-
 class DetectedObject(BaseModel):
     """
     A single object detected in the frame
@@ -89,7 +68,9 @@ class DetectedObject(BaseModel):
     effective_risk_level: RiskLevel = Field(..., description="Effective domestic risk level after class override resolution")
     effective_risk_weight: float = Field(..., ge=0.0, le=1.0, description="Effective domestic risk weight after class override resolution")
     risk_source: RiskSource = Field(..., description="Source used to resolve the effective domestic risk")
-
+    size_ratio: float = Field(..., ge=0.0,le=1.0,description="Bounding box area relative to image")
+    size_category: ObjectSizeCategory = Field(..., description="Relative size category for the detected object")
+    size_factor: float = Field(..., ge=0.0, le=1.0, description="Intermediate size prominence factor for the detected object")
 
 class AlertMessage(BaseModel):
     """

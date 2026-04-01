@@ -150,6 +150,9 @@ def sample_detected_object_data() -> dict:
         "effective_risk_level": "low",
         "effective_risk_weight": 0.25,
         "risk_source": "supercategory_base",
+        "size_ratio": 0.24,
+        "size_category": "large",
+        "size_factor": 1.0,
     }
 
 
@@ -171,6 +174,9 @@ def sample_alert_message_data() -> dict:
                 "effective_risk_level": "low",
                 "effective_risk_weight": 0.25,
                 "risk_source": "supercategory_base",
+                "size_ratio": 0.24,
+                "size_category": "large",
+                "size_factor": 1.0,
             }
         ],
         "timestamp": 1709827200000.0,
