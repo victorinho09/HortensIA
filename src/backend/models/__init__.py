@@ -27,6 +27,7 @@ from .websocket import (
     AlertSeverity,
     DetectedObject,
     DetectionMessage,
+    SceneRiskAssessment,
     StatusMessage,
     ErrorMessage,
 )
@@ -69,5 +70,7 @@ __all__ = [
     "StatusMessage",
     "ErrorMessage",
     # AI supercategory model
-    "COCOSupercategory"
+    "COCOSupercategory",
+    # Scene risk assessment model
+    "SceneRiskAssessment",
 ]

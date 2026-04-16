@@ -10,8 +10,9 @@ interface BoundingBoxProps {
 }
 
 function BoundingBoxComponent({ detection, frameWidth, frameHeight }: BoundingBoxProps) {
-  const { bbox, class_name, confidence, track_id } = detection;
+  const { bbox, class_name, confidence, track_id, object_risk } = detection;
   const label = track_id !== null ? `${class_name} #${track_id}` : class_name;
+  const riskColors = getRiskColors(object_risk);
 
   const [x1, y1, x2, y2] = bbox;
 
@@ -34,12 +35,14 @@ function BoundingBoxComponent({ detection, frameWidth, frameHeight }: BoundingBo
           top: metrics.top,
           width: metrics.width,
           height: metrics.height,
+          borderColor: riskColors.borderColor,
         },
       ]}
     >
-      <Animated.View style={styles.label}>
-        <Text style={styles.labelText}>
+      <Animated.View style={[styles.label, { backgroundColor: riskColors.labelBackgroundColor }]}>
+        <Text style={[styles.labelText, {color: riskColors.labelTextColor}]}>
           {label} {(confidence * 100).toFixed(0)}%
+          {object_risk !== null ? ` R:${object_risk.toFixed(2)}` : ''}
         </Text>
       </Animated.View>
     </Animated.View>
@@ -52,9 +55,42 @@ export const BoundingBox = React.memo(BoundingBoxComponent, (previousProps, next
     previousProps.frameHeight === nextProps.frameHeight &&
     previousProps.detection.class_name === nextProps.detection.class_name &&
     previousProps.detection.track_id === nextProps.detection.track_id &&
+    previousProps.detection.object_risk === nextProps.detection.object_risk &&
     previousProps.detection.confidence === nextProps.detection.confidence &&
     previousProps.detection.bbox.every(
       (value, index) => value === nextProps.detection.bbox[index]
     )
   );
 });
+
+function getRiskColors(objectRisk: number | null) {
+  if (objectRisk === null) {
+    return {
+      borderColor: '#94a3b8',
+      labelBackgroundColor: 'rgba(148, 163, 184, 0.85)',
+      labelTextColor: '#0f172a',
+    };
+  }
+
+  if (objectRisk >= 0.70) {
+    return {
+      borderColor: '#ef4444',
+      labelBackgroundColor: 'rgba(239, 68, 68, 0.88)',
+      labelTextColor: '#ffffff',
+    };
+  }
+
+  if (objectRisk >= 0.35) {
+    return {
+      borderColor: '#f59e0b',
+      labelBackgroundColor: 'rgba(245, 158, 11, 0.88)',
+      labelTextColor: '#111827',
+    };
+  }
+
+  return {
+    borderColor: '#22c55e',
+    labelBackgroundColor: 'rgba(34, 197, 94, 0.88)',
+    labelTextColor: '#052e16',
+  };
+}

@@ -143,6 +143,7 @@ def sample_detected_object_data() -> dict:
         "class_name": "car",
         "confidence": 0.92,
         "bbox": [0.1, 0.2, 0.5, 0.8],
+        "track_id": 4,
         "zone": "bottom",
         "supercategory": "vehicle",
         "supercategory_risk_level": "low",
@@ -153,6 +154,13 @@ def sample_detected_object_data() -> dict:
         "size_ratio": 0.24,
         "size_category": "large",
         "size_factor": 1.0,
+        "velocity_x_px_s": 12.5,
+        "velocity_y_px_s": -3.0,
+        "speed_px_s": 12.85,
+        "area_growth_ratio_2s": 1.24,
+        "is_approaching": True,
+        "track_age_ms": 3200.0,
+        "is_track_stable": True,
     }
 
 
@@ -167,6 +175,7 @@ def sample_alert_message_data() -> dict:
                 "class_name": "car",
                 "confidence": 0.92,
                 "bbox": [0.1, 0.2, 0.5, 0.8],
+                "track_id": 4,
                 "zone": "bottom",
                 "supercategory": "vehicle",
                 "supercategory_risk_level": "low",
@@ -177,6 +186,13 @@ def sample_alert_message_data() -> dict:
                 "size_ratio": 0.24,
                 "size_category": "large",
                 "size_factor": 1.0,
+                "velocity_x_px_s": 12.5,
+                "velocity_y_px_s": -3.0,
+                "speed_px_s": 12.85,
+                "area_growth_ratio_2s": 1.24,
+                "is_approaching": True,
+                "track_age_ms": 3200.0,
+                "is_track_stable": True,
             }
         ],
         "timestamp": 1709827200000.0,

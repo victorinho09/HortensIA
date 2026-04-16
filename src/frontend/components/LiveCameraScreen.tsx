@@ -41,6 +41,7 @@ export default function LiveCameraScreen({ navigation }: Props) {
     isSendingFrame,
     isPlayingAudio,
     detections,
+    sceneRisk,
     lastDetectionTelemetry,
     start,
     stop,

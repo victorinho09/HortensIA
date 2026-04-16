@@ -103,7 +103,10 @@ async def live_session(websocket: WebSocket, session_id: str):
                 try:
                     server_received_at = int(time.time() * 1000)
                     process_started_at = time.perf_counter()
-                    detections, processing_ms = detector.detect(message.data)
+
+                    frame_timestamp_ms = (message.telemetry.capture_finished_at if message.telemetry is not None else message.timestamp)
+                    detections, processing_ms, scene_risk = detector.detect(message.data,frame_timestamp_ms=frame_timestamp_ms)
+
                     server_responded_at = int(time.time() * 1000)
                     telemetry = DetectionTelemetry(
                         frame_id=message.telemetry.frame_id if message.telemetry else None,
@@ -116,19 +119,23 @@ async def live_session(websocket: WebSocket, session_id: str):
                         processing_ms=round((time.perf_counter() - process_started_at) * 1000, 1),
                     )
                     logger.debug(
-                        "Detections (%.1fms): %s",
+                        "Detections (%.1fms): %s | scene_risk=%.3f smoothed=%.3f severity=%s",
                         processing_ms,
-                        [(d.class_name, round(d.confidence, 2)) for d in detections]
+                        [(d.class_name, round(d.confidence, 2)) for d in detections],
+                        scene_risk.instant,
+                        scene_risk.smoothed,
+                        scene_risk.severity,
                     )
                     await _send_message(websocket,DetectionMessage(
                         objects= detections,
                         frame_timestamp= message.timestamp,
                         procesing_ms=processing_ms,
                         telemetry=telemetry,
+                        scene_risk=scene_risk,
                     ))
                     logger.debug("Frame received correctly. Ts:%.0f len: %d", message.timestamp, len(message.data))
                 except ValueError as e:
-                    logger.warning("Invalid frame data: {e}")
+                    logger.warning("Invalid frame data: {%s}", str(e))
             
     except WebSocketDisconnect:
         logger.info("Live session disconnected: session_id=%s", session_id)

@@ -37,8 +37,8 @@ class DetectionRiskAssessment:
     effective_weight: float
     source: RiskSource
 
-LOW_RISK= RiskProfile(level=RiskLevel.LOW,weight=0.25)
-MEDIUM_RISK=RiskProfile(level=RiskLevel.MEDIUM,weight=0.60)
+LOW_RISK= RiskProfile(level=RiskLevel.LOW,weight=0.10)
+MEDIUM_RISK=RiskProfile(level=RiskLevel.MEDIUM,weight=0.50)
 HIGH_RISK=RiskProfile(level=RiskLevel.HIGH,weight=1.00)
 
 DOMESTIC_SUPERCATEGORY_RISK_MAP: dict[COCOSupercategory, RiskProfile] = {

@@ -83,6 +83,14 @@ class DetectedObject(BaseModel):
     size_ratio: float = Field(..., ge=0.0,le=1.0,description="Bounding box area relative to image")
     size_category: ObjectSizeCategory = Field(..., description="Relative size category for the detected object")
     size_factor: float = Field(..., ge=0.0, le=1.0, description="Intermediate size prominence factor for the detected object")
+    velocity_x_px_s: float | None = Field(default=None, description="Horizontal movement velocity in pixels per second")
+    velocity_y_px_s: float | None = Field(default=None, description="Vertical movement velocity in pixels per second")
+    speed_px_s: float | None = Field(default=None, ge=0.0, description="Movement speed magnitude in pixels per second")
+    area_growth_ratio_2s: float | None = Field(default=None, ge=0.0, description="Bounding box area growth ratio compared with the same track 2 seconds earlier")
+    is_approaching: bool = Field(..., description="Whether the tracked object has grown at least 20 percent over the last 2 seconds")
+    track_age_ms: float = Field(..., ge=0.0, description="How long the current track has been alive in milliseconds")
+    is_track_stable: bool = Field(..., description="Whether the track has remained alive long enough to be considered stable")
+    object_risk: float | None = Field(default=None, ge=0.0, le=1.0, description="Final risk score for this object after combining semantic, proximity and motion factors")
 
 class AlertMessage(BaseModel):
     """
@@ -108,6 +116,18 @@ class DetectionTelemetry(BaseModel):
     server_responded_at: int = Field(..., description="Server timestamp in ms when the response was emitted")
     processing_ms: float = Field(..., description="Backend processing time in ms")
 
+class SceneRiskAssessment(BaseModel):
+    """
+    Aggregated risk information for the current frame or scene
+    """
+    instant : float = Field(..., ge=0.0, le=1.0, description="Aggregated scene risk computed from the current frame only")
+    smoothed: float = Field(..., ge=0.0, le=1.0, description="Temporally smoothed scene risk used for more stable decisions")
+    severity: AlertSeverity = Field(..., description="Severity derived from the smoothed scene risk")
+    dominant_object_index: int | None = Field(default=None, ge=0, description="Index of the object with the highest object_risk in the objects array")
+    dominant_track_id: int | None = Field(default=None, description="Track identifier of the highest risk object when available")
+    dominant_class_name: str | None = Field(default=None, description="Class name of the highest risk object when available")
+
+
 class DetectionMessage(BaseModel):
     """
     Raw detection results for a processed frame.
@@ -118,7 +138,8 @@ class DetectionMessage(BaseModel):
     frame_timestamp: float = Field(..., description="Original frame timestamp")
     procesing_ms: float = Field(..., description="Time taken to process the frame in ms")
     telemetry: DetectionTelemetry | None = Field(default=None, description="Optional end-to-end telemetry for the processed frame")
-
+    scene_risk: SceneRiskAssessment | None = Field(default=None, description="Aggregated risk assessment for the current frame")
+    
 class StatusMessage(BaseModel):
     """
     Connection or processing status update
