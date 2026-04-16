@@ -25,7 +25,7 @@ def make_detected_object(**overrides) -> DetectedObject:
         "zone": DetectionZone.BOTTOM,
         "supercategory": COCOSupercategory.KITCHEN,
         "supercategory_risk_level": RiskLevel.MEDIUM,
-        "supercategory_risk_weight": 0.60,
+        "supercategory_risk_weight": 0.50,
         "effective_risk_level": RiskLevel.HIGH,
         "effective_risk_weight": 1.0,
         "risk_source": RiskSource.CLASS_OVERRIDE,
@@ -109,7 +109,7 @@ class TestCalculateObjectRisk:
             is_approaching=True,
         )
 
-        assert calculate_object_risk(detection) == pytest.approx(0.828)
+        assert calculate_object_risk(detection) == pytest.approx(0.9)
 
     def test_confidence_scales_down_the_weighted_risk(self):
         detection = make_detected_object(
@@ -120,7 +120,7 @@ class TestCalculateObjectRisk:
             is_track_stable=False,
         )
 
-        assert calculate_object_risk(detection) == pytest.approx(0.4)
+        assert calculate_object_risk(detection) == pytest.approx(0.5)
 
 
 class TestCalculateSceneRisk:
@@ -140,7 +140,7 @@ class TestSceneRiskAnalyzer:
             zone=DetectionZone.TOP,
             supercategory=COCOSupercategory.KITCHEN,
             effective_risk_level=RiskLevel.LOW,
-            effective_risk_weight=0.25,
+            effective_risk_weight=0.10,
             risk_source=RiskSource.CLASS_OVERRIDE,
             size_category=ObjectSizeCategory.SMALL,
             size_factor=0.33,
@@ -188,10 +188,10 @@ class TestSceneRiskAnalyzer:
         first_score = analyzer.assess_detections([high_risk_detection])
         second_score = analyzer.assess_detections([high_risk_detection])
 
-        assert first_score.instant_risk == pytest.approx(0.92)
-        assert first_score.smoothed_risk == pytest.approx(0.46)
-        assert second_score.instant_risk == pytest.approx(0.92)
-        assert second_score.smoothed_risk == pytest.approx(0.69)
+        assert first_score.instant_risk == pytest.approx(1.0)
+        assert first_score.smoothed_risk == pytest.approx(0.5)
+        assert second_score.instant_risk == pytest.approx(1.0)
+        assert second_score.smoothed_risk == pytest.approx(0.75)
 
     def test_resolves_severity_from_smoothed_risk(self):
         analyzer = SceneRiskAnalyzer(smoothing_alpha=1.0)
@@ -199,7 +199,7 @@ class TestSceneRiskAnalyzer:
             confidence=1.0,
             zone=DetectionZone.BOTTOM,
             size_factor=1.0,
-            effective_risk_weight=0.60,
+            effective_risk_weight=0.50,
             is_track_stable=False,
         )
         critical_detection = make_detected_object(

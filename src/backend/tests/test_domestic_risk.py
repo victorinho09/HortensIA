@@ -27,17 +27,17 @@ class TestGetSupercategoryRiskProfile:
     def test_kitchen_base_risk_is_medium(self):
         profile = get_supercategory_risk_profile(COCOSupercategory.KITCHEN)
         assert profile.level == RiskLevel.MEDIUM
-        assert profile.weight == 0.60
+        assert profile.weight == 0.50
 
     def test_appliance_base_risk_is_medium(self):
         profile = get_supercategory_risk_profile(COCOSupercategory.APPLIANCE)
         assert profile.level == RiskLevel.MEDIUM
-        assert profile.weight == 0.60
+        assert profile.weight == 0.50
 
     def test_vehicle_base_risk_is_low(self):
         profile = get_supercategory_risk_profile(COCOSupercategory.VEHICLE)
         assert profile.level == RiskLevel.LOW
-        assert profile.weight == 0.25
+        assert profile.weight == 0.10
 
 
 class TestGetClassRiskOverride:
@@ -51,7 +51,7 @@ class TestGetClassRiskOverride:
         profile = get_class_risk_override("bowl")
         assert profile is not None
         assert profile.level == RiskLevel.LOW
-        assert profile.weight == 0.25
+        assert profile.weight == 0.10
 
     def test_unknown_class_has_no_override(self):
         assert get_class_risk_override("banana") is None
@@ -62,7 +62,7 @@ class TestAssessDetectionRisk:
         assessment = assess_detection_risk("knife", COCOSupercategory.KITCHEN)
 
         assert assessment.supercategory_level == RiskLevel.MEDIUM
-        assert assessment.supercategory_weight == 0.60
+        assert assessment.supercategory_weight == 0.50
         assert assessment.effective_level == RiskLevel.HIGH
         assert assessment.effective_weight == 1.00
         assert assessment.source == RiskSource.CLASS_OVERRIDE
@@ -71,16 +71,16 @@ class TestAssessDetectionRisk:
         assessment = assess_detection_risk("banana", COCOSupercategory.FOOD)
 
         assert assessment.supercategory_level == RiskLevel.LOW
-        assert assessment.supercategory_weight == 0.25
+        assert assessment.supercategory_weight == 0.10
         assert assessment.effective_level == RiskLevel.LOW
-        assert assessment.effective_weight == 0.25
+        assert assessment.effective_weight == 0.10
         assert assessment.source == RiskSource.SUPERCATEGORY_BASE
 
     def test_low_override_can_reduce_a_medium_base(self):
         assessment = assess_detection_risk("bowl", COCOSupercategory.KITCHEN)
 
         assert assessment.supercategory_level == RiskLevel.MEDIUM
-        assert assessment.supercategory_weight == 0.60
+        assert assessment.supercategory_weight == 0.50
         assert assessment.effective_level == RiskLevel.LOW
-        assert assessment.effective_weight == 0.25
+        assert assessment.effective_weight == 0.10
         assert assessment.source == RiskSource.CLASS_OVERRIDE
