@@ -2,9 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Tts from 'react-native-tts';
 import { translateObjectClassName } from '../utils/objectClassTranslations';
 
-// Constants for managing alert frequency and TTS settings
+// Constant for managing alert frequency and TTS settings
 const ALERT_COOLDOWN_MS = 5000;
-const CRITICAL_STREAK_REQUIRED = 2;
 
 export interface CriticalSceneRisk {
   severity: 'info' | 'warning' | 'critical';
@@ -25,14 +24,12 @@ export function useCriticalAudioAlert(): CriticalAudioAlertController {
   const lastAlertAtRef = useRef(0);
   const lastAlertTrackIdRef = useRef<number | null>(null);
   const lastAlertClassNameRef = useRef<string | null>(null);
-  const criticalStreakRef = useRef(0);
   const isSpeakingRef = useRef(false);
 
   const resetAudioAlerts = useCallback(() => {
     lastAlertAtRef.current = 0;
     lastAlertTrackIdRef.current = null;
     lastAlertClassNameRef.current = null;
-    criticalStreakRef.current = 0;
   }, []);
 
   useEffect(() => {
@@ -82,17 +79,15 @@ export function useCriticalAudioAlert(): CriticalAudioAlertController {
       return null;
     }
 
-    return `Alerta. ${translatedClassName}.`;
+    return `Alerta, peligro ${translatedClassName}.`;
   }, []);
 
   const shouldSpeakCriticalAlert = useCallback((sceneRisk: CriticalSceneRisk | null) => {
     if (!sceneRisk) {
-      criticalStreakRef.current = 0;
       return false;
     }
 
     if (sceneRisk.severity !== 'critical') {
-      criticalStreakRef.current = 0;
       return false;
     }
 
@@ -101,12 +96,6 @@ export function useCriticalAudioAlert(): CriticalAudioAlertController {
     }
 
     if (isSpeakingRef.current) {
-      return false;
-    }
-
-    criticalStreakRef.current += 1;
-
-    if (criticalStreakRef.current < CRITICAL_STREAK_REQUIRED) {
       return false;
     }
 
