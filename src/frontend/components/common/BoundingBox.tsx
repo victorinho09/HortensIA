@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, Text } from 'react-native';
 import { DetectedObject } from '../../hooks/useLiveSession';
 import { styles } from '../styles/BoundingBox.styles';
+import { translateObjectClassName } from '../../utils/objectClassTranslations';
+
 
 interface BoundingBoxProps {
   detection: DetectedObject;
@@ -10,8 +12,8 @@ interface BoundingBoxProps {
 }
 
 function BoundingBoxComponent({ detection, frameWidth, frameHeight }: BoundingBoxProps) {
-  const { bbox, class_name, confidence, track_id, object_risk } = detection;
-  const label = track_id !== null ? `${class_name} #${track_id}` : class_name;
+  const { bbox, class_name,track_id, object_risk } = detection;
+  const label = translateObjectClassName(class_name) ?? class_name;
   const riskColors = getRiskColors(object_risk);
 
   const [x1, y1, x2, y2] = bbox;
@@ -41,8 +43,7 @@ function BoundingBoxComponent({ detection, frameWidth, frameHeight }: BoundingBo
     >
       <Animated.View style={[styles.label, { backgroundColor: riskColors.labelBackgroundColor }]}>
         <Text style={[styles.labelText, {color: riskColors.labelTextColor}]}>
-          {label} {(confidence * 100).toFixed(0)}%
-          {object_risk !== null ? ` R:${object_risk.toFixed(2)}` : ''}
+          {label}
         </Text>
       </Animated.View>
     </Animated.View>

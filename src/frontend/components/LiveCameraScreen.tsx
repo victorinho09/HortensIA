@@ -13,7 +13,7 @@ import { useLiveSession, SessionStatus } from '../hooks/useLiveSession';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LiveCamera'>;
 
-const FRAME_INTERVAL_MS = 150;
+const FRAME_INTERVAL_MS = 180;
 
 const STATUS_LABELS: Record<SessionStatus, string> = {
   idle: 'Idle',

@@ -55,7 +55,7 @@ class YOLODetector:
             verbose = False,
             conf = 0.1,
             persist=True,
-            imgsz=640,
+            imgsz=960,
             tracker = self._tracker_config,
         )
     

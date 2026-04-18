@@ -18,12 +18,12 @@ class DetectionSizeAssessment:
     category: ObjectSizeCategory
     factor: float
 
-DEFAULT_SMALL_THRESHOLD = 0.05
-DEFAULT_MEDIUM_THRESHOLD = 0.20
+DEFAULT_SMALL_THRESHOLD = 0.03
+DEFAULT_MEDIUM_THRESHOLD = 0.10
 
 DEFAULT_SIZE_CATEGORY_FACTORS: dict[ObjectSizeCategory,float] = {
-    ObjectSizeCategory.SMALL: 0.33,
-    ObjectSizeCategory.MEDIUM: 0.66,
+    ObjectSizeCategory.SMALL: 0.25,
+    ObjectSizeCategory.MEDIUM: 0.75,
     ObjectSizeCategory.LARGE: 1,
 }
 
