@@ -20,7 +20,6 @@ const STATUS_LABELS: Record<SessionStatus, string> = {
   connecting: 'Connecting...',
   streaming: 'Streaming',
   processing: 'Processing...',
-  speaking: 'Speaking',
   error: 'Error',
 };
 
@@ -29,7 +28,6 @@ const STATUS_COLORS: Record<SessionStatus, string> = {
   connecting: '#f59e0b',
   streaming: '#22c55e',
   processing: '#3b82f6',
-  speaking: '#8b5cf6',
   error: '#ef4444',
 };
 
@@ -41,7 +39,6 @@ export default function LiveCameraScreen({ navigation }: Props) {
     isSendingFrame,
     isPlayingAudio,
     detections,
-    sceneRisk,
     lastDetectionTelemetry,
     start,
     stop,

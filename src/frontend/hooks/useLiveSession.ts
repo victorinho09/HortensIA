@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback } from 'react';
 import { config } from '../config';
 import { getSession } from '../utils/session';
+import { useCriticalAudioAlert } from './useAudioTTS';
+
 
 export interface DetectedObject {
   class_name: string;
@@ -32,7 +34,6 @@ export type SessionStatus =
   | 'connecting'
   | 'streaming'
   | 'processing'
-  | 'speaking'
   | 'error';
 
 export interface FrameTelemetry {
@@ -78,7 +79,6 @@ interface LiveSessionState {
   status: SessionStatus;
   errorMessage: string | null;
   isSendingFrame: boolean;
-  isPlayingAudio: boolean;
   detections: DetectedObject[];
   lastDetectionTelemetry: DetectionRenderTelemetry | null;
   sceneRisk: SceneRiskAssessment | null;
@@ -88,11 +88,17 @@ export function useLiveSession() {
   const wsRef = useRef<WebSocket | null>(null);
   const frameInFlightRef = useRef(false);
 
+  const {
+    isPlayingAudio,
+    handleSceneRisk,
+    resetAudioAlerts,
+    stopAudio,
+  } = useCriticalAudioAlert();
+
   const [state, setState] = useState<LiveSessionState>({
     status: 'idle',
     errorMessage: null,
     isSendingFrame: false,
-    isPlayingAudio: false,
     detections: [],
     lastDetectionTelemetry: null,
     sceneRisk: null,
@@ -101,11 +107,12 @@ export function useLiveSession() {
   const start = useCallback(async () => {
     try {
       frameInFlightRef.current = false;
+      resetAudioAlerts();
+
       setState({
         status: 'connecting',
         errorMessage: null,
         isSendingFrame: false,
-        isPlayingAudio: false,
         detections: [],
         lastDetectionTelemetry: null,
         sceneRisk: null,
@@ -251,6 +258,8 @@ export function useLiveSession() {
               });
             }
 
+            handleSceneRisk(sceneRisk);
+
             setState((prev) => ({
               ...prev,
               detections: detectionObjects,
@@ -282,6 +291,7 @@ export function useLiveSession() {
 
       ws.onerror = () => {
         frameInFlightRef.current = false;
+        void stopAudio();
 
         setState((prev) => ({
           ...prev,
@@ -290,19 +300,21 @@ export function useLiveSession() {
           isSendingFrame: false,
           detections: [],
           lastDetectionTelemetry: null,
+          sceneRisk: null,
         }));
       };
 
       ws.onclose = () => {
         frameInFlightRef.current = false;
+        void stopAudio();
 
         setState((prev) => ({
           ...prev,
           status: prev.status === 'error' ? 'error' : 'idle',
           isSendingFrame: false,
-          isPlayingAudio: false,
           detections: [],
           lastDetectionTelemetry: null,
+          sceneRisk: null,
         }));
       };
     } catch (err: any) {
@@ -315,12 +327,14 @@ export function useLiveSession() {
         isSendingFrame: false,
         detections: [],
         lastDetectionTelemetry: null,
+        sceneRisk: null,
       }));
     }
   }, []);
 
   const stop = useCallback(() => {
     frameInFlightRef.current = false;
+    void stopAudio();
 
     if (wsRef.current) {
       wsRef.current.close();
@@ -330,7 +344,6 @@ export function useLiveSession() {
       status: 'idle',
       errorMessage: null,
       isSendingFrame: false,
-      isPlayingAudio: false,
       detections: [],
       lastDetectionTelemetry: null,
       sceneRisk: null,
@@ -360,5 +373,5 @@ export function useLiveSession() {
     );
   }, []);
 
-  return { ...state, start, stop, sendFrame };
+  return { ...state, isPlayingAudio, start, stop, sendFrame };
 }
