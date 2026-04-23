@@ -12,7 +12,6 @@ from backend.models import (
     User, 
     UserBase, 
     UserCreate, 
-    UserCreateOAuth,
     UserUpdate,
     PasswordChange,
     UserInsert,
@@ -310,58 +309,6 @@ class TestUserCreateModel:
                 password="password123",
                 name="A"
             )
-
-
-class TestUserCreateOAuthModel:
-    """Test suite for UserCreateOAuth model"""
-    
-    # Valid creation tests
-    
-    def test_user_create_oauth_with_only_email(self):
-        """Test UserCreateOAuth with only email (no password required)"""
-        user = UserCreateOAuth(email="test@example.com")
-        assert user.email == "test@example.com"
-        assert user.name is None
-        assert not hasattr(user, "password")
-    
-    def test_user_create_oauth_with_all_fields(self):
-        """Test UserCreateOAuth with all optional fields"""
-        user = UserCreateOAuth(
-            email="oauth@example.com",
-            name="OAuth User",
-            contact_person_email="contact@example.com",
-            contact_person_country_code="34",
-            contact_person_phone_number="600000000",
-            diversity_type="visual"
-        )
-        assert user.email == "oauth@example.com"
-        assert user.name == "OAuth User"
-        assert user.contact_person_email == "contact@example.com"
-        assert user.contact_person_country_code == "34"
-        assert user.contact_person_phone_number == "600000000"
-    
-    # Validation tests
-    
-    def test_user_create_oauth_without_email_fails(self):
-        """Test UserCreateOAuth creation fails without email"""
-        with pytest.raises(ValidationError) as exc_info:
-            UserCreateOAuth()
-        errors = exc_info.value.errors()
-        assert any("email" in str(error["loc"]) for error in errors)
-    
-    def test_user_create_oauth_with_invalid_email_fails(self):
-        """Test UserCreateOAuth creation fails with invalid email"""
-        with pytest.raises(ValidationError):
-            UserCreateOAuth(email="not-an-email")
-    
-    def test_user_create_oauth_does_not_accept_password(self):
-        """Test UserCreateOAuth ignores password field (not in schema)"""
-        user = UserCreateOAuth(
-            email="test@example.com",
-            password="should_be_ignored"
-        )
-        # Password should be ignored since it's not in the schema
-        assert not hasattr(user, "password")
 
 
 class TestUserUpdateModel:
@@ -687,19 +634,17 @@ class TestCompleteUserModel:
         assert user.created_at == test_datetime
         assert isinstance(user.created_at, datetime)
     
-    # OAuth user tests
-    
-    def test_user_for_oauth_without_password_hash(self):
-        """Test User can be created without passwordHash for OAuth users"""
+    def test_user_without_password_hash(self):
+        """Test User can be created without passwordHash when needed in memory"""
         user = User(
             id=generate_uuid(),
-            email="oauth@example.com",
-            name="OAuth User",
+            email="nopassword@example.com",
+            name="User Without Password",
             passwordHash=None,
             created_at=datetime.now()
         )
         assert user.passwordHash is None
-        assert user.email == "oauth@example.com"
+        assert user.email == "nopassword@example.com"
     
     def test_user_for_traditional_auth_with_password_hash(self):
         """Test User with passwordHash for traditional authentication"""
@@ -751,10 +696,12 @@ class TestUserInsertModel:
         test_id = generate_uuid()
         user_insert = UserInsert(
             id=test_id,
-            email="insert@example.com"
+            email="insert@example.com",
+            passwordHash="$2b$12$hashed_password"
         )
         assert user_insert.id == test_id
         assert user_insert.email == "insert@example.com"
+        assert user_insert.passwordHash == "$2b$12$hashed_password"
         assert user_insert.name is None
         assert user_insert.contact_person_country_code is None
         assert user_insert.contact_person_phone_number is None
@@ -762,7 +709,6 @@ class TestUserInsertModel:
         assert user_insert.email_verified is False
         assert user_insert.settings == {}
         assert not hasattr(user_insert, 'created_at')  # Excluded from insert
-        assert not hasattr(user_insert, 'passwordHash')  # Excluded - goes in auth_identities
     
     def test_user_insert_with_all_fields(self):
         """Test UserInsert creation with all fields including split phone"""
@@ -771,6 +717,7 @@ class TestUserInsertModel:
             id=test_id,
             email="complete@example.com",
             name="Complete User",
+            passwordHash="$2b$12$hashed_password",
             contact_person_email="contact@example.com",
             contact_person_country_code="34",
             contact_person_phone_number="600123456",
@@ -782,19 +729,20 @@ class TestUserInsertModel:
         assert user_insert.id == test_id
         assert user_insert.email == "complete@example.com"
         assert user_insert.name == "Complete User"
+        assert user_insert.passwordHash == "$2b$12$hashed_password"
         assert user_insert.contact_person_country_code == "34"
         assert user_insert.contact_person_phone_number == "600123456"
         assert user_insert.diversity_type == "visual"
         assert user_insert.role == UserRole.ADMIN
         assert user_insert.email_verified is True
         assert user_insert.settings == {"theme": "dark"}
-        assert not hasattr(user_insert, 'passwordHash')  # passwordHash not in UserInsert
     
     def test_user_insert_split_phone_fields(self):
         """Test UserInsert with split phone country code and number"""
         user_insert = UserInsert(
             id=generate_uuid(),
             email="phone@example.com",
+            passwordHash="$2b$12$hashed_password",
             contact_person_country_code="1",
             contact_person_phone_number="5551234567"
         )
@@ -809,7 +757,8 @@ class TestUserInsertModel:
         """Test UserInsert default role is USER"""
         user_insert = UserInsert(
             id=generate_uuid(),
-            email="test@example.com"
+            email="test@example.com",
+            passwordHash="$2b$12$hashed_password"
         )
         assert user_insert.role == UserRole.USER
     
@@ -817,7 +766,8 @@ class TestUserInsertModel:
         """Test UserInsert default email_verified is False"""
         user_insert = UserInsert(
             id=generate_uuid(),
-            email="test@example.com"
+            email="test@example.com",
+            passwordHash="$2b$12$hashed_password"
         )
         assert user_insert.email_verified is False
     
@@ -825,7 +775,8 @@ class TestUserInsertModel:
         """Test UserInsert default settings is empty dict"""
         user_insert = UserInsert(
             id=generate_uuid(),
-            email="test@example.com"
+            email="test@example.com",
+            passwordHash="$2b$12$hashed_password"
         )
         assert user_insert.settings == {}
         assert isinstance(user_insert.settings, dict)
@@ -834,8 +785,8 @@ class TestUserInsertModel:
     
     def test_user_insert_auto_generates_id(self):
         """Test UserInsert auto-generates id if not provided"""
-        user_insert1 = UserInsert(email="test1@example.com")
-        user_insert2 = UserInsert(email="test2@example.com")
+        user_insert1 = UserInsert(email="test1@example.com", passwordHash="$2b$12$hashed_password")
+        user_insert2 = UserInsert(email="test2@example.com", passwordHash="$2b$12$hashed_password")
         assert user_insert1.id is not None
         assert user_insert2.id is not None
         assert user_insert1.id != user_insert2.id
@@ -854,7 +805,8 @@ class TestUserInsertModel:
         with pytest.raises(ValidationError):
             UserInsert(
                 id=generate_uuid(),
-                email="not-an-email"
+                email="not-an-email",
+                passwordHash="$2b$12$hashed_password"
             )
     
     def test_user_insert_with_invalid_role(self):
@@ -863,6 +815,7 @@ class TestUserInsertModel:
             UserInsert(
                 id=generate_uuid(),
                 email="test@example.com",
+                passwordHash="$2b$12$hashed_password",
                 role="invalid_role"
             )
     
@@ -871,6 +824,7 @@ class TestUserInsertModel:
         user_insert = UserInsert(
             id=generate_uuid(),
             email="test@example.com",
+            passwordHash="$2b$12$hashed_password",
             contact_person_country_code="44"
         )
         assert user_insert.contact_person_country_code == "44"
@@ -881,6 +835,7 @@ class TestUserInsertModel:
         user_insert = UserInsert(
             id=generate_uuid(),
             email="test@example.com",
+            passwordHash="$2b$12$hashed_password",
             contact_person_phone_number="7891234567"
         )
         assert user_insert.contact_person_phone_number == "7891234567"

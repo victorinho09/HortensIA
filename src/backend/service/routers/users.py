@@ -7,12 +7,9 @@ from backend.databases.session_repository import SessionRepository
 from backend.service.dependencies import get_current_user_from_session
 from fastapi import APIRouter, HTTPException, status, Response, Depends, Header
 from backend.models.user import UserCreate, UserResponse, UserInsert, UserUpdate,PasswordChange
-from backend.models.auth import AuthIdentityInsert
 from backend.utils.hash import hash_password, verify_password
-from backend.utils.uuid import generate_uuid, validate_uuid
-from backend.models.auth import Provider
+from backend.utils.uuid import validate_uuid
 from backend.databases.user_repository import UserRepository
-from backend.databases.auth_repository import AuthRepository
 from backend.databases.connection import get_db
 from sqlalchemy.orm import Session
 
@@ -79,7 +76,7 @@ async def users(user_data: UserCreate, response: Response, db: Session = Depends
     """
     Register a new user with email and password.
     Password is automatically hashed using Argon2.
-    Creates both user record and authentication identity.
+    Stores the user record with a hashed password.
     """
     try:
         logger.debug("POST /users/ - name=%s email=%s diversity_type=%s",
@@ -87,7 +84,6 @@ async def users(user_data: UserCreate, response: Response, db: Session = Depends
         
         # Initialize repositories
         user_repo = UserRepository(db)
-        auth_repo = AuthRepository(db)
             
         # Validate that the email does not exist in the database. 
         # If it exists, return with code 409
@@ -102,22 +98,12 @@ async def users(user_data: UserCreate, response: Response, db: Session = Depends
         
         # Generate the User model for the database (UUID auto-generated)
         database_user = UserInsert(
-            **user_data.model_dump(exclude={'password'})
-        )
-        
-        # Create auth identity for password authentication
-        auth_identity = AuthIdentityInsert(
-            user_id=database_user.id,  # Use the auto-generated user ID
-            provider=Provider.PASSWORD,
-            provider_user_id=None,  # Not needed for local auth
-            password_hash=hashed_password
+            **user_data.model_dump(exclude={'password'}),
+            passwordHash=hashed_password
         )
         
         # Save user to database
         saved_user = await user_repo.create(database_user)
-        
-        # Save authentication identity
-        await auth_repo.create(auth_identity)
         
         # Return user response without passwordHash
         response.status_code = status.HTTP_200_OK
@@ -293,9 +279,8 @@ async def change_password(
                 detail= "Current password is incorrect"
             )
         
-        auth_repo = AuthRepository(db)
         new_hash = hash_password(password_change.new_password)
-        await auth_repo.update_password(current_user.id,new_hash)
+        await user_repo.update_password(current_user.id,new_hash)
 
         return {"message" : "Password changed successfully"}
     except HTTPException:

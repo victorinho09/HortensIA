@@ -4,8 +4,8 @@ SQLAlchemy ORM Models
 Database table definitions using SQLAlchemy ORM.
 """
 
-from sqlalchemy import Column, DateTime, func, text, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID, CITEXT, JSONB,TEXT, INTEGER,BIGINT,BOOLEAN
+from sqlalchemy import BOOLEAN, Column, DateTime, ForeignKey, func, text
+from sqlalchemy.dialects.postgresql import CITEXT, JSONB, TEXT, UUID
 from sqlalchemy.ext.declarative import declarative_base
 from backend.utils.uuid import generate_uuid
 
@@ -28,28 +28,11 @@ class UserTable(Base):
     contact_person_country_code = Column(TEXT, nullable=True)
     contact_person_phone_number = Column(TEXT, nullable=True)
     diversity_type = Column(TEXT, nullable=True)    
+    password_hash = Column(TEXT, nullable=False)
     role = Column(TEXT, nullable=False, default="user")
     email_verified = Column(BOOLEAN, nullable=False, default=False)
     settings = Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
-
-
-class AuthIdentities(Base):
-    """
-    SQLAlchemy ORM model for auth_identities table.
-    """
-    __tablename__ = "auth_identities"
-
-    #Primary key
-    id = Column(UUID(as_uuid= True), primary_key=True,default = generate_uuid())
-
-    #Foreign Key - references users.id
-    user_id = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=False)
-
-    provider = Column(TEXT,nullable=False)
-    provider_user_id = Column(TEXT, nullable=True)
-    password_hash = Column(TEXT, nullable = True)
-    created_at= Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 class SessionTable(Base):
     """

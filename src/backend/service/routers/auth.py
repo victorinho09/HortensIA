@@ -6,13 +6,10 @@ import logging
 from backend.databases.session_repository import SessionRepository
 from backend.service.dependencies import get_current_user_from_session
 from fastapi import APIRouter, HTTPException, status, Response, Depends, Header
-from backend.models.user import UserCreate, UserResponse, UserInsert
-from backend.models.auth import AuthIdentityInsert, LoginRequest, LoginResponse
-from backend.utils.hash import hash_password, verify_password
-from backend.utils.uuid import generate_uuid
-from backend.models.auth import Provider
+from backend.models.user import UserResponse
+from backend.models.auth import LoginRequest, LoginResponse
+from backend.utils.hash import verify_password
 from backend.databases.user_repository import UserRepository
-from backend.databases.auth_repository import AuthRepository
 from backend.databases.connection import get_db
 from sqlalchemy.orm import Session
 

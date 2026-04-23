@@ -46,17 +46,17 @@ class TestCalculateBboxSizeRatio:
 
 class TestCategorizeDetectionSize:
     def test_uses_expected_default_thresholds(self):
-        assert DEFAULT_SMALL_THRESHOLD == 0.05
-        assert DEFAULT_MEDIUM_THRESHOLD == 0.20
+        assert DEFAULT_SMALL_THRESHOLD == 0.03
+        assert DEFAULT_MEDIUM_THRESHOLD == 0.10
 
     def test_returns_small_below_small_threshold(self):
-        assert categorize_detection_size(0.03) == ObjectSizeCategory.SMALL
+        assert categorize_detection_size(0.02) == ObjectSizeCategory.SMALL
 
     def test_boundary_at_small_threshold_belongs_to_medium(self):
         assert categorize_detection_size(0.05) == ObjectSizeCategory.MEDIUM
 
     def test_returns_medium_below_medium_threshold(self):
-        assert categorize_detection_size(0.12) == ObjectSizeCategory.MEDIUM
+        assert categorize_detection_size(0.08) == ObjectSizeCategory.MEDIUM
 
     def test_boundary_at_medium_threshold_belongs_to_large(self):
         assert categorize_detection_size(0.20) == ObjectSizeCategory.LARGE
@@ -87,18 +87,18 @@ class TestGetSizeFactorForCategory:
 
 class TestAssessDetectionSize:
     def test_resolves_small_detection(self):
+        assessment = assess_detection_size([0.0, 0.0, 0.1, 0.2])
+
+        assert assessment.size_ratio == pytest.approx(0.02)
+        assert assessment.category == ObjectSizeCategory.SMALL
+        assert assessment.factor == 0.25
+
+    def test_resolves_medium_detection(self):
         assessment = assess_detection_size([0.0, 0.0, 0.2, 0.2])
 
         assert assessment.size_ratio == pytest.approx(0.04)
-        assert assessment.category == ObjectSizeCategory.SMALL
-        assert assessment.factor == 0.33
-
-    def test_resolves_medium_detection(self):
-        assessment = assess_detection_size([0.0, 0.0, 0.3, 0.4])
-
-        assert assessment.size_ratio == pytest.approx(0.12)
         assert assessment.category == ObjectSizeCategory.MEDIUM
-        assert assessment.factor == 0.66
+        assert assessment.factor == 0.75
 
     def test_resolves_large_detection(self):
         assessment = assess_detection_size([0.0, 0.0, 0.5, 0.6])

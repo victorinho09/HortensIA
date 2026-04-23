@@ -9,7 +9,6 @@ from .user import (
     User, 
     UserBase,
     UserCreate, 
-    UserCreateOAuth,
     UserUpdate,
     PasswordChange,
     UserInsert,
@@ -18,7 +17,7 @@ from .user import (
 )
 from backend.utils.uuid import UUIDType, generate_uuid, validate_uuid, uuid_to_str, str_to_uuid
 from backend.utils.hash import hash_password, verify_password, needs_rehash
-from .auth import AuthIdentityInsert, AuthIdentity, Provider
+from .auth import LoginRequest, LoginResponse
 from .websocket import (
     ClientMessageType,
     FrameMessage,
@@ -39,7 +38,6 @@ __all__ = [
     "User",
     "UserBase",
     "UserCreate",
-    "UserCreateOAuth",
     "UserUpdate",
     "PasswordChange",
     "UserInsert",
@@ -55,10 +53,9 @@ __all__ = [
     "hash_password",
     "verify_password",
     "needs_rehash",
-    # Auth identity models
-    "AuthIdentityInsert",
-    "AuthIdentity",
-    "Provider",
+    # Auth models
+    "LoginRequest",
+    "LoginResponse",
     # Websocket message models
     "ClientMessageType",
     "FrameMessage",
