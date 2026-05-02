@@ -193,15 +193,8 @@ class TestSceneRiskAnalyzer:
         assert second_score.instant_risk == pytest.approx(1.0)
         assert second_score.smoothed_risk == pytest.approx(0.75)
 
-    def test_resolves_severity_from_smoothed_risk(self):
-        analyzer = SceneRiskAnalyzer(smoothing_alpha=1.0)
-        warning_detection = make_detected_object(
-            confidence=1.0,
-            zone=DetectionZone.BOTTOM,
-            size_factor=1.0,
-            effective_risk_weight=0.50,
-            is_track_stable=False,
-        )
+    def test_resolves_critical_from_single_instant_frame(self):
+        analyzer = SceneRiskAnalyzer(smoothing_alpha=0.35)
         critical_detection = make_detected_object(
             confidence=1.0,
             zone=DetectionZone.BOTTOM,
@@ -212,10 +205,23 @@ class TestSceneRiskAnalyzer:
             is_approaching=True,
         )
 
-        warning_score = analyzer.assess_detections([warning_detection])
         critical_score = analyzer.assess_detections([critical_detection])
-        info_score = analyzer.assess_detections([])
 
-        assert warning_score.severity == AlertSeverity.WARNING
+        assert critical_score.instant_risk >= 0.70
+        assert critical_score.smoothed_risk < 0.70
         assert critical_score.severity == AlertSeverity.CRITICAL
+
+    def test_warning_still_depends_on_smoothed_risk(self):
+        analyzer = SceneRiskAnalyzer(smoothing_alpha=1.0)
+        warning_detection = make_detected_object(
+            confidence=1.0,
+            zone=DetectionZone.BOTTOM,
+            size_factor=1.0,
+            effective_risk_weight=0.50,
+            is_track_stable=False,
+        )
+        info_score = analyzer.assess_detections([])
+        warning_score = analyzer.assess_detections([warning_detection])
+
         assert info_score.severity == AlertSeverity.INFO
+        assert warning_score.severity == AlertSeverity.WARNING

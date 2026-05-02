@@ -80,7 +80,7 @@ class DetectedObject(BaseModel):
     effective_risk_level: RiskLevel = Field(..., description="Effective domestic risk level after class override resolution")
     effective_risk_weight: float = Field(..., ge=0.0, le=1.0, description="Effective domestic risk weight after class override resolution")
     risk_source: RiskSource = Field(..., description="Source used to resolve the effective domestic risk")
-    size_ratio: float = Field(..., ge=0.0,le=1.0,description="Bounding box area relative to image")
+    size_ratio: float = Field(..., ge=0.0,le=1.0,description="Bounding box screen-prominence ratio derived from area and dominant-axis coverage")
     size_category: ObjectSizeCategory = Field(..., description="Relative size category for the detected object")
     size_factor: float = Field(..., ge=0.0, le=1.0, description="Intermediate size prominence factor for the detected object")
     velocity_x_px_s: float | None = Field(default=None, description="Horizontal movement velocity in pixels per second")
@@ -122,7 +122,7 @@ class SceneRiskAssessment(BaseModel):
     """
     instant : float = Field(..., ge=0.0, le=1.0, description="Aggregated scene risk computed from the current frame only")
     smoothed: float = Field(..., ge=0.0, le=1.0, description="Temporally smoothed scene risk used for more stable decisions")
-    severity: AlertSeverity = Field(..., description="Severity derived from the smoothed scene risk")
+    severity: AlertSeverity = Field(..., description="Severity where critical reacts to the current frame instantly and warning/info remain stabilized by smoothed risk")
     dominant_object_index: int | None = Field(default=None, ge=0, description="Index of the object with the highest object_risk in the objects array")
     dominant_track_id: int | None = Field(default=None, description="Track identifier of the highest risk object when available")
     dominant_class_name: str | None = Field(default=None, description="Class name of the highest risk object when available")

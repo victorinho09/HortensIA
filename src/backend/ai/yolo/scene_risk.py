@@ -148,7 +148,10 @@ class SceneRiskAnalyzer:
             detections=scored_detections,
             instant_risk=instant_risk,
             smoothed_risk=smoothed_risk,
-            severity=self._resolve_severity(smoothed_risk=smoothed_risk),
+            severity=self._resolve_severity(
+                instant_risk=instant_risk,
+                smoothed_risk=smoothed_risk,
+            ),
             dominant_object_index=dominant_object_index,
             dominant_track_id=dominant_object.track_id if dominant_object is not None else None,
             dominant_class_name=dominant_object.class_name if dominant_object is not None else None,
@@ -167,8 +170,8 @@ class SceneRiskAnalyzer:
             return None
         return max(range(len(object_risks)), key=object_risks.__getitem__)
     
-    def _resolve_severity(self, smoothed_risk: float) -> AlertSeverity:
-        if smoothed_risk >= self._critical_threshold:
+    def _resolve_severity(self, instant_risk: float, smoothed_risk: float) -> AlertSeverity:
+        if instant_risk >= self._critical_threshold:
             return AlertSeverity.CRITICAL
         if smoothed_risk >= self._warning_threshold:
             return AlertSeverity.WARNING

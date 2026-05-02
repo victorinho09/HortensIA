@@ -37,6 +37,9 @@ class TestCalculateBboxSizeRatio:
     def test_returns_bbox_area_for_normalized_bbox(self):
         assert calculate_bbox_size_ratio([0.1, 0.2, 0.5, 0.8]) == pytest.approx(0.24)
 
+    def test_boosts_elongated_bbox_that_dominates_one_screen_axis(self):
+        assert calculate_bbox_size_ratio([0.0, 0.0, 0.15, 0.5]) == pytest.approx(0.125)
+
     def test_returns_zero_when_width_is_negative(self):
         assert calculate_bbox_size_ratio([0.5, 0.1, 0.2, 0.4]) == 0.0
 
@@ -104,6 +107,13 @@ class TestAssessDetectionSize:
         assessment = assess_detection_size([0.0, 0.0, 0.5, 0.6])
 
         assert assessment.size_ratio == pytest.approx(0.30)
+        assert assessment.category == ObjectSizeCategory.LARGE
+        assert assessment.factor == 1.0
+
+    def test_promotes_elongated_prominent_detection_to_large(self):
+        assessment = assess_detection_size([0.0, 0.0, 0.15, 0.5])
+
+        assert assessment.size_ratio == pytest.approx(0.125)
         assert assessment.category == ObjectSizeCategory.LARGE
         assert assessment.factor == 1.0
 

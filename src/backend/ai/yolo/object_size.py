@@ -27,15 +27,27 @@ DEFAULT_SIZE_CATEGORY_FACTORS: dict[ObjectSizeCategory,float] = {
     ObjectSizeCategory.LARGE: 1,
 }
 
+DOMINANT_AXIS_PROMINENCE_WEIGHT = 0.5
+
 def calculate_bbox_size_ratio(bbox: list[float]) -> float:
     """
-    Calculate bounding box area relative to image size.
-    Remember normalized bbox format: [x1,y1,x2,y2]
+    Calculate a screen-prominence ratio for a normalized bounding box.
+
+    Area alone underestimates elongated objects that occupy a large portion of
+    the frame in one dimension, such as ovens, refrigerators or doors. To keep
+    size classification aligned with perceived on-screen dominance, combine the
+    raw area with a dominant-axis term and keep the strongest signal.
     """
     x1,y1,x2,y2 = bbox
     width = max(0.0,x2-x1)
     height = max(0.0,y2-y1)
-    return width * height
+    if width == 0.0 or height == 0.0:
+        return 0.0
+
+    area_ratio = width * height
+    dominant_axis_ratio = max(width, height)
+    dominant_axis_prominence = DOMINANT_AXIS_PROMINENCE_WEIGHT * (dominant_axis_ratio ** 2)
+    return max(area_ratio, dominant_axis_prominence)
 
 def categorize_detection_size(
         size_ratio: float,

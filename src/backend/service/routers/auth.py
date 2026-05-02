@@ -5,7 +5,7 @@ import logging
 
 from backend.databases.session_repository import SessionRepository
 from backend.service.dependencies import get_current_user_from_session
-from fastapi import APIRouter, HTTPException, status, Response, Depends, Header
+from fastapi import APIRouter, HTTPException, status, Depends, Header
 from backend.models.user import UserResponse
 from backend.models.auth import LoginRequest, LoginResponse
 from backend.utils.hash import verify_password
@@ -181,9 +181,9 @@ async def get_current_user(
     
 @router.post(
     "/logout",
-    status_code = status.HTTP_204_NO_CONTENT,
+    status_code = status.HTTP_200_OK,
     responses={
-        204: {
+        200: {
             "description": "Session successfully terminated"
         },
         422: {
@@ -218,12 +218,12 @@ async def get_current_user(
 async def logout(
     authorization: str = Header(...,description="Session ID to terminate"),
     db: Session = Depends(get_db)
-) -> Response:
+) -> dict[str, bool]:
     try:
         session_repo = SessionRepository(db)
         await session_repo.delete_session(authorization)
        
-        return Response(status_code = 204)
+        return {"success": True}
     except HTTPException:
         raise
     except Exception as e:
