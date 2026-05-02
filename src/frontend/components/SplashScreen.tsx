@@ -5,14 +5,13 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from './navigation/types';
 import { getSession } from '../utils/session';
 import { getCurrentUser } from '../utils/api';
-import { useCameraPermission, useMicrophonePermission } from 'react-native-vision-camera';
+import { useCameraPermission } from 'react-native-vision-camera';
 import { styles } from './styles/SplashScreen.styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Splash'>;
 
 export default function SplashScreen({ navigation }: Props) {
   const { hasPermission: hasCameraPermission } = useCameraPermission();
-  const { hasPermission: hasMicPermission } = useMicrophonePermission();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -37,7 +36,7 @@ export default function SplashScreen({ navigation }: Props) {
       console.log('SplashScreen - Session valid! Checking permissions...');
 
       // Only check — never request here. PermissionsScreen is responsible for requesting.
-      if (hasCameraPermission && hasMicPermission) {
+      if (hasCameraPermission) {
         console.log('SplashScreen - Permissions already granted, going to LiveCamera');
         navigation.replace('LiveCamera');
       } else {
