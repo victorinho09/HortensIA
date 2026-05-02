@@ -10,8 +10,6 @@
 
 # Databases
 -r databases/requirements.txt
--r databases/data_storage/requirements.txt
--r databases/media_storage/requirements.txt
 
 # Testing
 -r tests/requirements.txt
