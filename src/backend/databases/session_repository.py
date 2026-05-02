@@ -120,7 +120,6 @@ class SessionRepository:
             passwordHash=None,  # Don't include password hash in User model
             role=user_row.role,
             email_verified=user_row.email_verified,
-            settings=user_row.settings,
             created_at=user_row.created_at
         )
 
