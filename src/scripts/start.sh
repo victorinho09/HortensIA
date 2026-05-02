@@ -33,7 +33,7 @@ IOS_SIMULATOR=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['
 
 # Activate Python virtual environment
 #echo "🐍 Activating virtual environment..."
-source backend/.venv/bin/activate
+source backend/.tfg/bin/activate
 #echo "✅ Virtual environment activated"
 
 # Ensure dependencies are installed

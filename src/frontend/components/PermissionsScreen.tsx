@@ -11,23 +11,21 @@ import { commonStyles } from './styles/common.styles';
 type Props = NativeStackScreenProps<RootStackParamList, 'Permissions'>;
 
 export default function PermissionsScreen({ navigation }: Props) {
-  const { hasCameraPermission, hasMicPermission, allGranted, openSettings } = usePermissions();
+  const { hasCameraPermission, allGranted, openSettings } = usePermissions();
   const [needsSettings, setNeedsSettings] = useState(false);
 
   // Request permissions automatically on mount
   useEffect(() => {
     const requestOnMount = async () => {
       const cameraStatus = await Camera.requestCameraPermission();
-      const micStatus = await Camera.requestMicrophonePermission();
-      if (cameraStatus === 'denied' || micStatus === 'denied') {
+      if (cameraStatus === 'denied') {
         setNeedsSettings(true);
       }
     };
     requestOnMount();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Navigate as soon as both permissions become granted (e.g. user came back from Settings)
+  // Navigate as soon as camera access becomes granted (e.g. user came back from Settings)
   useEffect(() => {
     if (allGranted) {
       navigation.replace('LiveCamera');
@@ -41,9 +39,7 @@ export default function PermissionsScreen({ navigation }: Props) {
     }
     // Use Camera static methods directly — most reliable way to trigger the OS dialog
     const cameraStatus = await Camera.requestCameraPermission();
-    const micStatus = await Camera.requestMicrophonePermission();
-
-    if (cameraStatus === 'denied' || micStatus === 'denied') {
+    if (cameraStatus === 'denied') {
       setNeedsSettings(true);
     }
     // If granted, allGranted will update reactively via usePermissions and the useEffect will navigate
@@ -61,9 +57,9 @@ export default function PermissionsScreen({ navigation }: Props) {
           Permissions Required
         </Text>
         <Text variant="bodyMedium" style={styles.subtitle}>
-          HortensIA needs access to your camera and microphone to work.
+          HortensIA needs access to your camera to work.
         </Text>
-        <View style={styles.statusRow}>
+        <View style={styles.cameraStatusContainer}>
           <Text
             style={[styles.statusItem, { color: hasCameraPermission ? '#22c55e' : '#ef4444' }]}
             accessibilityLabel={
@@ -72,27 +68,21 @@ export default function PermissionsScreen({ navigation }: Props) {
           >
             {hasCameraPermission ? '✓' : '✗'} Camera
           </Text>
-          <Text
-            style={[styles.statusItem, { color: hasMicPermission ? '#22c55e' : '#ef4444' }]}
-            accessibilityLabel={
-              hasMicPermission ? 'Microphone permission granted' : 'Microphone permission denied'
-            }
-          >
-            {hasMicPermission ? '✓' : '✗'} Microphone
-          </Text>
         </View>
         <Button
           mode="contained"
           onPress={handlePress}
           style={commonStyles.button}
-          accessibilityLabel={needsSettings ? 'Open settings button' : 'Grant permissions button'}
+          accessibilityLabel={
+            needsSettings ? 'Open settings button' : 'Grant camera permission button'
+          }
           accessibilityHint={
             needsSettings
               ? 'Press to open iOS Settings and grant permissions manually'
-              : 'Press to grant camera and microphone permissions'
+              : 'Press to grant camera permissions'
           }
         >
-          {needsSettings ? 'Open Settings' : 'Grant Permissions'}
+          {needsSettings ? 'Open Settings' : 'Grant Camera Access'}
         </Button>
       </View>
     </SafeAreaView>
@@ -123,9 +113,9 @@ const styles = StyleSheet.create({
     color: '#555',
     marginBottom: 32,
   },
-  statusRow: {
-    flexDirection: 'row',
-    gap: 24,
+  cameraStatusContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 32,
   },
   statusItem: {

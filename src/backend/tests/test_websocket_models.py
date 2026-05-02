@@ -17,6 +17,13 @@ from backend.models.websocket import (
     StatusMessage,
     ErrorMessage,
 )
+from backend.ai.yolo.detection_zone import DetectionZone
+from backend.ai.yolo.coco_taxonomy import (
+    COCOSupercategory,
+    calculate_detection_supercategory,
+)
+from backend.ai.yolo.domestic_risk import RiskLevel, RiskSource
+from backend.ai.yolo.object_size import ObjectSizeCategory
 
 
 class TestClientMessageType:
@@ -89,6 +96,47 @@ class TestAlertSeverity:
         assert AlertSeverity.CRITICAL == "critical"
 
 
+class TestCOCOSupercategory:
+    """Test suite for COCOSupercategory enum"""
+
+    def test_all_expected_values_exist(self):
+        assert COCOSupercategory.PERSON == "person"
+        assert COCOSupercategory.VEHICLE == "vehicle"
+        assert COCOSupercategory.OUTDOOR == "outdoor"
+        assert COCOSupercategory.ANIMAL == "animal"
+        assert COCOSupercategory.ACCESSORY == "accessory"
+        assert COCOSupercategory.SPORTS == "sports"
+        assert COCOSupercategory.KITCHEN == "kitchen"
+        assert COCOSupercategory.FOOD == "food"
+        assert COCOSupercategory.FURNITURE == "furniture"
+        assert COCOSupercategory.ELECTRONIC == "electronic"
+        assert COCOSupercategory.APPLIANCE == "appliance"
+        assert COCOSupercategory.INDOOR == "indoor"
+
+
+class TestCalculateDetectionSupercategory:
+    """Test suite for COCO supercategory resolution"""
+
+    def test_vehicle_mapping(self):
+        assert calculate_detection_supercategory("car") == COCOSupercategory.VEHICLE
+
+    def test_kitchen_mapping(self):
+        assert calculate_detection_supercategory("knife") == COCOSupercategory.KITCHEN
+
+    def test_appliance_mapping(self):
+        assert calculate_detection_supercategory("microwave") == COCOSupercategory.APPLIANCE
+
+    def test_furniture_mapping(self):
+        assert calculate_detection_supercategory("chair") == COCOSupercategory.FURNITURE
+
+    def test_indoor_mapping(self):
+        assert calculate_detection_supercategory("toothbrush") == COCOSupercategory.INDOOR
+
+    def test_unknown_class_raises_error(self):
+        with pytest.raises(ValueError):
+            calculate_detection_supercategory("unknown-object")
+
+
 class TestDetectedObject:
     """Test suite for DetectedObject model"""
 
@@ -98,41 +146,365 @@ class TestDetectedObject:
         assert obj.class_name == "car"
         assert obj.confidence == 0.92
         assert obj.bbox == [0.1, 0.2, 0.5, 0.8]
+        assert obj.track_id == 4
+        assert obj.zone == DetectionZone.BOTTOM
+        assert obj.supercategory == COCOSupercategory.VEHICLE
+        assert obj.supercategory_risk_level == RiskLevel.LOW
+        assert obj.supercategory_risk_weight == 0.25
+        assert obj.effective_risk_level == RiskLevel.LOW
+        assert obj.effective_risk_weight == 0.25
+        assert obj.risk_source == RiskSource.SUPERCATEGORY_BASE
+        assert obj.size_ratio == 0.24
+        assert obj.size_category == ObjectSizeCategory.LARGE
+        assert obj.size_factor == 1.0
+        assert obj.velocity_x_px_s == 12.5
+        assert obj.velocity_y_px_s == -3.0
+        assert obj.speed_px_s == 12.85
+        assert obj.area_growth_ratio_2s == 1.24
+        assert obj.is_approaching is True
+        assert obj.track_age_ms == 3200.0
+        assert obj.is_track_stable is True
 
     def test_confidence_lower_bound(self):
         """Test confidence accepts 0.0"""
-        obj = DetectedObject(class_name="person", confidence=0.0, bbox=[0.0, 0.0, 1.0, 1.0])
+        obj = DetectedObject(
+            class_name="person",
+            confidence=0.0,
+            bbox=[0.0, 0.0, 1.0, 1.0],
+            track_id=1,
+            zone="bottom",
+            supercategory="person",
+            supercategory_risk_level="low",
+            supercategory_risk_weight=0.25,
+            effective_risk_level="low",
+            effective_risk_weight=0.25,
+            risk_source="supercategory_base",
+            size_ratio=1.0,
+            size_category="large",
+            size_factor=1.0,
+            velocity_x_px_s=None,
+            velocity_y_px_s=None,
+            speed_px_s=None,
+            area_growth_ratio_2s=None,
+            is_approaching=False,
+            track_age_ms=0.0,
+            is_track_stable=False,
+        )
         assert obj.confidence == 0.0
 
     def test_confidence_upper_bound(self):
         """Test confidence accepts 1.0"""
-        obj = DetectedObject(class_name="person", confidence=1.0, bbox=[0.0, 0.0, 1.0, 1.0])
+        obj = DetectedObject(
+            class_name="person",
+            confidence=1.0,
+            bbox=[0.0, 0.0, 1.0, 1.0],
+            track_id=1,
+            zone="bottom",
+            supercategory="person",
+            supercategory_risk_level="low",
+            supercategory_risk_weight=0.25,
+            effective_risk_level="low",
+            effective_risk_weight=0.25,
+            risk_source="supercategory_base",
+            size_ratio=1.0,
+            size_category="large",
+            size_factor=1.0,
+            velocity_x_px_s=None,
+            velocity_y_px_s=None,
+            speed_px_s=None,
+            area_growth_ratio_2s=None,
+            is_approaching=False,
+            track_age_ms=0.0,
+            is_track_stable=False,
+        )
         assert obj.confidence == 1.0
 
     def test_confidence_below_zero_raises_error(self):
         """Test ValidationError when confidence is below 0"""
         with pytest.raises(ValidationError):
-            DetectedObject(class_name="person", confidence=-0.1, bbox=[0.0, 0.0, 1.0, 1.0])
+            DetectedObject(class_name="person", confidence=-0.1, bbox=[0.0, 0.0, 1.0, 1.0], track_id=1, zone="bottom", supercategory="person", supercategory_risk_level="low", supercategory_risk_weight=0.25, effective_risk_level="low", effective_risk_weight=0.25, risk_source="supercategory_base", size_ratio=1.0, size_category="large", size_factor=1.0, velocity_x_px_s=None, velocity_y_px_s=None, speed_px_s=None, area_growth_ratio_2s=None, is_approaching=False, track_age_ms=0.0, is_track_stable=False)
 
     def test_confidence_above_one_raises_error(self):
         """Test ValidationError when confidence is above 1"""
         with pytest.raises(ValidationError):
-            DetectedObject(class_name="person", confidence=1.1, bbox=[0.0, 0.0, 1.0, 1.0])
+            DetectedObject(class_name="person", confidence=1.1, bbox=[0.0, 0.0, 1.0, 1.0], track_id=1, zone="bottom", supercategory="person", supercategory_risk_level="low", supercategory_risk_weight=0.25, effective_risk_level="low", effective_risk_weight=0.25, risk_source="supercategory_base", size_ratio=1.0, size_category="large", size_factor=1.0, velocity_x_px_s=None, velocity_y_px_s=None, speed_px_s=None, area_growth_ratio_2s=None, is_approaching=False, track_age_ms=0.0, is_track_stable=False)
 
     def test_bbox_must_have_four_elements(self):
         """Test ValidationError when bbox has fewer than 4 elements"""
         with pytest.raises(ValidationError):
-            DetectedObject(class_name="person", confidence=0.9, bbox=[0.0, 0.0, 1.0])
+            DetectedObject(class_name="person", confidence=0.9, bbox=[0.0, 0.0, 1.0], track_id=1, zone="bottom", supercategory="person", supercategory_risk_level="low", supercategory_risk_weight=0.25, effective_risk_level="low", effective_risk_weight=0.25, risk_source="supercategory_base", size_ratio=1.0, size_category="large", size_factor=1.0, velocity_x_px_s=None, velocity_y_px_s=None, speed_px_s=None, area_growth_ratio_2s=None, is_approaching=False, track_age_ms=0.0, is_track_stable=False)
 
     def test_bbox_too_many_elements_raises_error(self):
         """Test ValidationError when bbox has more than 4 elements"""
         with pytest.raises(ValidationError):
-            DetectedObject(class_name="person", confidence=0.9, bbox=[0.0, 0.0, 1.0, 1.0, 0.5])
+            DetectedObject(class_name="person", confidence=0.9, bbox=[0.0, 0.0, 1.0, 1.0, 0.5], track_id=1, zone="bottom", supercategory="person", supercategory_risk_level="low", supercategory_risk_weight=0.25, effective_risk_level="low", effective_risk_weight=0.25, risk_source="supercategory_base", size_ratio=1.0, size_category="large", size_factor=1.0, velocity_x_px_s=None, velocity_y_px_s=None, speed_px_s=None, area_growth_ratio_2s=None, is_approaching=False, track_age_ms=0.0, is_track_stable=False)
 
     def test_missing_class_name_raises_error(self):
         """Test ValidationError when class_name is missing"""
         with pytest.raises(ValidationError):
-            DetectedObject(confidence=0.9, bbox=[0.0, 0.0, 1.0, 1.0])
+            DetectedObject(confidence=0.9, bbox=[0.0, 0.0, 1.0, 1.0], track_id=1, zone="bottom", supercategory="person", supercategory_risk_level="low", supercategory_risk_weight=0.25, effective_risk_level="low", effective_risk_weight=0.25, risk_source="supercategory_base", size_ratio=1.0, size_category="large", size_factor=1.0, velocity_x_px_s=None, velocity_y_px_s=None, speed_px_s=None, area_growth_ratio_2s=None, is_approaching=False, track_age_ms=0.0, is_track_stable=False)
+
+    def test_invalid_zone_raises_error(self):
+        """Test ValidationError when zone is not a valid DetectionZone value"""
+        with pytest.raises(ValidationError):
+            DetectedObject(
+                class_name="person",
+                confidence=0.9,
+                bbox=[0.0, 0.0, 1.0, 1.0],
+                track_id=1,
+                zone="invalid-zone",
+                supercategory="person",
+                supercategory_risk_level="low",
+                supercategory_risk_weight=0.25,
+                effective_risk_level="low",
+                effective_risk_weight=0.25,
+                risk_source="supercategory_base",
+                size_ratio=1.0,
+                size_category="large",
+                size_factor=1.0,
+                velocity_x_px_s=None,
+                velocity_y_px_s=None,
+                speed_px_s=None,
+                area_growth_ratio_2s=None,
+                is_approaching=False,
+                track_age_ms=0.0,
+                is_track_stable=False,
+            )
+
+    def test_invalid_supercategory_raises_error(self):
+        """Test ValidationError when supercategory is not a valid COCOSupercategory value"""
+        with pytest.raises(ValidationError):
+            DetectedObject(
+                class_name="person",
+                confidence=0.9,
+                bbox=[0.0, 0.0, 1.0, 1.0],
+                track_id=1,
+                zone="bottom",
+                supercategory="invalid-supercategory",
+                supercategory_risk_level="low",
+                supercategory_risk_weight=0.25,
+                effective_risk_level="low",
+                effective_risk_weight=0.25,
+                risk_source="supercategory_base",
+                size_ratio=1.0,
+                size_category="large",
+                size_factor=1.0,
+                velocity_x_px_s=None,
+                velocity_y_px_s=None,
+                speed_px_s=None,
+                area_growth_ratio_2s=None,
+                is_approaching=False,
+                track_age_ms=0.0,
+                is_track_stable=False,
+            )
+
+    def test_invalid_supercategory_risk_level_raises_error(self):
+        with pytest.raises(ValidationError):
+            DetectedObject(
+                class_name="person",
+                confidence=0.9,
+                bbox=[0.0, 0.0, 1.0, 1.0],
+                track_id=1,
+                zone="bottom",
+                supercategory="person",
+                supercategory_risk_level="invalid-risk",
+                supercategory_risk_weight=0.25,
+                effective_risk_level="low",
+                effective_risk_weight=0.25,
+                risk_source="supercategory_base",
+                size_ratio=1.0,
+                size_category="large",
+                size_factor=1.0,
+                velocity_x_px_s=None,
+                velocity_y_px_s=None,
+                speed_px_s=None,
+                area_growth_ratio_2s=None,
+                is_approaching=False,
+                track_age_ms=0.0,
+                is_track_stable=False,
+            )
+
+    def test_invalid_effective_risk_level_raises_error(self):
+        with pytest.raises(ValidationError):
+            DetectedObject(
+                class_name="person",
+                confidence=0.9,
+                bbox=[0.0, 0.0, 1.0, 1.0],
+                track_id=1,
+                zone="bottom",
+                supercategory="person",
+                supercategory_risk_level="low",
+                supercategory_risk_weight=0.25,
+                effective_risk_level="invalid-risk",
+                effective_risk_weight=0.25,
+                risk_source="supercategory_base",
+                size_ratio=1.0,
+                size_category="large",
+                size_factor=1.0,
+                velocity_x_px_s=None,
+                velocity_y_px_s=None,
+                speed_px_s=None,
+                area_growth_ratio_2s=None,
+                is_approaching=False,
+                track_age_ms=0.0,
+                is_track_stable=False,
+            )
+
+    def test_invalid_risk_source_raises_error(self):
+        with pytest.raises(ValidationError):
+            DetectedObject(
+                class_name="person",
+                confidence=0.9,
+                bbox=[0.0, 0.0, 1.0, 1.0],
+                track_id=1,
+                zone="bottom",
+                supercategory="person",
+                supercategory_risk_level="low",
+                supercategory_risk_weight=0.25,
+                effective_risk_level="low",
+                effective_risk_weight=0.25,
+                risk_source="invalid-source",
+                size_ratio=1.0,
+                size_category="large",
+                size_factor=1.0,
+                velocity_x_px_s=None,
+                velocity_y_px_s=None,
+                speed_px_s=None,
+                area_growth_ratio_2s=None,
+                is_approaching=False,
+                track_age_ms=0.0,
+                is_track_stable=False,
+            )
+
+    def test_invalid_size_category_raises_error(self):
+        with pytest.raises(ValidationError):
+            DetectedObject(
+                class_name="person",
+                confidence=0.9,
+                bbox=[0.0, 0.0, 1.0, 1.0],
+                track_id=1,
+                zone="bottom",
+                supercategory="person",
+                supercategory_risk_level="low",
+                supercategory_risk_weight=0.25,
+                effective_risk_level="low",
+                effective_risk_weight=0.25,
+                risk_source="supercategory_base",
+                size_ratio=1.0,
+                size_category="invalid-size",
+                size_factor=1.0,
+                velocity_x_px_s=None,
+                velocity_y_px_s=None,
+                speed_px_s=None,
+                area_growth_ratio_2s=None,
+                is_approaching=False,
+                track_age_ms=0.0,
+                is_track_stable=False,
+            )
+
+    def test_size_ratio_below_zero_raises_error(self):
+        with pytest.raises(ValidationError):
+            DetectedObject(
+                class_name="person",
+                confidence=0.9,
+                bbox=[0.0, 0.0, 1.0, 1.0],
+                track_id=1,
+                zone="bottom",
+                supercategory="person",
+                supercategory_risk_level="low",
+                supercategory_risk_weight=0.25,
+                effective_risk_level="low",
+                effective_risk_weight=0.25,
+                risk_source="supercategory_base",
+                size_ratio=-0.1,
+                size_category="large",
+                size_factor=1.0,
+                velocity_x_px_s=None,
+                velocity_y_px_s=None,
+                speed_px_s=None,
+                area_growth_ratio_2s=None,
+                is_approaching=False,
+                track_age_ms=0.0,
+                is_track_stable=False,
+            )
+
+    def test_size_factor_above_one_raises_error(self):
+        with pytest.raises(ValidationError):
+            DetectedObject(
+                class_name="person",
+                confidence=0.9,
+                bbox=[0.0, 0.0, 1.0, 1.0],
+                track_id=1,
+                zone="bottom",
+                supercategory="person",
+                supercategory_risk_level="low",
+                supercategory_risk_weight=0.25,
+                effective_risk_level="low",
+                effective_risk_weight=0.25,
+                risk_source="supercategory_base",
+                size_ratio=1.0,
+                size_category="large",
+                size_factor=1.1,
+                velocity_x_px_s=None,
+                velocity_y_px_s=None,
+                speed_px_s=None,
+                area_growth_ratio_2s=None,
+                is_approaching=False,
+                track_age_ms=0.0,
+                is_track_stable=False,
+            )
+
+    def test_negative_track_age_raises_error(self):
+        with pytest.raises(ValidationError):
+            DetectedObject(
+                class_name="person",
+                confidence=0.9,
+                bbox=[0.0, 0.0, 1.0, 1.0],
+                track_id=1,
+                zone="bottom",
+                supercategory="person",
+                supercategory_risk_level="low",
+                supercategory_risk_weight=0.25,
+                effective_risk_level="low",
+                effective_risk_weight=0.25,
+                risk_source="supercategory_base",
+                size_ratio=1.0,
+                size_category="large",
+                size_factor=1.0,
+                velocity_x_px_s=None,
+                velocity_y_px_s=None,
+                speed_px_s=None,
+                area_growth_ratio_2s=None,
+                is_approaching=False,
+                track_age_ms=-1.0,
+                is_track_stable=False,
+            )
+
+    def test_negative_speed_raises_error(self):
+        with pytest.raises(ValidationError):
+            DetectedObject(
+                class_name="person",
+                confidence=0.9,
+                bbox=[0.0, 0.0, 1.0, 1.0],
+                track_id=1,
+                zone="bottom",
+                supercategory="person",
+                supercategory_risk_level="low",
+                supercategory_risk_weight=0.25,
+                effective_risk_level="low",
+                effective_risk_weight=0.25,
+                risk_source="supercategory_base",
+                size_ratio=1.0,
+                size_category="large",
+                size_factor=1.0,
+                velocity_x_px_s=1.0,
+                velocity_y_px_s=1.0,
+                speed_px_s=-5.0,
+                area_growth_ratio_2s=None,
+                is_approaching=False,
+                track_age_ms=0.0,
+                is_track_stable=False,
+            )
 
 
 class TestAlertMessage:
@@ -177,6 +549,38 @@ class TestAlertMessage:
         msg = AlertMessage(**sample_alert_message_data)
         json_str = msg.model_dump_json()
         assert '"type":"alert"' in json_str or '"type": "alert"' in json_str
+
+
+class TestDetectionMessage:
+    """Test suite for DetectionMessage model"""
+
+    def test_valid_detection_message_includes_zone_and_supercategory(self, sample_detected_object_data):
+        msg = DetectionMessage(
+            objects=[DetectedObject(**sample_detected_object_data)],
+            frame_timestamp=1709827200000.0,
+            procesing_ms=25.0,
+        )
+
+        assert msg.type == "detection"
+        assert len(msg.objects) == 1
+        assert msg.objects[0].zone == DetectionZone.BOTTOM
+        assert msg.objects[0].supercategory == COCOSupercategory.VEHICLE
+        assert msg.objects[0].supercategory_risk_level == RiskLevel.LOW
+        assert msg.objects[0].supercategory_risk_weight == 0.25
+        assert msg.objects[0].effective_risk_level == RiskLevel.LOW
+        assert msg.objects[0].effective_risk_weight == 0.25
+        assert msg.objects[0].risk_source == RiskSource.SUPERCATEGORY_BASE
+        assert msg.objects[0].size_ratio == 0.24
+        assert msg.objects[0].size_category == ObjectSizeCategory.LARGE
+        assert msg.objects[0].size_factor == 1.0
+        assert msg.objects[0].track_id == 4
+        assert msg.objects[0].velocity_x_px_s == 12.5
+        assert msg.objects[0].velocity_y_px_s == -3.0
+        assert msg.objects[0].speed_px_s == 12.85
+        assert msg.objects[0].area_growth_ratio_2s == 1.24
+        assert msg.objects[0].is_approaching is True
+        assert msg.objects[0].track_age_ms == 3200.0
+        assert msg.objects[0].is_track_stable is True
 
 
 class TestStatusMessage:

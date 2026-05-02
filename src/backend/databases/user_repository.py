@@ -2,11 +2,10 @@
 User Repository - Database access layer for User operations
 """
 from typing import Optional
-from backend.models.auth import Provider
 from sqlalchemy.orm import Session
 from sqlalchemy import select, update, delete
 from backend.models.user import UserInsert, User
-from backend.databases.models import AuthIdentities, SessionTable, UserTable
+from backend.databases.models import SessionTable, UserTable
 from backend.utils.uuid import UUIDType, str_to_uuid
 
 
@@ -62,20 +61,14 @@ class UserRepository:
         Get user with password hash for authentication
         """
         
-        query = (
-            select(UserTable,AuthIdentities.password_hash) #This returns a tuple (UserTable,password_hash)
-            .join(AuthIdentities,AuthIdentities.user_id == UserTable.id)
-            .where(UserTable.email == email)
-            .where(AuthIdentities.provider == Provider.PASSWORD)
-        )
+        query = select(UserTable).where(UserTable.email == email)
         result = self.db.execute(query)
-        row = result.first()
+        user = result.scalar_one_or_none()
 
-        if row:
-            user, password_hash = row
+        if user:
             return {
                 "user": self._row_to_user(user),  # Convert UserTable to User (Pydantic)
-                "password_hash": password_hash
+                "password_hash": user.password_hash
             }
         return None
     
@@ -91,6 +84,8 @@ class UserRepository:
         """
         # Convert Pydantic model to SQLAlchemy model
         user_data = user.model_dump()
+        # Map passwordHash to password_hash for database field
+        user_data["password_hash"] = user_data.pop("passwordHash")
         db_user = UserTable(**user_data)
         
         # Add and commit to database
@@ -174,7 +169,7 @@ class UserRepository:
     async def delete(self, user_id: str | UUIDType) -> bool:
         """
         Delete a user from the database.
-        Removes related sessions and auth identities first to avoid FK violations.
+        Removes related sessions first to avoid FK violations.
         
         Args:
             user_id: User's unique identifier
@@ -189,11 +184,33 @@ class UserRepository:
         # Delete related sessions first
         self.db.execute(delete(SessionTable).where(SessionTable.user_id == user_id))
 
-        # Delete related auth identities
-        self.db.execute(delete(AuthIdentities).where(AuthIdentities.user_id == user_id))
-
         # Delete the user
         result = self.db.execute(delete(UserTable).where(UserTable.id == user_id))
+        self.db.commit()
+
+        return result.rowcount > 0
+
+    async def update_password(self, user_id: str | UUIDType, password_hash: str) -> bool:
+        """
+        Update password hash for a user.
+
+        Args:
+            user_id: User's unique identifier
+            password_hash: New hashed password
+
+        Returns:
+            True if updated successfully
+        """
+        if isinstance(user_id, str):
+            user_id = str_to_uuid(user_id)
+
+        query = (
+            update(UserTable)
+            .where(UserTable.id == user_id)
+            .values(password_hash=password_hash)
+        )
+
+        result = self.db.execute(query)
         self.db.commit()
 
         return result.rowcount > 0
@@ -216,7 +233,7 @@ class UserRepository:
             contact_person_country_code=user_row.contact_person_country_code,
             contact_person_phone_number=user_row.contact_person_phone_number,
             diversity_type=user_row.diversity_type,
-            passwordHash=None,  # Don't include password hash in User model
+            passwordHash=user_row.password_hash,
             role=user_row.role,
             email_verified=user_row.email_verified,
             settings=user_row.settings,
