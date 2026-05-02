@@ -27,7 +27,7 @@ POSTGRES_PORT=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['
 IOS_DEVICE=$(python3 -c "import json; print(json.load(open('$CONFIG_FILE'))['frontend']['ios']['device'])")
 
 # Activate Python virtual environment
-source backend/.venv/bin/activate
+source backend/.tfg/bin/activate
 
 # Ensure npm dependencies are installed
 if [ ! -d "frontend/node_modules" ]; then

@@ -35,8 +35,6 @@
 	<string></string>
 	<key>NSCameraUsageDescription</key>
 	<string>HortensIA uses the camera to stream live video to the AI assistant.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>HortensIA uses the microphone to capture audio during live sessions.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

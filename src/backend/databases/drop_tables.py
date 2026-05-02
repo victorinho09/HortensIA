@@ -5,8 +5,34 @@ Run this to drop all database tables.
 WARNING: This will delete all data in the tables!
 """
 
-from sqlalchemy import text, inspect
-from backend.databases.connection import drop_db, engine
+import sys
+from pathlib import Path
+
+if __package__ in (None, ""):
+    sys.path.append(str(Path(__file__).resolve().parents[2]))
+
+from sqlalchemy import inspect, text
+from backend.databases.connection import engine
+
+
+def drop_existing_tables() -> None:
+    """
+    Drop every table currently present in the database schema.
+
+    This ensures obsolete tables that no longer exist in SQLAlchemy metadata,
+    such as auth_identities, are also removed.
+    """
+    inspector = inspect(engine)
+    existing_tables = inspector.get_table_names()
+
+    if not existing_tables:
+        return
+
+    with engine.connect() as conn:
+        for table_name in existing_tables:
+            print(f"  - Dropping {table_name}")
+            conn.execute(text(f'DROP TABLE IF EXISTS "{table_name}" CASCADE;'))
+        conn.commit()
 
 if __name__ == "__main__":
     print("\n" + "="*60)
@@ -43,9 +69,7 @@ if __name__ == "__main__":
     print("\nDropping database tables...")
     
     try:
-        # Drop all tables (CASCADE ensures dependent objects are removed)
-        # This handles foreign key constraints and data automatically
-        drop_db()
+        drop_existing_tables()
         
         # Verify tables are dropped
         inspector = inspect(engine)

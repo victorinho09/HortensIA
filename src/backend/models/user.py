@@ -21,7 +21,7 @@ FIELD_DESCRIPTIONS = {
     "contact_person_country_code": "Emergency contact person's phone country code",
     "contact_person_phone_number": "Emergency contact person's phone national number, not including the country code",
     "diversity_type": "Type of diversity or special needs",
-    "passwordHash": "Hashed password (None for OAuth users)",
+    "passwordHash": "Hashed password",
     "role": "User's role in the system",
     "created_at": "Account creation timestamp", #Not inserted by the application. Returned by the database in the future
     "email_verified": "Whether the user's email has been verified",
@@ -53,11 +53,6 @@ class UserCreate(UserBase):
     password: str = Field(..., min_length=8, description=FIELD_DESCRIPTIONS["password"])
 
 
-class UserCreateOAuth(UserBase):
-    """Schema for creating a new user via OAuth (Google, Facebook, etc.)"""
-    pass  # No password needed for OAuth users
-
-
 class UserUpdate(BaseModel):
     """Schema for updating an existing user"""
     email: Optional[EmailStr] = Field(default=None, description=FIELD_DESCRIPTIONS["email"])
@@ -83,14 +78,14 @@ class UserInsert(UserBase):
     Database insertion model with split phone and excluded auto-generated fields.
     Used by repository layer for SQLAlchemy INSERT operations.
     Extends from UserBase and adds database-specific fields.
-    Does not include passwordHash - that goes in auth_identities table.
+    Includes passwordHash for password-based authentication.
     """
     id: UUIDType = Field(default_factory=generate_uuid, description=FIELD_DESCRIPTIONS["id"])
+    passwordHash: str = Field(..., min_length=1, description=FIELD_DESCRIPTIONS["passwordHash"])
     role: UserRole = Field(default=UserRole.USER, description=FIELD_DESCRIPTIONS["role"])
     email_verified: bool = Field(default=False, description=FIELD_DESCRIPTIONS["email_verified"])
     settings: Dict[str, Any] = Field(default_factory=dict, description=FIELD_DESCRIPTIONS["settings"])
     # NOTE: created_at is excluded - database will auto-generate with CURRENT_TIMESTAMP
-    # NOTE: passwordHash is excluded - goes in auth_identities table
 
 class UserResponse(UserBase):
     """User schema for API responses (excludes sensitive data)"""

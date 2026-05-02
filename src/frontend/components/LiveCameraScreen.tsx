@@ -1,25 +1,25 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import { View, TouchableOpacity } from 'react-native';
-import { Camera, useCameraDevice } from 'react-native-vision-camera';
+import { Camera, useCameraDevice, useCameraFormat } from 'react-native-vision-camera';
 import { Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+
+import { BoundingBox } from './common/BoundingBox';
 import { RootStackParamList } from './navigation/types';
+import { styles } from './styles/LiveCameraScreen.styles';
 import { usePermissions } from '../hooks/usePermissions';
 import { useLiveSession, SessionStatus } from '../hooks/useLiveSession';
-import { styles } from './styles/LiveCameraScreen.styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LiveCamera'>;
 
-// Default capture interval — adjust when frame frequency is decided
-const FRAME_INTERVAL_MS = 250;
+const FRAME_INTERVAL_MS = 180;
 
 const STATUS_LABELS: Record<SessionStatus, string> = {
   idle: 'Idle',
   connecting: 'Connecting...',
   streaming: 'Streaming',
   processing: 'Processing...',
-  speaking: 'Speaking',
   error: 'Error',
 };
 
@@ -28,21 +28,37 @@ const STATUS_COLORS: Record<SessionStatus, string> = {
   connecting: '#f59e0b',
   streaming: '#22c55e',
   processing: '#3b82f6',
-  speaking: '#8b5cf6',
   error: '#ef4444',
 };
 
 export default function LiveCameraScreen({ navigation }: Props) {
   const { allGranted } = usePermissions();
-  const { status, errorMessage, isSendingFrame, isPlayingAudio, start, stop, sendFrame } =
-    useLiveSession();
+  const {
+    status,
+    errorMessage,
+    isSendingFrame,
+    isPlayingAudio,
+    detections,
+    lastDetectionTelemetry,
+    start,
+    stop,
+    sendFrame,
+  } = useLiveSession();
+
+  const [cameraLayout, setCameraLayout] = React.useState({ width: 0, height: 0 });
   const cameraRef = useRef<Camera>(null);
   const frameIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isCapturingRef = useRef<boolean>(false);
+  const frameSequenceRef = useRef(0);
   const device = useCameraDevice('back');
+
+  const format = useCameraFormat(device, [
+    { videoResolution: { width: 640, height: 480 } },
+    { videoAspectRatio: 4 / 3 },
+  ]);
 
   const isActive = status !== 'idle' && status !== 'error';
 
-  // Redirect to Permissions if user revokes permissions from iOS Settings while in the app
   useEffect(() => {
     if (!allGranted) {
       navigation.replace('Permissions');
@@ -50,33 +66,72 @@ export default function LiveCameraScreen({ navigation }: Props) {
   }, [allGranted, navigation]);
 
   const captureAndSendFrame = useCallback(async () => {
-    if (!cameraRef.current || !isActive) return;
+    if (!cameraRef.current || !isActive || isCapturingRef.current || isSendingFrame) {
+      return;
+    }
+
+    isCapturingRef.current = true;
+
     try {
-      const photo = await cameraRef.current.takePhoto({flash: 'off', enableShutterSound: false});
-      const response = await fetch(`file://${photo.path}`);
+      const captureStartedAt = Date.now();
+      const snapshot = await cameraRef.current.takeSnapshot({
+        quality: 80,
+      });
+      const captureFinishedAt = Date.now();
+      const response = await fetch(`file://${snapshot.path}`);
       const blob = await response.blob();
-      const base64 = await new Promise<string>((resolve,reject) => {
+
+      const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve((reader.result as string).split(',')[1]);
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
-      sendFrame(base64);
-    } catch (err){
-      // Frame capture failed — continue silently, do not interrupt session
-      console.debug('[LiveCamera] Frame capture failed:', err);
+      const encodeFinishedAt = Date.now();
+
+      frameSequenceRef.current += 1;
+
+      sendFrame({
+        frameData: base64,
+        telemetry: {
+          frame_id: `frame-${frameSequenceRef.current}`,
+          capture_started_at: captureStartedAt,
+          capture_finished_at: captureFinishedAt,
+          encode_finished_at: encodeFinishedAt,
+        },
+      });
+    } catch {
+      // Ignore capture failures to keep the session running.
+    } finally {
+      isCapturingRef.current = false;
     }
-  }, [isActive, sendFrame]);
+  }, [isActive, sendFrame, isSendingFrame]);
+
+  useEffect(() => {
+    if (!lastDetectionTelemetry) {
+      return;
+    }
+
+    const frameHandle = requestAnimationFrame(() => {
+      const paintedAt = Date.now();
+      console.log('[live][timing][paint]', {
+        frameId: lastDetectionTelemetry.frameId,
+        renderMs: paintedAt - lastDetectionTelemetry.receivedAt,
+        endToEndMs: paintedAt - lastDetectionTelemetry.captureStartedAt,
+      });
+    });
+
+    return () => cancelAnimationFrame(frameHandle);
+  }, [detections, lastDetectionTelemetry]);
 
   useEffect(() => {
     if (isActive) {
       frameIntervalRef.current = setInterval(captureAndSendFrame, FRAME_INTERVAL_MS);
-    } else {
-      if (frameIntervalRef.current) {
-        clearInterval(frameIntervalRef.current);
-        frameIntervalRef.current = null;
-      }
+    } else if (frameIntervalRef.current) {
+      clearInterval(frameIntervalRef.current);
+      frameIntervalRef.current = null;
     }
+
     return () => {
       if (frameIntervalRef.current) {
         clearInterval(frameIntervalRef.current);
@@ -99,19 +154,31 @@ export default function LiveCameraScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      {/* Camera preview */}
       <Camera
         ref={cameraRef}
         style={styles.camera}
         device={device}
+        format={format}
         isActive={allGranted}
-        photo={true}
+        video={true}
         accessibilityLabel="Live camera preview"
+        onLayout={(event) => {
+          const { width, height } = event.nativeEvent.layout;
+          setCameraLayout({ width, height });
+        }}
       />
 
-      {/* Overlay UI */}
       <View style={styles.overlay}>
-        {/* Top: session status */}
+        {cameraLayout.width > 0 &&
+          detections.map((detection, index) => (
+            <BoundingBox
+              key={detection.track_id !== null ? `track-${detection.track_id}` : `det-${index}`}
+              detection={detection}
+              frameWidth={cameraLayout.width}
+              frameHeight={cameraLayout.height}
+            />
+          ))}
+
         <View style={styles.statusBar} accessibilityLiveRegion="polite">
           <View
             style={[styles.statusDot, { backgroundColor: STATUS_COLORS[status] }]}
@@ -122,7 +189,6 @@ export default function LiveCameraScreen({ navigation }: Props) {
           {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
         </View>
 
-        {/* Top-right: live activity indicators */}
         <View style={styles.indicators} accessibilityLiveRegion="polite">
           {isActive && (
             <View style={styles.indicator}>
@@ -146,7 +212,6 @@ export default function LiveCameraScreen({ navigation }: Props) {
           )}
         </View>
 
-        {/* Bottom: Start / Stop */}
         <View style={styles.controls}>
           <TouchableOpacity
             style={styles.captureButtonContainer}
