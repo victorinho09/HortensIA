@@ -107,7 +107,6 @@ def sample_user_response_data() -> dict:
         "passwordHash": None,
         "role": "user",
         "email_verified": False,
-        "settings": {},
         "created_at": "2024-01-01T00:00:00Z"
     }
 
