@@ -283,7 +283,6 @@ class TestLoginResponseModel:
             contact_person_country_code=None,
             contact_person_phone_number=None,
             diversity_type=None,
-            passwordHash=None,
             role="user",
             email_verified=False,
             created_at="2024-01-01T00:00:00Z"

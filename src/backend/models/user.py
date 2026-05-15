@@ -8,7 +8,6 @@ from typing import Optional
 from datetime import datetime
 from enum import Enum
 from pydantic import BaseModel, EmailStr, Field
-from pydantic_extra_types.phone_numbers import PhoneNumber
 from backend.utils.uuid import generate_uuid, UUIDType
 
 
@@ -98,7 +97,6 @@ class User(UserBase):
     role: UserRole = Field(default=UserRole.USER, description=FIELD_DESCRIPTIONS["role"])
     created_at: datetime = Field(..., description=FIELD_DESCRIPTIONS["created_at"])
     email_verified: bool = Field(default=False, description=FIELD_DESCRIPTIONS["email_verified"])
-
     def user_to_user_response(self) -> UserResponse:
         """
         Convert User to UserResponse (safe for API responses).
