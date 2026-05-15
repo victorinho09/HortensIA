@@ -4,15 +4,22 @@ import { DetectedObject } from '../../hooks/useLiveSession';
 import { styles } from '../styles/BoundingBox.styles';
 import { translateObjectClassName } from '../../utils/objectClassTranslations';
 
-
 interface BoundingBoxProps {
   detection: DetectedObject;
   frameWidth: number;
   frameHeight: number;
+  offsetX?: number;
+  offsetY?: number;
 }
 
-function BoundingBoxComponent({ detection, frameWidth, frameHeight }: BoundingBoxProps) {
-  const { bbox, class_name,track_id, object_risk } = detection;
+function BoundingBoxComponent({
+  detection,
+  frameWidth,
+  frameHeight,
+  offsetX = 0,
+  offsetY = 0,
+}: BoundingBoxProps) {
+  const { bbox, class_name, track_id, object_risk } = detection;
   const label = translateObjectClassName(class_name) ?? class_name;
   const riskColors = getRiskColors(object_risk);
 
@@ -20,12 +27,12 @@ function BoundingBoxComponent({ detection, frameWidth, frameHeight }: BoundingBo
 
   const metrics = useMemo(
     () => ({
-      left: x1 * frameWidth,
-      top: y1 * frameHeight,
+      left: offsetX + x1 * frameWidth,
+      top: offsetY + y1 * frameHeight,
       width: (x2 - x1) * frameWidth,
       height: (y2 - y1) * frameHeight,
     }),
-    [frameHeight, frameWidth, x1, x2, y1, y2]
+    [frameHeight, frameWidth, offsetX, offsetY, x1, x2, y1, y2]
   );
 
   return (
@@ -42,9 +49,7 @@ function BoundingBoxComponent({ detection, frameWidth, frameHeight }: BoundingBo
       ]}
     >
       <Animated.View style={[styles.label, { backgroundColor: riskColors.labelBackgroundColor }]}>
-        <Text style={[styles.labelText, {color: riskColors.labelTextColor}]}>
-          {label}
-        </Text>
+        <Text style={[styles.labelText, { color: riskColors.labelTextColor }]}>{label}</Text>
       </Animated.View>
     </Animated.View>
   );
@@ -54,13 +59,13 @@ export const BoundingBox = React.memo(BoundingBoxComponent, (previousProps, next
   return (
     previousProps.frameWidth === nextProps.frameWidth &&
     previousProps.frameHeight === nextProps.frameHeight &&
+    previousProps.offsetX === nextProps.offsetX &&
+    previousProps.offsetY === nextProps.offsetY &&
     previousProps.detection.class_name === nextProps.detection.class_name &&
     previousProps.detection.track_id === nextProps.detection.track_id &&
     previousProps.detection.object_risk === nextProps.detection.object_risk &&
     previousProps.detection.confidence === nextProps.detection.confidence &&
-    previousProps.detection.bbox.every(
-      (value, index) => value === nextProps.detection.bbox[index]
-    )
+    previousProps.detection.bbox.every((value, index) => value === nextProps.detection.bbox[index])
   );
 });
 
@@ -73,7 +78,7 @@ function getRiskColors(objectRisk: number | null) {
     };
   }
 
-  if (objectRisk >= 0.70) {
+  if (objectRisk >= 0.7) {
     return {
       borderColor: '#ef4444',
       labelBackgroundColor: 'rgba(239, 68, 68, 0.88)',

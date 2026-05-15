@@ -14,6 +14,9 @@ import { useLiveSession, SessionStatus } from '../hooks/useLiveSession';
 type Props = NativeStackScreenProps<RootStackParamList, 'LiveCamera'>;
 
 const FRAME_INTERVAL_MS = 180;
+// Default aspect ratio used while the first detection from the backend (which
+// carries the actual processed frame dimensions) is in flight.
+const FALLBACK_FRAME_ASPECT_RATIO = 4 / 3;
 
 const STATUS_LABELS: Record<SessionStatus, string> = {
   idle: 'Idle',
@@ -40,6 +43,7 @@ export default function LiveCameraScreen({ navigation }: Props) {
     isPlayingAudio,
     detections,
     lastDetectionTelemetry,
+    frameSize,
     start,
     stop,
     sendFrame,
@@ -161,6 +165,7 @@ export default function LiveCameraScreen({ navigation }: Props) {
         format={format}
         isActive={allGranted}
         video={true}
+        resizeMode="contain"
         accessibilityLabel="Live camera preview"
         onLayout={(event) => {
           const { width, height } = event.nativeEvent.layout;
@@ -170,14 +175,42 @@ export default function LiveCameraScreen({ navigation }: Props) {
 
       <View style={styles.overlay}>
         {cameraLayout.width > 0 &&
-          detections.map((detection, index) => (
-            <BoundingBox
-              key={detection.track_id !== null ? `track-${detection.track_id}` : `det-${index}`}
-              detection={detection}
-              frameWidth={cameraLayout.width}
-              frameHeight={cameraLayout.height}
-            />
-          ))}
+          (() => {
+            // Compute the actual rectangle occupied by the camera frame inside
+            // the preview (resizeMode="contain" letterboxes/pillarboxes the
+            // frame to preserve its aspect ratio). The aspect ratio is taken
+            // from the actual frame the backend processed (sent back in each
+            // detection message), so bbox alignment never drifts from the
+            // detector's view. While the first frame is in flight we fall back
+            // to the 4:3 the camera format is configured with.
+            const frameAspect =
+              frameSize && frameSize.width > 0 && frameSize.height > 0
+                ? frameSize.width / frameSize.height
+                : FALLBACK_FRAME_ASPECT_RATIO;
+            const layoutAspect = cameraLayout.width / cameraLayout.height;
+            let frameWidth: number;
+            let frameHeight: number;
+            if (layoutAspect > frameAspect) {
+              frameHeight = cameraLayout.height;
+              frameWidth = frameHeight * frameAspect;
+            } else {
+              frameWidth = cameraLayout.width;
+              frameHeight = frameWidth / frameAspect;
+            }
+            const offsetX = (cameraLayout.width - frameWidth) / 2;
+            const offsetY = (cameraLayout.height - frameHeight) / 2;
+
+            return detections.map((detection, index) => (
+              <BoundingBox
+                key={detection.track_id !== null ? `track-${detection.track_id}` : `det-${index}`}
+                detection={detection}
+                frameWidth={frameWidth}
+                frameHeight={frameHeight}
+                offsetX={offsetX}
+                offsetY={offsetY}
+              />
+            ));
+          })()}
 
         <View style={styles.statusBar} accessibilityLiveRegion="polite">
           <View

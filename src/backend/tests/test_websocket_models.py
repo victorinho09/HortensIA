@@ -558,6 +558,8 @@ class TestDetectionMessage:
         msg = DetectionMessage(
             objects=[DetectedObject(**sample_detected_object_data)],
             frame_timestamp=1709827200000.0,
+            frame_width=1080,
+            frame_height=1920,
             procesing_ms=25.0,
         )
 

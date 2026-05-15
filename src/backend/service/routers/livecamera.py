@@ -105,7 +105,7 @@ async def live_session(websocket: WebSocket, session_id: str):
                     process_started_at = time.perf_counter()
 
                     frame_timestamp_ms = (message.telemetry.capture_finished_at if message.telemetry is not None else message.timestamp)
-                    detections, processing_ms, scene_risk = detector.detect(message.data,frame_timestamp_ms=frame_timestamp_ms)
+                    detections, processing_ms, scene_risk, frame_width, frame_height = detector.detect(message.data,frame_timestamp_ms=frame_timestamp_ms)
 
                     server_responded_at = int(time.time() * 1000)
                     telemetry = DetectionTelemetry(
@@ -129,6 +129,8 @@ async def live_session(websocket: WebSocket, session_id: str):
                     await _send_message(websocket,DetectionMessage(
                         objects= detections,
                         frame_timestamp= message.timestamp,
+                        frame_width=frame_width,
+                        frame_height=frame_height,
                         procesing_ms=processing_ms,
                         telemetry=telemetry,
                         scene_risk=scene_risk,
