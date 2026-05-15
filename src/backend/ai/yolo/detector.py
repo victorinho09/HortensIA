@@ -12,7 +12,7 @@ import time
 from io import BytesIO
 
 import torch
-from PIL import Image
+from PIL import Image, ImageOps
 from ultralytics import YOLO
 
 from backend.ai.yolo.scene_risk import SceneRiskAnalyzer
@@ -62,7 +62,12 @@ class YOLODetector:
     def _decode_frame(self, frame_b64: str) -> Image.Image:
         try:
             raw = base64.b64decode(frame_b64)
-            return Image.open(BytesIO(raw)).convert("RGB")
+            image = Image.open(BytesIO(raw))
+            # Apply EXIF orientation so YOLO sees the frame the same way the user does on screen.
+            # iOS sends JPEGs with an EXIF Orientation tag (typically 6 when the device is in portrait);
+            # without this transposition the model processes a rotated image and bboxes appear misaligned.
+            image = ImageOps.exif_transpose(image)
+            return image.convert("RGB")
         except Exception as e:
             raise ValueError(f"Invalid frame data: {e}")
 
@@ -116,9 +121,12 @@ class YOLODetector:
                 ))
         return detections               
 
-    def detect(self, frame_b64: str, frame_timestamp_ms: float | None = None) -> tuple[list[DetectedObject], float, SceneRiskAssessment]:
+    def detect(self, frame_b64: str, frame_timestamp_ms: float | None = None) -> tuple[list[DetectedObject], float, SceneRiskAssessment, int, int]:
         """
         Run inference on a base64-encoded JPEG frame.
+        Returns: detections, elapsed_ms, scene_risk, frame_width, frame_height
+        (width/height are taken after EXIF transposition so they match how YOLO
+        processed the image and how bboxes are normalized).
         """
         image = self._decode_frame(frame_b64)
         w, h = image.size
@@ -139,6 +147,6 @@ class YOLODetector:
             dominant_track_id = scene_risk_score.dominant_track_id,
             dominant_class_name = scene_risk_score.dominant_class_name,
         )
-        return scene_risk_score.detections,elapsed_ms,scene_risk
+        return scene_risk_score.detections,elapsed_ms,scene_risk,w,h
     
     

@@ -397,6 +397,7 @@ class TestUserUpdateModel:
         user_update_false = UserUpdate(email_verified=False)
         assert user_update_true.email_verified is True
         assert user_update_false.email_verified is False
+    
 
 
 class TestPasswordChangeModel:
@@ -661,7 +662,7 @@ class TestCompleteUserModel:
         """Test User creation fails with wrong type for email_verified"""
         with pytest.raises(ValidationError):
             User(id=generate_uuid(), email="test@example.com", email_verified="not_a_boolean", created_at=datetime.now())
-
+    
 
 class TestUserInsertModel:
     """Test suite for UserInsert model (database insertion with split phone)"""
@@ -744,8 +745,6 @@ class TestUserInsertModel:
             passwordHash="$2b$12$hashed_password"
         )
         assert user_insert.email_verified is False
-    
-    # Validation tests
     
     def test_user_insert_auto_generates_id(self):
         """Test UserInsert auto-generates id if not provided"""
