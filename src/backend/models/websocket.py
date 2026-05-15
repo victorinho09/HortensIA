@@ -136,6 +136,8 @@ class DetectionMessage(BaseModel):
     type: Literal["detection"] = "detection"
     objects: list[DetectedObject] = Field(default_factory=list, description="Objects detected in the frame")
     frame_timestamp: float = Field(..., description="Original frame timestamp")
+    frame_width: int = Field(..., description="Width in pixels of the frame the detector processed (after EXIF transposition)")
+    frame_height: int = Field(..., description="Height in pixels of the frame the detector processed (after EXIF transposition)")
     procesing_ms: float = Field(..., description="Time taken to process the frame in ms")
     telemetry: DetectionTelemetry | None = Field(default=None, description="Optional end-to-end telemetry for the processed frame")
     scene_risk: SceneRiskAssessment | None = Field(default=None, description="Aggregated risk assessment for the current frame")

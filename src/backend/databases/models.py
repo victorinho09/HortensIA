@@ -4,8 +4,8 @@ SQLAlchemy ORM Models
 Database table definitions using SQLAlchemy ORM.
 """
 
-from sqlalchemy import BOOLEAN, Column, DateTime, ForeignKey, func, text
-from sqlalchemy.dialects.postgresql import CITEXT, JSONB, TEXT, UUID
+from sqlalchemy import BOOLEAN, Column, DateTime, ForeignKey, func
+from sqlalchemy.dialects.postgresql import CITEXT, TEXT, UUID
 from sqlalchemy.ext.declarative import declarative_base
 from backend.utils.uuid import generate_uuid
 
@@ -31,7 +31,6 @@ class UserTable(Base):
     password_hash = Column(TEXT, nullable=False)
     role = Column(TEXT, nullable=False, default="user")
     email_verified = Column(BOOLEAN, nullable=False, default=False)
-    settings = Column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 class SessionTable(Base):

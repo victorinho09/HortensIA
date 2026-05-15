@@ -327,7 +327,6 @@ class TestUserUpdateModel:
         assert user_update.diversity_type is None
         assert user_update.role is None
         assert user_update.email_verified is None
-        assert user_update.settings is None
     
     def test_user_update_with_partial_fields(self, sample_user_update_data):
         """Test UserUpdate with only some fields"""
@@ -345,8 +344,7 @@ class TestUserUpdateModel:
             contact_person_phone_number="611111111",
             diversity_type="motor",
             role=UserRole.ADMIN,
-            email_verified=True,
-            settings={"theme": "dark"}
+            email_verified=True
         )
         assert user_update.email == "updated@example.com"
         assert user_update.name == "Updated Name"
@@ -354,7 +352,6 @@ class TestUserUpdateModel:
         assert user_update.contact_person_phone_number == "611111111"
         assert user_update.role == UserRole.ADMIN
         assert user_update.email_verified is True
-        assert user_update.settings == {"theme": "dark"}
     
     # Validation tests
     
@@ -401,11 +398,6 @@ class TestUserUpdateModel:
         assert user_update_true.email_verified is True
         assert user_update_false.email_verified is False
     
-    def test_user_update_settings_as_dict(self):
-        """Test UserUpdate accepts dictionary for settings"""
-        settings = {"language": "en", "notifications": {"email": True}}
-        user_update = UserUpdate(settings=settings)
-        assert user_update.settings == settings
 
 
 class TestPasswordChangeModel:
@@ -565,7 +557,6 @@ class TestCompleteUserModel:
         assert user.role == UserRole.USER
         assert user.created_at == test_datetime
         assert user.email_verified is False
-        assert user.settings == {}
     
     def test_user_with_all_fields(self):
         """Test User creation with all fields populated"""
@@ -582,8 +573,7 @@ class TestCompleteUserModel:
             diversity_type="visual",
             role=UserRole.ADMIN,
             created_at=test_datetime,
-            email_verified=True,
-            settings={"theme": "dark", "language": "en"}
+            email_verified=True
         )
         assert user.id == test_id
         assert user.email == "complete@example.com"
@@ -594,7 +584,6 @@ class TestCompleteUserModel:
         assert user.role == UserRole.ADMIN
         assert user.created_at == test_datetime
         assert user.email_verified is True
-        assert user.settings == {"theme": "dark", "language": "en"}
     
     # Default values tests
     
@@ -620,12 +609,6 @@ class TestCompleteUserModel:
         """Test User default email_verified is False"""
         user = User(id=generate_uuid(), email="test@example.com", created_at=datetime.now())
         assert user.email_verified is False
-    
-    def test_user_default_settings_is_empty_dict(self):
-        """Test User default settings is empty dictionary"""
-        user = User(id=generate_uuid(), email="test@example.com", created_at=datetime.now())
-        assert user.settings == {}
-        assert isinstance(user.settings, dict)
     
     def test_user_created_at_from_database(self):
         """Test User accepts created_at from database"""
@@ -680,11 +663,6 @@ class TestCompleteUserModel:
         with pytest.raises(ValidationError):
             User(id=generate_uuid(), email="test@example.com", email_verified="not_a_boolean", created_at=datetime.now())
     
-    def test_user_with_wrong_type_settings(self):
-        """Test User creation fails with wrong type for settings"""
-        with pytest.raises(ValidationError):
-            User(id=generate_uuid(), email="test@example.com", settings="not_a_dict", created_at=datetime.now())
-
 
 class TestUserInsertModel:
     """Test suite for UserInsert model (database insertion with split phone)"""
@@ -707,7 +685,6 @@ class TestUserInsertModel:
         assert user_insert.contact_person_phone_number is None
         assert user_insert.role == UserRole.USER
         assert user_insert.email_verified is False
-        assert user_insert.settings == {}
         assert not hasattr(user_insert, 'created_at')  # Excluded from insert
     
     def test_user_insert_with_all_fields(self):
@@ -723,8 +700,7 @@ class TestUserInsertModel:
             contact_person_phone_number="600123456",
             diversity_type="visual",
             role=UserRole.ADMIN,
-            email_verified=True,
-            settings={"theme": "dark"}
+            email_verified=True
         )
         assert user_insert.id == test_id
         assert user_insert.email == "complete@example.com"
@@ -735,7 +711,6 @@ class TestUserInsertModel:
         assert user_insert.diversity_type == "visual"
         assert user_insert.role == UserRole.ADMIN
         assert user_insert.email_verified is True
-        assert user_insert.settings == {"theme": "dark"}
     
     def test_user_insert_split_phone_fields(self):
         """Test UserInsert with split phone country code and number"""
@@ -770,18 +745,6 @@ class TestUserInsertModel:
             passwordHash="$2b$12$hashed_password"
         )
         assert user_insert.email_verified is False
-    
-    def test_user_insert_default_settings(self):
-        """Test UserInsert default settings is empty dict"""
-        user_insert = UserInsert(
-            id=generate_uuid(),
-            email="test@example.com",
-            passwordHash="$2b$12$hashed_password"
-        )
-        assert user_insert.settings == {}
-        assert isinstance(user_insert.settings, dict)
-    
-    # Validation tests
     
     def test_user_insert_auto_generates_id(self):
         """Test UserInsert auto-generates id if not provided"""
@@ -861,8 +824,7 @@ class TestUserResponseModel:
             diversity_type="visual",
             role=UserRole.USER,
             created_at=test_datetime,
-            email_verified=True,
-            settings={"theme": "dark"}
+            email_verified=True
         )
         assert user_response.id == test_id
         assert user_response.email == "response@example.com"
@@ -872,7 +834,6 @@ class TestUserResponseModel:
         assert user_response.role == UserRole.USER
         assert user_response.created_at == test_datetime
         assert user_response.email_verified is True
-        assert user_response.settings == {"theme": "dark"}
     
     def test_user_response_does_not_have_password_hash(self):
         """Test UserResponse does not expose passwordHash field"""
@@ -887,8 +848,7 @@ class TestUserResponseModel:
             diversity_type=None,
             role=UserRole.USER,
             created_at=datetime.now(),
-            email_verified=False,
-            settings={}
+            email_verified=False
         )
         assert not hasattr(user_response, "passwordHash")
     
@@ -912,8 +872,7 @@ class TestUserResponseModel:
             diversity_type=user.diversity_type,
             role=user.role,
             created_at=user.created_at,
-            email_verified=user.email_verified,
-            settings=user.settings
+            email_verified=user.email_verified
         )
         assert user_response.email == user.email
         assert user_response.id == user.id
@@ -929,8 +888,7 @@ class TestUserResponseModel:
                 name="Test User",
                 role=UserRole.USER,
                 created_at=datetime.now(),
-                email_verified=False,
-                settings={}
+                email_verified=False
             )
         errors = exc_info.value.errors()
         assert any("id" in str(error["loc"]) for error in errors)
@@ -943,8 +901,7 @@ class TestUserResponseModel:
                 name="Test User",
                 role=UserRole.USER,
                 created_at=datetime.now(),
-                email_verified=False,
-                settings={}
+                email_verified=False
             )
         errors = exc_info.value.errors()
         assert any("email" in str(error["loc"]) for error in errors)
@@ -956,8 +913,7 @@ class TestUserResponseModel:
             email="test@example.com",
             role=UserRole.USER,
             created_at=datetime.now(),
-            email_verified=False,
-            settings={}
+            email_verified=False
         )
         assert user_response.email == "test@example.com"
         assert user_response.name is None
@@ -974,8 +930,7 @@ class TestUserResponseModel:
             diversity_type=None,
             role=UserRole.USER,
             created_at=datetime.now(),
-            email_verified=False,
-            settings={}
+            email_verified=False
         )
         assert user_response.contact_person_email is None
         assert user_response.contact_person_country_code is None

@@ -4,7 +4,7 @@ User Domain Model
 Represents a user in the system with all business logic and validation.
 """
 
-from typing import Optional, Dict, Any
+from typing import Optional
 from datetime import datetime
 from enum import Enum
 from pydantic import BaseModel, EmailStr, Field
@@ -24,8 +24,7 @@ FIELD_DESCRIPTIONS = {
     "passwordHash": "Hashed password",
     "role": "User's role in the system",
     "created_at": "Account creation timestamp", #Not inserted by the application. Returned by the database in the future
-    "email_verified": "Whether the user's email has been verified",
-    "settings": "User preferences and configuration settings (JSON object)"
+    "email_verified": "Whether the user's email has been verified"
 }
 
 
@@ -64,7 +63,6 @@ class UserUpdate(BaseModel):
     diversity_type: Optional[str] = Field(default=None, description=FIELD_DESCRIPTIONS["diversity_type"])
     role: Optional[UserRole] = Field(default=None, description=FIELD_DESCRIPTIONS["role"])
     email_verified: Optional[bool] = Field(default=None, description=FIELD_DESCRIPTIONS["email_verified"])
-    settings: Optional[Dict[str, Any]] = Field(default=None, description=FIELD_DESCRIPTIONS["settings"])
 
 class PasswordChange(BaseModel):
     """
@@ -84,7 +82,6 @@ class UserInsert(UserBase):
     passwordHash: str = Field(..., min_length=1, description=FIELD_DESCRIPTIONS["passwordHash"])
     role: UserRole = Field(default=UserRole.USER, description=FIELD_DESCRIPTIONS["role"])
     email_verified: bool = Field(default=False, description=FIELD_DESCRIPTIONS["email_verified"])
-    settings: Dict[str, Any] = Field(default_factory=dict, description=FIELD_DESCRIPTIONS["settings"])
     # NOTE: created_at is excluded - database will auto-generate with CURRENT_TIMESTAMP
 
 class UserResponse(UserBase):
@@ -93,7 +90,6 @@ class UserResponse(UserBase):
     role: UserRole = Field(..., description=FIELD_DESCRIPTIONS["role"])
     created_at: datetime = Field(..., description=FIELD_DESCRIPTIONS["created_at"])
     email_verified: bool = Field(..., description=FIELD_DESCRIPTIONS["email_verified"])
-    settings: Dict[str, Any] = Field(..., description=FIELD_DESCRIPTIONS["settings"])
 
 class User(UserBase):
     """Complete user model returned from database (includes auto-generated fields)"""
@@ -102,8 +98,7 @@ class User(UserBase):
     role: UserRole = Field(default=UserRole.USER, description=FIELD_DESCRIPTIONS["role"])
     created_at: datetime = Field(..., description=FIELD_DESCRIPTIONS["created_at"])
     email_verified: bool = Field(default=False, description=FIELD_DESCRIPTIONS["email_verified"])
-    settings: Dict[str, Any] = Field(default_factory=dict, description=FIELD_DESCRIPTIONS["settings"])
-    
+
     def user_to_user_response(self) -> UserResponse:
         """
         Convert User to UserResponse (safe for API responses).
@@ -122,8 +117,7 @@ class User(UserBase):
             diversity_type=self.diversity_type,
             role=self.role,
             created_at=self.created_at,
-            email_verified=self.email_verified,
-            settings=self.settings
+            email_verified=self.email_verified
         )
 
 

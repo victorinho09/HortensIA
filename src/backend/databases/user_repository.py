@@ -236,6 +236,5 @@ class UserRepository:
             passwordHash=user_row.password_hash,
             role=user_row.role,
             email_verified=user_row.email_verified,
-            settings=user_row.settings,
             created_at=user_row.created_at
         )

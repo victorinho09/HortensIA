@@ -3,7 +3,6 @@ import { config } from '../config';
 import { getSession } from '../utils/session';
 import { useCriticalAudioAlert } from './useAudioTTS';
 
-
 export interface DetectedObject {
   class_name: string;
   confidence: number;
@@ -29,12 +28,7 @@ export interface DetectedObject {
   object_risk: number | null;
 }
 
-export type SessionStatus =
-  | 'idle'
-  | 'connecting'
-  | 'streaming'
-  | 'processing'
-  | 'error';
+export type SessionStatus = 'idle' | 'connecting' | 'streaming' | 'processing' | 'error';
 
 export interface FrameTelemetry {
   frame_id: string;
@@ -64,6 +58,11 @@ export interface SceneRiskAssessment {
   dominant_class_name: string | null;
 }
 
+export interface FrameSize {
+  width: number;
+  height: number;
+}
+
 interface DetectionRenderTelemetry {
   frameId: string;
   captureStartedAt: number;
@@ -82,18 +81,14 @@ interface LiveSessionState {
   detections: DetectedObject[];
   lastDetectionTelemetry: DetectionRenderTelemetry | null;
   sceneRisk: SceneRiskAssessment | null;
+  frameSize: FrameSize | null;
 }
 
 export function useLiveSession() {
   const wsRef = useRef<WebSocket | null>(null);
   const frameInFlightRef = useRef(false);
 
-  const {
-    isPlayingAudio,
-    handleSceneRisk,
-    resetAudioAlerts,
-    stopAudio,
-  } = useCriticalAudioAlert();
+  const { isPlayingAudio, handleSceneRisk, resetAudioAlerts, stopAudio } = useCriticalAudioAlert();
 
   const [state, setState] = useState<LiveSessionState>({
     status: 'idle',
@@ -102,6 +97,7 @@ export function useLiveSession() {
     detections: [],
     lastDetectionTelemetry: null,
     sceneRisk: null,
+    frameSize: null,
   });
 
   const start = useCallback(async () => {
@@ -116,6 +112,7 @@ export function useLiveSession() {
         detections: [],
         lastDetectionTelemetry: null,
         sceneRisk: null,
+        frameSize: null,
       });
 
       const sessionId = await getSession();
@@ -155,6 +152,12 @@ export function useLiveSession() {
             const telemetry = msg.telemetry as DetectionTelemetry | undefined;
             const detectionObjects = (msg.objects || []) as DetectedObject[];
             const sceneRisk = (msg.scene_risk ?? null) as SceneRiskAssessment | null;
+            const frameWidthMsg = typeof msg.frame_width === 'number' ? msg.frame_width : null;
+            const frameHeightMsg = typeof msg.frame_height === 'number' ? msg.frame_height : null;
+            const frameSize: FrameSize | null =
+              frameWidthMsg && frameHeightMsg
+                ? { width: frameWidthMsg, height: frameHeightMsg }
+                : null;
 
             if (
               telemetry?.frame_id &&
@@ -266,6 +269,7 @@ export function useLiveSession() {
               sceneRisk,
               isSendingFrame: false,
               status: 'streaming',
+              frameSize: frameSize ?? prev.frameSize,
               lastDetectionTelemetry:
                 telemetry?.frame_id && telemetry.capture_started_at !== null
                   ? {
@@ -347,6 +351,7 @@ export function useLiveSession() {
       detections: [],
       lastDetectionTelemetry: null,
       sceneRisk: null,
+      frameSize: null,
     });
   }, []);
 
