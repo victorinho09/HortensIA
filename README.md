@@ -1,93 +1,253 @@
 # CEU-HortensIA
 
+> Asistente domótico-asistencial para personas con Alzheimer o discapacidad visual.
+> Detecta objetos y escenas en tiempo real mediante la cámara del móvil, evalúa riesgos en entornos domésticos (probado especialmente en cocina) y avisa por audio (TTS) cuando detecta una situación de peligro.
 
+**Stack:** React Native 0.83 (iOS) · Python 3.12 + FastAPI · PostgreSQL 15 · Ultralytics YOLO (modelo YOLO26s)
 
-## Getting started
+---
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Índice
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+1. [Finalidad](#finalidad)
+2. [Arquitectura](#arquitectura)
+3. [Requisitos previos](#requisitos-previos)
+4. [Instalación paso a paso](#instalación-paso-a-paso)
+   - [1. Clonar el repositorio](#1-clonar-el-repositorio)
+   - [2. Base de datos (PostgreSQL)](#2-base-de-datos-postgresql)
+   - [3. Backend (Python / FastAPI)](#3-backend-python--fastapi)
+   - [4. Frontend (React Native)](#4-frontend-react-native)
+   - [5. Configurar Xcode y el iPhone (primera vez)](#5-configurar-xcode-y-el-iphone-primera-vez)
+5. [Arranque y parada](#arranque-y-parada)
+6. [Limitaciones y entorno probado](#limitaciones-y-entorno-probado)
 
-## Add your files
+---
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Finalidad
+
+**CEU-HortensIA** es un asistente pensado para apoyar de forma autónoma a personas mayores con Alzheimer u otras condiciones cognitivas, así como a personas con discapacidad visual, en su entorno doméstico cotidiano.
+
+La aplicación utiliza la cámara trasera del iPhone para capturar el entorno y enviarlo al backend, donde un modelo de visión por computador (**YOLO26s**) identifica objetos y evalúa el nivel de riesgo de la escena. Si se detecta peligro (p. ej. objetos cortantes accesibles), la aplicación notifica al usuario mediante síntesis de voz (TTS) directamente en el teléfono, sin necesidad de interacción manual.
+
+---
+
+## Arquitectura
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/HP-SCDS/Observatorio/2025-2026/hortensia/ceu-hortensia.git
-git branch -M main
-git push -uf origin main
+src/
+├── config.json            ← Configuración central (puertos, usuario BBDD, dispositivo iOS)
+├── yolo26s.pt             ← Pesos del modelo YOLO26s
+├── backend/               ← API REST (FastAPI) + IA (YOLO) + repositorios (SQLAlchemy)
+├── frontend/              ← App iOS (React Native 0.83)
+└── scripts/               ← Scripts de arranque y parada
 ```
 
-## Integrate with your tools
+El backend expone una API REST en `http://localhost:8888` y una conexión WebSocket para el streaming de la cámara. La documentación interactiva de la API está disponible en `http://<host>:8888/docs` cuando el servidor está corriendo.
 
-- [ ] [Set up project integrations](https://gitlab.com/HP-SCDS/Observatorio/2025-2026/hortensia/ceu-hortensia/-/settings/integrations)
+---
 
-## Collaborate with your team
+## Requisitos previos
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+> Plataforma requerida: **macOS** con **Xcode** instalado. El frontend iOS no puede compilarse en Windows ni en Linux.
 
-## Test and Deploy
+| Herramienta | Versión mínima | Instalación |
+|---|---|---|
+| Xcode + Command Line Tools | última estable | App Store + `xcode-select --install` |
+| Homebrew | — | [brew.sh](https://brew.sh) |
+| Node.js | ≥ 20 | `brew install node` |
+| Python | 3.12+ | `brew install python3` |
+| PostgreSQL | 15 | `brew install postgresql@15` |
+| CocoaPods | — | `brew install cocoapods` |
+| Watchman | — | `brew install watchman` (recomendado para Metro) |
 
-Use the built-in continuous integration in GitLab.
+---
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+## Instalación paso a paso
 
-***
+### 1. Clonar el repositorio
 
-# Editing this README
+```bash
+git clone https://gitlab.com/HP-SCDS/Observatorio/2025-2026/hortensia/ceu-hortensia.git
+cd ceu-hortensia
+```
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+### 2. Base de datos (PostgreSQL)
 
-## Suggestions for a good README
+**2.1. Arrancar el servicio**
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+```bash
+brew services start postgresql@15
+```
 
-## Name
-Choose a self-explaining name for your project.
+**2.2. Añadir PostgreSQL al PATH**
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+```bash
+echo 'export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+**2.3. Crear usuario y base de datos**
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+```bash
+# Sustituye <tu_usuario> por el usuario de tu sesión macOS
+createuser -s <tu_usuario>
+createdb HortensIA
+```
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+**2.4. Editar `src/config.json`**
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Abre el fichero `src/config.json` y cambia el campo `database.postgresql.user` por tu usuario de macOS
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+```json
+"database": {
+  "postgresql": {
+    "host": "localhost",
+    "port": 5432,
+    "database": "HortensIA",
+    "user": "<tu_usuario>"
+  }
+}
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+> **Nota:** La conexión usa autenticación local (sin contraseña). Si tu PostgreSQL pide contraseña, añádela en la variable `db_password` dentro de `src/backend/databases/connection.py`.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+**2.5. Inicializar las tablas**
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+```bash
+cd src
+source backend/.tfg/bin/activate   # activa el venv (créalo antes si no existe, ver paso 3)
+python -m backend.databases.create_tables
+```
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+---
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+### 3. Backend (Python / FastAPI)
 
-## License
-For open source projects, say how it is licensed.
+```bash
+cd src/backend
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+# Crear el entorno virtual
+python3 -m venv .tfg
+source .tfg/bin/activate
+
+# Instalar dependencias
+pip install -r requirements.txt
+```
+
+El modelo YOLO26s ya está incluido en el repositorio como `src/yolo26s.pt`; no es necesario descargarlo por separado.
+
+---
+
+### 4. Frontend (React Native)
+
+```bash
+cd src/frontend
+
+# Instalar dependencias Node
+npm install
+
+# Instalar pods de iOS
+cd ios && pod install && cd ..
+```
+
+---
+
+### 5. Configurar Xcode y el iPhone (primera vez)
+
+Estos pasos sólo son necesarios la primera vez que se instala la app en un iPhone físico.
+
+**5.1. Abrir el workspace en Xcode**
+
+```
+src/frontend/ios/TFG.xcworkspace
+```
+
+Abre **siempre** el fichero `.xcworkspace`, no el `.xcodeproj`.
+
+**5.2. Firma del código (Signing)**
+
+1. Xcode → **Settings → Accounts** → añade tu Apple ID si no está.
+2. Selecciona el target `TFG` en el panel de la izquierda.
+3. Pestaña **Signing & Capabilities** → activa **Automatically manage signing**.
+4. Elige tu cuenta en **Team** (un Personal Team de Apple ID gratuito es suficiente para desarrollo local).
+5. Si el *Bundle Identifier* actual ya está registrado, cámbialo por algo único (p. ej. `com.tunombre.tfg`).
+
+**5.3. Conectar el iPhone por USB (primera vez)**
+
+1. Conecta el iPhone al Mac mediante **cable USB** (Lightning o USB-C según el modelo).
+2. Desbloquea el iPhone y, si aparece el diálogo, pulsa **"Confiar en este ordenador"** y confirma con tu código.
+
+**5.4. Activar el Modo Desarrollador en el iPhone**
+
+En el iPhone: **Ajustes → Privacidad y seguridad → Modo Desarrollador** → actívalo y reinicia el dispositivo cuando se pida.
+
+**5.5. Confiar en el perfil del desarrollador**
+
+Tras instalar la app la primera vez, iOS la bloqueará hasta que confíes en el certificado:
+
+**Ajustes → General → VPN y gestión de dispositivos** → tu Apple ID → **Confiar**
+
+**5.6. Configurar el nombre del dispositivo**
+
+Edita `src/config.json` y cambia `frontend.ios.device` por el nombre exacto de tu iPhone tal como aparece en **Ajustes → General → Información → Nombre** (por defecto hay un nombre personal que no coincidirá con el tuyo):
+
+```json
+"frontend": {
+  "ios": {
+    "device": "<Nombre de tu iPhone>"
+  }
+}
+```
+
+**5.7. Permisos en el primer arranque**
+
+La app solicitará permisos de **Cámara** y **Notificaciones**. Es necesario aceptarlos todos para que funcione correctamente.
+
+---
+
+## Arranque y parada
+
+Todos los scripts se ejecutan desde la **raíz del repositorio** (`ceu-hortensia/`).
+
+### Simulador iOS
+
+```bash
+# Arrancar PostgreSQL + backend + simulador
+sh src/scripts/start.sh
+
+# Parar todo
+sh src/scripts/stop.sh
+```
+
+### iPhone físico (recomendado)
+
+Mac e iPhone deben estar conectados a la **misma red Wi-Fi**. El script detecta automáticamente la IP local del Mac y la inyecta en `src/frontend/config.ts`.
+
+```bash
+# Arrancar PostgreSQL + backend (0.0.0.0:8888) + compilar y lanzar en el iPhone
+sh src/scripts/start_device.sh
+
+# Parar todo (la app en el iPhone se cierra manualmente)
+sh src/scripts/stop_device.sh
+```
+
+### URLs útiles
+
+| Recurso | URL |
+|---|---|
+| API REST (docs) | `http://<IP_Mac>:8888/docs` |
+| Logs del backend | `tail -f /tmp/backend.log` |
+
+---
+
+## Limitaciones y entorno probado
+
+- **Dispositivo probado:** iPhone 14 Pro. Debería funcionar en cualquier iPhone moderno compatible con React Native 0.83 (iOS 16+), aunque no se ha verificado en otros modelos.
+- **Entorno de desarrollo:** MacBook Pro con chip Apple Silicon (M1). Xcode es **obligatorio** para compilar la app iOS; el frontend no puede construirse en Windows ni en Linux.
+- **Escenario validado:** entorno doméstico, con especial énfasis en **cocina**. El rendimiento de detección puede variar en otros contextos.
+- **Red local (LAN):** el backend no implementa TLS ni autenticación de red. No está preparado para exposición en Internet.
+- **Base de datos:** PostgreSQL local sin contraseña (autenticación trust local). Debe securizarse antes de cualquier despliegue real.
+
+---
+
+*Proyecto desarrollado como Trabajo de Fin de Grado (TFG) — CEU Universidad San Pablo.*
