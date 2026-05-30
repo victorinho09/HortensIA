@@ -147,9 +147,18 @@ cd src/frontend
 
 # Instalar dependencias Node
 npm install
+```
 
-# Instalar pods de iOS
-cd ios && pod install && cd ..
+**Instalar pods de iOS**
+
+
+```bash
+# Descargar el tarball de Hermes desde Maven Central
+curl -L -o /tmp/hermes-ios-debug.tar.gz \
+  "https://repo1.maven.org/maven2/com/facebook/hermes/hermes-ios/0.14.1/hermes-ios-0.14.1-hermes-ios-debug.tar.gz"
+
+# Instalar los pods usando el tarball local
+cd ios && HERMES_ENGINE_TARBALL_PATH=/tmp/hermes-ios-debug.tar.gz pod install && cd ..
 ```
 
 ---
