@@ -70,7 +70,7 @@ El backend expone una API REST en `http://localhost:8888` y una conexión WebSoc
 
 ```bash
 git clone https://gitlab.com/HP-SCDS/Observatorio/2025-2026/hortensia/ceu-hortensia.git
-cd ceu-hortensia
+cd HortensIA
 ```
 
 ### 2. Base de datos (PostgreSQL)
