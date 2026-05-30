@@ -1,5 +1,7 @@
 # CEU-HortensIA
 
+> ### Proyecto desarrollado en colaboración con **HP Inc.**
+
 > Asistente domótico-asistencial para personas con Alzheimer o discapacidad visual.
 > Detecta objetos y escenas en tiempo real mediante la cámara del móvil, evalúa riesgos en entornos domésticos (probado especialmente en cocina) y avisa por audio (TTS) cuando detecta una situación de peligro.
 
