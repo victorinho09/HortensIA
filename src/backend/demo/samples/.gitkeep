@@ -1,0 +1,9 @@
+# Place your test images here.
+#
+# Drop .jpg / .jpeg / .png files in this folder. The simulator client
+# (backend/demo/simulate_client.py) will read every image found here,
+# send it to the detection server through the WebSocket and print the
+# detected objects and the scene risk assessment.
+#
+# This folder is mounted into both the server and the simulator containers
+# by docker-compose, so you can add or change images without rebuilding.

@@ -1,0 +1,43 @@
+# =============================================================================
+# HortensIA - Dockerized detection demo
+# =============================================================================
+# One-command setup for the TFG jury:
+#
+#   docker compose up --build server      # start the detection/risk server
+#   docker compose run --rm simulator     # send stored sample images and see results
+#
+# See backend/demo/README.md for full instructions.
+# =============================================================================
+
+services:
+  # FastAPI detection + risk-assessment server (demo mode, CPU-only, no database).
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hortensia-detection
+    container_name: hortensia-server
+    environment:
+      HORTENSIA_DEMO_MODE: "1"
+    ports:
+      - "8888:8888"
+    volumes:
+      # Sample images can be added/changed without rebuilding the image.
+      - ./backend/demo/samples:/app/backend/demo/samples
+
+  # WebSocket simulator: replays stored images as if they came from the mobile app.
+  simulator:
+    image: hortensia-detection
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hortensia-simulator
+    depends_on:
+      - server
+    environment:
+      # Inside the compose network the server is reachable by its service name.
+      SERVER_WS_URL: "ws://server:8888"
+      SAMPLES_DIR: "/app/backend/demo/samples"
+    volumes:
+      - ./backend/demo/samples:/app/backend/demo/samples
+    command: ["python", "-m", "backend.demo.simulate_client"]

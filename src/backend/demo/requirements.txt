@@ -1,0 +1,5 @@
+# Dependencies for the demo WebSocket simulator client (backend/demo/simulate_client.py)
+# Pillow is already pulled in by the AI requirements, but it is listed here so the
+# simulator can also be run in isolation.
+websockets>=12.0
+pillow>=10.0.0

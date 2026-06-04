@@ -9,6 +9,7 @@ and sends back alerts/detections/status messages.
 
 import json
 import logging
+import os
 import time
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -26,6 +27,16 @@ from backend.ai.yolo.detector import YOLODetector
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+def _is_demo_mode() -> bool:
+    """
+    Whether the server runs in demo mode (e.g. inside Docker for the TFG jury).
+    In demo mode the WebSocket session validation against PostgreSQL is skipped,
+    so the detection pipeline can be exercised without a database or real auth.
+    Controlled by the HORTENSIA_DEMO_MODE environment variable.
+    """
+    return os.getenv("HORTENSIA_DEMO_MODE", "").strip().lower() in {"1", "true", "yes", "on"}
 
 async def _send_message(websocket: WebSocket, message) -> None:
     """
@@ -64,18 +75,23 @@ async def live_session(websocket: WebSocket, session_id: str):
     """
     detector = YOLODetector()
 
-    # In REST endpoints, FastAPI handles the db session lifecycle automatically via Depends(get_db).
-    # WebSockets are not managed by FastAPI's dependency injection after the connection is established,
-    # so we must manually obtain the session with next() and close it ourselves in the finally block.
-    db = next(get_db())
+    if _is_demo_mode():
+        # Demo mode (Docker/TFG): skip database-backed session validation entirely
+        # so the detection pipeline can be tested with stored sample images.
+        logger.warning("DEMO MODE active: skipping session validation for session_id=%s", session_id)
+    else:
+        # In REST endpoints, FastAPI handles the db session lifecycle automatically via Depends(get_db).
+        # WebSockets are not managed by FastAPI's dependency injection after the connection is established,
+        # so we must manually obtain the session with next() and close it ourselves in the finally block.
+        db = next(get_db())
 
-    try: 
-        user = await validate_session(session_id, db)
-        if not user: 
-            await websocket.close(code=4001, reason="Invalid or expired session id")
-            return
-    finally:
-        db.close()
+        try: 
+            user = await validate_session(session_id, db)
+            if not user: 
+                await websocket.close(code=4001, reason="Invalid or expired session id")
+                return
+        finally:
+            db.close()
     
     #Accept connection
     await websocket.accept()
